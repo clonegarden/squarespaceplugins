@@ -1,13 +1,13 @@
 name: Auto-Minify JavaScript
 
-on:  
+on:
   push:
-    branches:  
+    branches:
       - main
     paths:
-      - '**/*.js'
-      - '! **/*.min.js'
-  workflow_dispatch:
+      - '**/*. js'
+      - '!**/*.min.js'
+  workflow_dispatch: 
 
 permissions:
   contents: write
@@ -16,26 +16,55 @@ jobs:
   minify: 
     runs-on: ubuntu-latest
     
-    steps: 
-      - name: Checkout code
+    steps:
+      - name:  Checkout code
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets. GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
-        with:
+        with: 
           node-version: '20'
 
       - name: Install Terser
         run: npm install -g terser
 
-      - name:  Minify shared/licensing.js
+      - name: Minify shared licensing
         run: |
           if [ -f "_shared/licensing. js" ]; then
             echo "Found _shared/licensing.js"
-            terser _shared/licensing.js \
-              --compress \
-              --mangle keep_classnames=true \
-              --comments](#)**
-
+            terser _shared/licensing.js --compress --mangle keep_classnames=true --comments "/^!/" --output _shared/licensing.min.js
+            echo "Created _shared/licensing. min.js"
+            ls -lh _shared/licensing.min.js
+          else
+            echo "Warning: _shared/licensing. js not found"
+          fi
+
+      - name: Minify plugins
+        run: |
+          for plugin in */; do
+            plugin_name="${plugin%/}"
+            if [[ "$plugin_name" == "node_modules" ]] || [[ "$plugin_name" == "_shared" ]] || [[ "$plugin_name" == "scripts" ]] || [[ "$plugin_name" == ".github" ]] || [[ "$plugin_name" == "docs" ]]; then
+              continue
+            fi
+            if [ -f "${plugin}${plugin_name}.js" ]; then
+              echo "Found ${plugin}${plugin_name}. js"
+              terser "${plugin}${plugin_name}.js" --compress --mangle keep_classnames=true --comments "/^! /" --output "${plugin}${plugin_name}. min.js"
+              echo "Created ${plugin}${plugin_name}.min.js"
+              ls -lh "${plugin}${plugin_name}.min.js"
+            fi
+          done
+
+      - name: Commit minified files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply. github.com"
+          git add **/*.min.js 2>/dev/null || true
+          if git diff --staged --quiet; then
+            echo "No minified files to commit"
+          else
+            git commit -m "Auto-minify JavaScript files [skip ci]"
+            git push
+            echo "Committed and pushed minified files"
+          fi
