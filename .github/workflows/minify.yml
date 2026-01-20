@@ -32,13 +32,13 @@ jobs:
 
       - name: Minify shared licensing
         run: |
-          if [ -f "_shared/licensing. js" ]; then
+          if [ -f "_shared/licensing.js" ]; then
             echo "Found _shared/licensing.js"
             terser _shared/licensing.js --compress --mangle keep_classnames=true --comments "/^!/" --output _shared/licensing.min.js
-            echo "Created _shared/licensing. min.js"
+            echo "Created _shared/licensing.min.js"
             ls -lh _shared/licensing.min.js
           else
-            echo "Warning: _shared/licensing. js not found"
+            echo "Warning: _shared/licensing.js not found"
           fi
 
       - name: Minify plugins
@@ -49,7 +49,7 @@ jobs:
               continue
             fi
             if [ -f "${plugin}${plugin_name}.js" ]; then
-              echo "Found ${plugin}${plugin_name}. js"
+              echo "Found ${plugin}${plugin_name}.js"
               terser "${plugin}${plugin_name}.js" --compress --mangle keep_classnames=true --comments "/^! /" --output "${plugin}${plugin_name}.min.js"
               echo "Created ${plugin}${plugin_name}.min.js"
               ls -lh "${plugin}${plugin_name}.min.js"
