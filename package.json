@@ -1,0 +1,101 @@
+{
+  "name": "@clonegarden/squarespace-plugins",
+  "version": "1.0.0",
+  "description": "Professional Squarespace plugins by Anavo Tech",
+  "author": "Anavo Tech <hello@anavo.tech>",
+  "license": "SEE LICENSE IN LICENSE. md",
+  "homepage": "https://anavo.tech/plugins",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/clonegarden/squarespace-plugins.git"
+  },
+  "bugs": {
+    "url": "https://github.com/clonegarden/squarespace-plugins/issues",
+    "email": "support@institutomalleusdei.org"
+  },
+  "keywords": [
+    "squarespace",
+    "plugins",
+    "squarespace-plugins",
+    "squarespace-code-block",
+    "quotation-builder",
+    "squarekicker-alternative",
+    "web-components"
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "scripts": {
+    "build": "npm run build:all",
+    "build:all":  "node scripts/build-all.js",
+    "build:quotation-builder": "npm run minify quotation-builder/quotation-builder.js",
+    "minify": "node scripts/minify.js",
+    "watch": "node scripts/watch.js",
+    "dev": "npm run watch",
+    "create-plugin": "node scripts/create-plugin.js",
+    "lint": "eslint **/*.js --ignore-pattern '*. min.js'",
+    "lint:fix": "eslint **/*.js --ignore-pattern '*. min.js' --fix",
+    "format": "prettier --write '**/*.{js,json,md,html,css}'",
+    "format:check":  "prettier --check '**/*.{js,json,md,html,css}'",
+    "test":  "echo \"No tests yet\" && exit 0",
+    "validate": "npm run lint && npm run format:check",
+    "version": "node scripts/version-bump.js",
+    "changelog": "node scripts/generate-changelog.js",
+    "release": "npm run validate && npm run build && npm version",
+    "pre-commit": "npm run validate",
+    "serve": "http-server -p 8080 -c-1",
+    "check-licenses": "node scripts/check-licenses.js"
+  },
+  "devDependencies":  {
+    "terser": "^5.36.0",
+    "eslint": "^8.57.0",
+    "prettier":  "^3.2.4",
+    "chokidar": "^3.5.3",
+    "http-server": "^14.1.1",
+    "fs-extra": "^11.2.0",
+    "chalk": "^5.3.0",
+    "ora": "^8.0.1",
+    "inquirer": "^9.2.12",
+    "glob": "^10.3.10"
+  },
+  "prettier": {
+    "semi": true,
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "es5",
+    "printWidth": 100,
+    "arrowParens": "avoid"
+  },
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "es2021": true,
+      "node":  true
+    },
+    "extends": "eslint:recommended",
+    "parserOptions": {
+      "ecmaVersion": "latest",
+      "sourceType":  "module"
+    },
+    "rules": {
+      "no-console": "off",
+      "no-unused-vars": [
+        "warn",
+        {
+          "argsIgnorePattern": "^_"
+        }
+      ]
+    }
+  },
+  "jsdelivr": {
+    "files": [
+      "**/*.min.js",
+      "**/*. min.css"
+    ]
+  },
+  "funding": {
+    "type": "commercial",
+    "url": "https://anavo.tech/plugins"
+  }
+}
