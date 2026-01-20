@@ -1,21 +1,189 @@
-MIT License
+# Commercial Software License
 
-Copyright (c) 2026 clonegarden
+**Copyright © 2026 Instituto Malleus Dei.  All rights reserved.**
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+---
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+## Grant of License
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Instituto Malleus Dei ("Licensor") grants you ("Licensee") a **non-exclusive, non-transferable, commercial license** to use the software plugins contained in this repository ("Software"), subject to the terms and conditions below.
+
+---
+
+## Permitted Uses
+
+With a valid license, you MAY: 
+
+✅ **Install** the Software on client websites after purchasing a license  
+✅ **Modify** the Software's configuration and styling for your specific needs  
+✅ **Deploy** the Software on unlimited domains registered under your license  
+✅ **Include** the Software in client projects you develop professionally  
+✅ **Customize** appearance through provided configuration options  
+
+---
+
+## Restrictions
+
+You MAY NOT: 
+
+❌ **Resell** the Software as a standalone product  
+❌ **Redistribute** the Software in any form (source or compiled)  
+❌ **Sublicense** the Software to third parties  
+❌ **Remove** or modify licensing, attribution, or copyright notices  
+❌ **Reverse engineer** the licensing mechanism  
+❌ **Create derivative works** for redistribution  
+❌ **Use** on unlicensed domains without activation  
+❌ **Share** license keys with unauthorized parties  
+
+---
+
+## License Types
+
+### Individual License ($XX/plugin)
+- ✅ Use on **1 domain**
+- ✅ Lifetime updates
+- ✅ Email support
+- ✅ Commercial use allowed
+
+### Agency License ($XX/plugin)
+- ✅ Use on **10 client domains**
+- ✅ Lifetime updates
+- ✅ Priority email support
+- ✅ Commercial use allowed
+- ✅ Client white-labeling permitted
+
+### Enterprise License ($XX/plugin)
+- ✅ Use on **unlimited domains**
+- ✅ Lifetime updates
+- ✅ Priority support + phone/video
+- ✅ Commercial use allowed
+- ✅ Full white-labeling
+- ✅ Custom feature requests
+- ✅ Source code access (optional)
+
+---
+
+## Activation & Verification
+
+The Software includes a licensing mechanism that: 
+
+1. **Verifies** your domain is registered with Instituto Malleus Dei
+2. **Checks** license status on plugin initialization
+3. **Enforces** license terms through technical measures
+4. **Reports** anonymous usage statistics (domain verification only)
+
+**Privacy:** We only collect: 
+- ✅ Domain name (for license verification)
+- ✅ Plugin version number
+- ✅ Activation timestamp
+
+**We DO NOT collect:**
+- ❌ User personal information
+- ❌ Website content or data
+- ❌ Visitor analytics
+- ❌ Business information
+
+---
+
+## Development & Testing
+
+### Free Use for Development
+
+You MAY use the Software **without a license** on:
+- `localhost` (any port)
+- `*.local` domains
+- `staging-*.squarespace.com`
+- `*.sqsp.com`
+
+**Limitation:** Development versions display a watermark and have limited functionality.
+
+---
+
+## Support & Updates
+
+### Included with License
+
+- ✅ **Updates:** All minor and patch updates (v1.x.x)
+- ✅ **Bug Fixes:** Critical security and functionality fixes
+- ✅ **Documentation:** Access to all documentation and examples
+- ✅ **Support:** Email support with 24-48 hour response time
+
+### Not Included (Requires Separate Purchase)
+
+- ❌ **Major Upgrades:** v2.0.0 and beyond (discounted upgrade pricing)
+- ❌ **Custom Development:** Feature requests, custom modifications
+- ❌ **Phone/Video Support:** Available with Enterprise license only
+- ❌ **Training:** Available as separate service
+
+---
+
+## Warranty Disclaimer
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. 
+
+---
+
+## Limitation of Liability
+
+IN NO EVENT SHALL INSTITUTO MALLEUS DEI BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+
+**Maximum Liability:** Licensor's total liability shall not exceed the amount paid for the license.
+
+---
+
+## Termination
+
+This license is effective until terminated. Your rights will terminate automatically without notice if you fail to comply with any term.  Upon termination, you must: 
+
+1. **Cease** all use of the Software
+2. **Remove** the Software from all websites
+3. **Destroy** all copies in your possession
+
+---
+
+## Refund Policy
+
+- **30-day money-back guarantee** for Individual licenses
+- **7-day trial period** for Agency and Enterprise licenses
+- Refunds processed within 5-7 business days
+- Must provide reason for refund request
+
+---
+
+## Governing Law
+
+This license shall be governed by the laws of [Your Jurisdiction], without regard to conflict of law principles.
+
+---
+
+## Contact
+
+**License Questions:** licensing@institutomalleusdei. org  
+**Technical Support:** support@institutomalleusdei.org  
+**Sales:** sales@institutomalleusdei. org  
+
+**Mailing Address:**  
+Instituto Malleus Dei  
+[Your Address]  
+[City, State, ZIP]  
+[Country]
+
+---
+
+## Acknowledgment
+
+BY INSTALLING OR USING THE SOFTWARE, YOU ACKNOWLEDGE THAT YOU HAVE READ THIS LICENSE, UNDERSTAND IT, AND AGREE TO BE BOUND BY ITS TERMS AND CONDITIONS.
+
+If you do not agree to these terms, do not install or use the Software.
+
+---
+
+**Version:** 1.0  
+**Last Updated:** 2026-01-20  
+**Effective Date:** 2026-01-20  
+
+---
+
+<p align="center">
+  <strong>© 2026 Instituto Malleus Dei. All Rights Reserved.</strong>
+</p>
