@@ -1,7 +1,7 @@
 /**
- * ========================================
+ * =======================================
  * ANAVO TECH - UNIVERSAL LICENSING SYSTEM
- * ========================================
+ * =======================================
  * Used by ALL Anavo Tech Squarespace plugins
  * @version 1.1.0
  * @author Anavo Tech
