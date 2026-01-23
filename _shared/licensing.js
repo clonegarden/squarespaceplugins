@@ -7,7 +7,7 @@
  * @author Anavo Tech
  * @copyright 2026 Anavo Tech.  All rights reserved.
  * 
- * CDN:  https://cdn.jsdelivr.net/gh/clonegarden/squarespace-plugins@latest/_shared/licensing.min.js
+ * CDN:  https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licensing.min.js
  * 
  * CHANGELOG v1.1.0:
  * - Made truly universal (no plugin-specific references)
