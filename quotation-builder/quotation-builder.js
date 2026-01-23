@@ -28,7 +28,7 @@
       console.log('📦 Loading licensing module...');
 
       const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/gh/clonegarden/squarespace-plugins@latest/_shared/licensing.min.js';
+      script.src = 'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licensing.min.js';
       script.async = false;
       
       script.onload = () => {
