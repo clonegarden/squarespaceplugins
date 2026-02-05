@@ -1,0 +1,36 @@
+{
+  "global_whitelist": [
+    "localhost",
+    "127.0.0.1",
+    "*.local",
+    "*.sqsp.com",
+    "*.squarespace.com"
+  ],
+  "licenses": {
+    "SimpleCountdownTimer": {
+      "license_key": "lic_e64xaao6ayq",
+      "license_type": "standard",
+      "allowed_domains": [
+        "yoursite.com",
+        "*.yoursite.com",
+        "test-site.squarespace.com"
+      ],
+      "features": [
+        "customization",
+        "no_watermark"
+      ],
+      "expires": null
+    },
+    "SimpleCountdownTimer_Test": {
+      "license_key": "lic_test123",
+      "license_type": "trial",
+      "allowed_domains": [
+        "*"
+      ],
+      "features": [
+        "customization"
+      ],
+      "expires": "2026-12-31T23:59:59Z"
+    }
+  }
+}
