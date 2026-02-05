@@ -20,8 +20,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }}
-          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -31,29 +30,80 @@ jobs:
       - name: Install Terser
         run: npm install -g terser
 
-      - name: Minify all JavaScript files
+      - name: Minify shared licensing
         run: |
-          # Minify shared licensing
           if [ -f "_shared/licensing.js" ]; then
-            terser _shared/licensing.js --compress --mangle keep_classnames=true --comments "/^!/" --output _shared/licensing.min.js
-            echo "✅ Minified _shared/licensing.js"
+            echo "✅ Minifying _shared/licensing.js"
+            terser _shared/licensing.js \
+              --compress \
+              --mangle keep_classnames=true \
+              --comments "/^!/" \
+              --output _shared/licensing.min.js
           fi
-          
-          # Minify all plugin files
-          find . -name "*.js" -not -name "*.min.js" -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/scripts/*" | while read file; do
-            dir=$(dirname "$file")
-            base=$(basename "$file" .js)
-            output="$dir/$base.min.js"
+
+      - name: Minify all plugins
+        run: |
+          for plugin in */; do
+            plugin_name="${plugin%/}"
             
-            if terser "$file" --compress --mangle keep_classnames=true --comments "/^!/" --output "$output"; then
-              echo "✅ Minified: $file → $output"
+            # Skip non-plugin directories
+            if [[ "$plugin_name" == "node_modules" ]] || \
+               [[ "$plugin_name" == "_shared" ]] || \
+               [[ "$plugin_name" == "scripts" ]] || \
+               [[ "$plugin_name" == ".github" ]] || \
+               [[ "$plugin_name" == "docs" ]]; then
+              continue
+            fi
+            
+            # Minify if plugin file exists
+            if [ -f "${plugin}${plugin_name}.js" ]; then
+              echo "✅ Minifying ${plugin}${plugin_name}.js"
+              terser "${plugin}${plugin_name}.js" \
+                --compress \
+                --mangle keep_classnames=true \
+                --comments "/^!/" \
+                --output "${plugin}${plugin_name}.min.js"
             fi
           done
 
-      - name: Commit and push if changed
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "Auto-minify JavaScript files [skip ci]"
-          file_pattern: "**/*.min.js"
-          commit_user_name: github-actions[bot]
-          commit_user_email: github-actions[bot]@users.noreply.github.com
+      - name: Commit and push minified files
+        run: |
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Pull latest changes with rebase
+          echo "📥 Pulling latest changes..."
+          git pull --rebase origin main || {
+            echo "⚠️ Pull failed, trying without rebase..."
+            git pull origin main || echo "Pull skipped"
+          }
+          
+          # Stage minified files
+          git add **/*.min.js 2>/dev/null || true
+          
+          # Check if there are changes
+          if git diff --staged --quiet; then
+            echo "ℹ️ No new minified files to commit"
+            exit 0
+          fi
+          
+          # Commit
+          git commit -m "🤖 Auto-minify JavaScript files [skip ci]"
+          
+          # Push with retry
+          for i in {1..3}; do
+            echo "📤 Push attempt $i/3..."
+            
+            if git push origin main; then
+              echo "✅ Successfully pushed minified files!"
+              exit 0
+            fi
+            
+            echo "⚠️ Push failed, pulling again..."
+            git pull --rebase origin main || git pull origin main
+            sleep 2
+          done
+          
+          echo "❌ Failed to push after 3 attempts"
+          exit 1
