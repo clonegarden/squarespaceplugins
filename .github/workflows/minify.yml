@@ -30,56 +30,51 @@ jobs:
       - name: Install Terser
         run: npm install -g terser
 
-      - name: Minify shared licensing
+      - name: Find and minify all JavaScript files
         run: |
-          if [ -f "_shared/licensing.js" ]; then
-            echo "✅ Minifying _shared/licensing.js"
-            terser _shared/licensing.js \
+          echo "🔍 Finding all .js files (excluding .min.js)..."
+          
+          # Find all .js files, excluding minified, node_modules, etc.
+          find . -type f -name "*.js" \
+            -not -name "*.min.js" \
+            -not -path "*/node_modules/*" \
+            -not -path "*/.git/*" \
+            -not -path "*/scripts/*" \
+            -not -path "*/.github/*" | while read jsfile; do
+            
+            # Get directory and filename
+            dir=$(dirname "$jsfile")
+            filename=$(basename "$jsfile" .js)
+            minified="${dir}/${filename}.min.js"
+            
+            echo "📦 Minifying: $jsfile"
+            
+            # Minify with Terser
+            terser "$jsfile" \
               --compress \
               --mangle keep_classnames=true \
               --comments "/^!/" \
-              --output _shared/licensing.min.js
-          fi
-
-      - name: Minify all plugins
-        run: |
-          for plugin in */; do
-            plugin_name="${plugin%/}"
+              --output "$minified"
             
-            # Skip non-plugin directories
-            if [[ "$plugin_name" == "node_modules" ]] || \
-               [[ "$plugin_name" == "_shared" ]] || \
-               [[ "$plugin_name" == "scripts" ]] || \
-               [[ "$plugin_name" == ".github" ]] || \
-               [[ "$plugin_name" == "docs" ]]; then
-              continue
-            fi
-            
-            # Minify if plugin file exists
-            if [ -f "${plugin}${plugin_name}.js" ]; then
-              echo "✅ Minifying ${plugin}${plugin_name}.js"
-              terser "${plugin}${plugin_name}.js" \
-                --compress \
-                --mangle keep_classnames=true \
-                --comments "/^!/" \
-                --output "${plugin}${plugin_name}.min.js"
+            if [ -f "$minified" ]; then
+              echo "   ✅ Created: $minified"
+            else
+              echo "   ⚠️ Failed to create: $minified"
             fi
           done
+          
+          echo ""
+          echo "🎉 Minification complete!"
 
       - name: Commit and push minified files
         run: |
-          # Configure git
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Pull latest changes with rebase
-          echo "📥 Pulling latest changes..."
-          git pull --rebase origin main || {
-            echo "⚠️ Pull failed, trying without rebase..."
-            git pull origin main || echo "Pull skipped"
-          }
+          # Pull latest changes
+          git pull --rebase origin main || git pull origin main || true
           
-          # Stage minified files
+          # Stage all minified files
           git add **/*.min.js 2>/dev/null || true
           
           # Check if there are changes
@@ -87,6 +82,10 @@ jobs:
             echo "ℹ️ No new minified files to commit"
             exit 0
           fi
+          
+          # Show what's being committed
+          echo "📝 Files to commit:"
+          git diff --staged --name-only
           
           # Commit
           git commit -m "🤖 Auto-minify JavaScript files [skip ci]"
@@ -96,11 +95,11 @@ jobs:
             echo "📤 Push attempt $i/3..."
             
             if git push origin main; then
-              echo "✅ Successfully pushed minified files!"
+              echo "✅ Successfully pushed!"
               exit 0
             fi
             
-            echo "⚠️ Push failed, pulling again..."
+            echo "⚠️ Retrying..."
             git pull --rebase origin main || git pull origin main
             sleep 2
           done
