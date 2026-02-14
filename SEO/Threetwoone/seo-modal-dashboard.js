@@ -7,7 +7,7 @@
  * @license Commercial
  * 
  * USAGE:
- * <script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/SEO/Threetwoone/seo-modal-dashboard.min.js"></script>
+ * <script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/SEO/Threetwoone/seo-modal-dashboard.js"></script>
  * 
  * This plugin injects SEO-optimized structured data, noscript fallbacks, 
  * and interactive modal system for Squarespace sites.
