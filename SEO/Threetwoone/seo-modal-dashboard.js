@@ -107,7 +107,7 @@
         <address>
           <p><strong itemprop="name">Three One Two Bridal</strong></p>
           <p>Serving <span itemprop="addressLocality">Chicago</span>, <span itemprop="addressRegion">Illinois</span> and Destination Weddings Nationwide</p>
-          <p>Phone: <a href="tel:+1-XXX-XXX-XXXX" itemprop="telephone">(XXX) XXX-XXXX</a></p>
+          <p>Phone: <a href="tel:" itemprop="telephone"></a></p>
           <p>Email: <a href="mailto:info@threeonetwobridal.com" itemprop="email">info@threeonetwobridal.com</a></p>
           <p>Instagram: <a href="https://www.instagram.com/threeonetwobridal" target="_blank">@threeonetwobridal</a></p>
         </address>
