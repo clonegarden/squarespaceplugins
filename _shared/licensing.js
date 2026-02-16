@@ -125,37 +125,41 @@
     validateDomain(licenseData) {
       const currentDomain = window.location.hostname.toLowerCase();
       
-      if (this.matchesDomain(currentDomain, licenseData. global_whitelist)) {
+      // ✅ CHECK PLUGIN LICENSE FIRST
+      const pluginLicense = licenseData.licenses[this.pluginName];
+      
+      if (pluginLicense) {
+        // Plugin has a specific license entry - check if domain is allowed
+        if (this.matchesDomain(currentDomain, pluginLicense.allowed_domains)) {
+          // Check expiration
+          if (pluginLicense.expires) {
+            const expiryDate = new Date(pluginLicense.expires);
+            if (expiryDate < new Date()) {
+              return { licensed: false, type: 'expired' };
+            }
+          }
+
+          // Valid license found!
+          this.isLicensed = true;
+          this.licenseType = pluginLicense.license_type;
+          
+          return {
+            licensed: true,
+            type: pluginLicense.license_type,
+            features: pluginLicense.features
+          };
+        }
+      }
+      
+      // ⚠️ THEN check global whitelist (for development mode)
+      if (this.matchesDomain(currentDomain, licenseData.global_whitelist)) {
         this.isLicensed = false;
         this.licenseType = 'development';
         return { licensed: false, type: 'development' };
       }
 
-      const pluginLicense = licenseData.licenses[this.pluginName];
-      
-      if (! pluginLicense) {
-        return { licensed: false, type: 'none' };
-      }
-
-      if (this.matchesDomain(currentDomain, pluginLicense.allowed_domains)) {
-        if (pluginLicense.expires) {
-          const expiryDate = new Date(pluginLicense.expires);
-          if (expiryDate < new Date()) {
-            return { licensed: false, type: 'expired' };
-          }
-        }
-
-        this.isLicensed = true;
-        this.licenseType = pluginLicense. license_type;
-        
-        return {
-          licensed: true,
-          type: pluginLicense.license_type,
-          features: pluginLicense.features
-        };
-      }
-
-      return { licensed: false, type: 'invalid' };
+      // No license found
+      return { licensed: false, type: 'none' };
     }
 
     matchesDomain(current, allowedList) {
