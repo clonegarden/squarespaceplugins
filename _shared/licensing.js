@@ -3,11 +3,15 @@
  * ANAVO TECH - UNIVERSAL LICENSING SYSTEM
  * =======================================+
  * Used by ALL Anavo Tech Squarespace plugins
- * @version 1.1.0
+ * @version 1.2.0
  * @author Anavo Tech
- * @copyright 2026 Anavo Tech.  All rights reserved.
+ * @copyright 2026 Anavo Tech. All rights reserved.
  * 
- * CDN:  https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licensing.min.js
+ * CDN: https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licensing.min.js
+ * 
+ * CHANGELOG v1.2.0:
+ * - ✅ FIX: Plugin licenses now checked BEFORE global whitelist
+ * - ✅ FIX: Licensed domains on *.squarespace.com now work correctly
  * 
  * CHANGELOG v1.1.0:
  * - Made truly universal (no plugin-specific references)
@@ -23,17 +27,17 @@
     constructor(pluginName, version, options = {}) {
       this.pluginName = pluginName;
       this.version = version;
-      this.licenseServer = options.licenseServer || 'https://anavotech.com/api/licenses. json';
+      this.licenseServer = options.licenseServer || 'https://anavotech.com/api/licenses.json';
       this.checkInterval = options.checkInterval || 3600000; // 1 hour
       this.showUI = options.showUI !== false; // Default true
       this.cachedLicense = null;
       this.isLicensed = false;
-      this. licenseType = null;
+      this.licenseType = null;
       
       // 🔓 BYPASS DOMAINS - No license check needed
       this.bypassDomains = [
         'shallot-cone-9wym.squarespace.com',
-        'anavo. tech',
+        'anavo.tech',
         'www.anavo.tech'
       ];
     }
@@ -45,7 +49,7 @@
       if (this.isBypassDomain()) {
         console.log('🔓 Bypass domain - Full access granted');
         this.isLicensed = true;
-        this. licenseType = 'bypass';
+        this.licenseType = 'bypass';
         return { licensed: true, type: 'bypass' };
       }
       
@@ -76,27 +80,27 @@
     }
 
     isBypassDomain() {
-      const hostname = window.location.hostname. toLowerCase();
+      const hostname = window.location.hostname.toLowerCase();
       return this.bypassDomains.some(domain => {
-        return hostname === domain. toLowerCase() || 
+        return hostname === domain.toLowerCase() || 
                hostname.endsWith('.' + domain.toLowerCase());
       });
     }
 
     isDevelopment() {
-      const hostname = window.location.hostname. toLowerCase();
+      const hostname = window.location.hostname.toLowerCase();
       const devPatterns = [
         'localhost',
         '127.0.0.1',
-        '. local',
+        '.local',
         '.sqsp.com',
         '.squarespace.com',
         'staging-'
       ];
       
       return devPatterns.some(pattern => {
-        if (pattern.startsWith('. ')) {
-          return hostname.endsWith(pattern) || hostname. includes(pattern);
+        if (pattern.startsWith('.')) {
+          return hostname.endsWith(pattern) || hostname.includes(pattern);
         }
         return hostname === pattern || hostname.startsWith(pattern);
       });
@@ -117,19 +121,22 @@
         return this.validateDomain(data);
         
       } catch (error) {
-        console.error('License check failed:', error. message);
-        return { licensed:  false, type: 'offline' };
+        console.error('License check failed:', error.message);
+        return { licensed: false, type: 'offline' };
       }
     }
 
+    // ========================================
+    // ✅ FIXED FUNCTION - Check plugin license FIRST
+    // ========================================
     validateDomain(licenseData) {
       const currentDomain = window.location.hostname.toLowerCase();
       
-      // ✅ CHECK PLUGIN LICENSE FIRST
+      // ✅ STEP 1: Check if plugin has a specific license entry
       const pluginLicense = licenseData.licenses[this.pluginName];
       
       if (pluginLicense) {
-        // Plugin has a specific license entry - check if domain is allowed
+        // Plugin has a license entry - check if current domain is allowed
         if (this.matchesDomain(currentDomain, pluginLicense.allowed_domains)) {
           // Check expiration
           if (pluginLicense.expires) {
@@ -139,7 +146,7 @@
             }
           }
 
-          // Valid license found!
+          // ✅ Valid license found!
           this.isLicensed = true;
           this.licenseType = pluginLicense.license_type;
           
@@ -151,14 +158,15 @@
         }
       }
       
-      // ⚠️ THEN check global whitelist (for development mode)
+      // ⚠️ STEP 2: Check global whitelist (for development mode)
+      // Only if no plugin-specific license matched
       if (this.matchesDomain(currentDomain, licenseData.global_whitelist)) {
         this.isLicensed = false;
         this.licenseType = 'development';
         return { licensed: false, type: 'development' };
       }
 
-      // No license found
+      // ❌ STEP 3: No license found
       return { licensed: false, type: 'none' };
     }
 
@@ -182,7 +190,7 @@
       setInterval(() => {
         if (this.isBypassDomain()) return;
         this.checkLicense().then(result => {
-          if (! result.licensed && this.isLicensed) {
+          if (!result.licensed && this.isLicensed) {
             console.warn('⚠️ License status changed');
             window.location.reload();
           }
@@ -206,7 +214,7 @@
           <div style="margin-bottom:12px;line-height:1.4">
             The <strong>${this.pluginName}</strong> plugin requires a license. 
           </div>
-          <a href="https://anavotech.com/plugins/${this.pluginName}" target="_blank" style="display:inline-block;background:#fff;color:#000;padding:8px 16px;border-radius:4px;text-decoration:none;font-weight: 600;font-size:12px">
+          <a href="https://anavotech.com/plugins/${this.pluginName}" target="_blank" style="display:inline-block;background:#fff;color:#000;padding:8px 16px;border-radius:4px;text-decoration:none;font-weight:600;font-size:12px">
             Get License →
           </a>
         </div>
@@ -240,16 +248,16 @@
         ? document.getElementById(container) 
         : container;
 
-      if (element && ! this.isLicensed) {
+      if (element && !this.isLicensed) {
         const watermark = this.createWatermark();
-        element.insertBefore(watermark, element. firstChild);
+        element.insertBefore(watermark, element.firstChild);
       }
     }
 
     hasFeature(featureName) {
       if (this.isBypassDomain()) return true;
       if (!this.isLicensed) return false;
-      if (! this.cachedLicense) return false;
+      if (!this.cachedLicense) return false;
       const pluginLicense = this.cachedLicense.licenses[this.pluginName];
       if (!pluginLicense || !pluginLicense.features) return true;
       return pluginLicense.features.includes(featureName);
@@ -270,10 +278,10 @@
     getStatus() {
       return {
         licensed: this.isLicensed,
-        type: this. licenseType,
+        type: this.licenseType,
         pluginName: this.pluginName,
         version: this.version,
-        features: this.cachedLicense?. licenses?.[this.pluginName]?.features || []
+        features: this.cachedLicense?.licenses?.[this.pluginName]?.features || []
       };
     }
   }
