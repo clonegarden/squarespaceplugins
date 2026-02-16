@@ -7,6 +7,18 @@
     "*.squarespace.com"
   ],
   "licenses": {
+    "ExpandedMenu": {
+      "license_key": "lic_expanded_menu_001",
+      "license_type": "standard",
+      "allowed_domains": [
+        "fish-pug-727c.squarespace.com"
+      ],
+      "features": [
+        "customization",
+        "no_watermark"
+      ],
+      "expires": null
+    },
     "SimpleCountdownTimer": {
       "license_key": "lic_e64xaao6ayq",
       "license_type": "standard",
