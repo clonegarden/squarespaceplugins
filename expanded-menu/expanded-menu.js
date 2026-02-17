@@ -150,8 +150,18 @@
         
         /* Hide mobile navigation (prevents duplication) */
         .header-menu,
+        .header-menu-nav,
         .header-menu-nav-wrapper,
-        .header-menu-nav-list {
+        .header-menu-nav-list,
+        .header-menu-nav-item,
+        .header-menu-nav-folder,
+        .header-menu-cta {
+          display: none !important;
+        }
+        
+        /* Also hide mobile menu overlay/container */
+        .header-menu-bg,
+        .header-menu--open {
           display: none !important;
         }
       }
