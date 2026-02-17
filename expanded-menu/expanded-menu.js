@@ -2,7 +2,7 @@
  * ========================================
  * EXPANDED MENU PLUGIN - Squarespace
  * ========================================
- * @version 1.1.0
+ * @version 1.1.1
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  * 
@@ -34,9 +34,9 @@
       license: params.get('license') || '',
       containerWidth: params.get('containerWidth') || '100%',
       menuSpacing: params.get('menuSpacing') || '40px',
-      mobileSpacing: params.get('mobileSpacing') || '20px',  // NEW: Separate mobile spacing
+      mobileSpacing: params.get('mobileSpacing') || '20px',
       centerMenu: params.get('centerMenu') !== 'false',
-      showOnMobile: params.get('showOnMobile') !== 'false'   // NEW: Control mobile visibility
+      showOnMobile: params.get('showOnMobile') !== 'false'
     };
   }
 
@@ -126,19 +126,19 @@
       }
       
       /* ========================================
-       * MOBILE FIXES
+       * MOBILE FIXES - Show desktop nav on mobile
        * ======================================== */
       
-      /* Force desktop nav to show on mobile if enabled */
       ${config.showOnMobile ? `
       @media (max-width: 1024px) {
+        /* Force desktop nav to show */
         .header-display-desktop {
           display: flex !important;
           visibility: visible !important;
           opacity: 1 !important;
         }
         
-        /* Hide mobile burger menu */
+        /* Hide burger menu */
         .header-burger {
           display: none !important;
         }
@@ -146,6 +146,13 @@
         /* Ensure nav is visible */
         .header-nav {
           display: flex !important;
+        }
+        
+        /* Hide mobile navigation (prevents duplication) */
+        .header-menu,
+        .header-menu-nav-wrapper,
+        .header-menu-nav-list {
+          display: none !important;
         }
       }
       ` : ''}
@@ -164,7 +171,7 @@
         }
       }
       
-      /* Mobile spacing - Use dedicated mobile spacing */
+      /* Mobile spacing */
       @media (max-width: 768px) {
         .header-nav-list {
           gap: ${config.mobileSpacing} !important;
@@ -177,7 +184,7 @@
           padding-right: 1vw !important;
         }
         
-        /* Reduce font size slightly on mobile for better fit */
+        /* Reduce font size for better fit */
         .header-nav-item a {
           font-size: 0.9em !important;
         }
@@ -207,7 +214,7 @@
       
       const licenseManager = new window.AnavoLicenseManager(
         'ExpandedMenu',
-        '1.1.0',
+        '1.1.1',
         {
           licenseServer: 'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licenses.json',
           showUI: true
@@ -216,6 +223,7 @@
 
       await licenseManager.init();
 
+      // Add watermark if unlicensed
       if (!licenseManager.isLicensed) {
         const header = document.querySelector('.header');
         if (header) {
@@ -223,9 +231,10 @@
         }
       }
 
+      // Apply styles
       injectStyles();
 
-      console.log('✅ Expanded Menu Plugin v1.1.0');
+      console.log('✅ Expanded Menu Plugin v1.1.1');
       console.log(`   Container: ${config.containerWidth}`);
       console.log(`   Desktop Spacing: ${config.menuSpacing}`);
       console.log(`   Mobile Spacing: ${config.mobileSpacing}`);
@@ -248,5 +257,3 @@
   }
 
 })();
-
-
