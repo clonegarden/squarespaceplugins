@@ -2,20 +2,29 @@
  * ========================================
  * EXPANDED MENU PLUGIN - Squarespace
  * ========================================
- * @version 1.0.0
+ * @version 1.1.0
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
+ * 
+ * USAGE:
+ * <script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/expanded-menu/expanded-menu.min.js?menuSpacing=40px"></script>
  * ========================================
  */
 
 (function() {
   'use strict';
 
+  // ========================================
+  // 1. CAPTURE SCRIPT REFERENCE
+  // ========================================
   const currentScript = document.currentScript || (function() {
     const scripts = document.getElementsByTagName('script');
     return scripts[scripts.length - 1];
   })();
 
+  // ========================================
+  // 2. PARSE URL PARAMETERS
+  // ========================================
   function getScriptParams() {
     const src = currentScript.src;
     const url = new URL(src);
@@ -24,14 +33,18 @@
     return {
       license: params.get('license') || '',
       containerWidth: params.get('containerWidth') || '100%',
-      menuSpacing: params.get('menuSpacing') || '40px',  // Default in pixels
+      menuSpacing: params.get('menuSpacing') || '40px',
+      mobileSpacing: params.get('mobileSpacing') || '20px',  // NEW: Separate mobile spacing
       centerMenu: params.get('centerMenu') !== 'false',
-      centeringMethod: params.get('centeringMethod') || 'auto'
+      showOnMobile: params.get('showOnMobile') !== 'false'   // NEW: Control mobile visibility
     };
   }
 
   const config = getScriptParams();
 
+  // ========================================
+  // 3. LOAD LICENSING SYSTEM
+  // ========================================
   function loadLicensingScript() {
     return new Promise((resolve, reject) => {
       if (window.AnavoLicenseManager) {
@@ -47,10 +60,12 @@
     });
   }
 
+  // ========================================
+  // 4. INTELLIGENT CENTERING SYSTEM
+  // ========================================
   function getCenteringCSS() {
     if (!config.centerMenu) return '';
 
-    // Margin auto method (most reliable)
     return `
       .header-nav-wrapper {
         margin-left: auto !important;
@@ -64,6 +79,9 @@
     `;
   }
 
+  // ========================================
+  // 5. INJECT STYLES (WITH MOBILE FIX)
+  // ========================================
   function injectStyles() {
     if (document.getElementById('anavo-expanded-menu-styles')) return;
 
@@ -72,6 +90,10 @@
     const styles = document.createElement('style');
     styles.id = 'anavo-expanded-menu-styles';
     styles.textContent = `
+      /* ========================================
+       * EXPANDED MENU PLUGIN - Generated Styles
+       * ======================================== */
+      
       /* Expand header container */
       .header-inner,
       .header-layout-container,
@@ -85,7 +107,7 @@
       /* Centering */
       ${centeringCSS}
       
-      /* Menu spacing using gap (proper method) */
+      /* Menu spacing using gap */
       .header-nav-list {
         display: flex !important;
         flex-wrap: nowrap !important;
@@ -103,16 +125,72 @@
         white-space: nowrap !important;
       }
       
-      /* Responsive spacing */
-      @media (max-width: 1200px) {
+      /* ========================================
+       * MOBILE FIXES
+       * ======================================== */
+      
+      /* Force desktop nav to show on mobile if enabled */
+      ${config.showOnMobile ? `
+      @media (max-width: 1024px) {
+        .header-display-desktop {
+          display: flex !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+        }
+        
+        /* Hide mobile burger menu */
+        .header-burger {
+          display: none !important;
+        }
+        
+        /* Ensure nav is visible */
+        .header-nav {
+          display: flex !important;
+        }
+      }
+      ` : ''}
+      
+      /* Tablet spacing */
+      @media (max-width: 1024px) {
         .header-nav-list {
-          gap: calc(${config.menuSpacing} * 0.7) !important;
+          gap: calc(${config.menuSpacing} * 0.6) !important;
+        }
+        
+        .header-inner,
+        .header-layout-container,
+        .header-display-desktop {
+          padding-left: 1.5vw !important;
+          padding-right: 1.5vw !important;
         }
       }
       
+      /* Mobile spacing - Use dedicated mobile spacing */
       @media (max-width: 768px) {
         .header-nav-list {
-          gap: calc(${config.menuSpacing} * 0.5) !important;
+          gap: ${config.mobileSpacing} !important;
+        }
+        
+        .header-inner,
+        .header-layout-container,
+        .header-display-desktop {
+          padding-left: 1vw !important;
+          padding-right: 1vw !important;
+        }
+        
+        /* Reduce font size slightly on mobile for better fit */
+        .header-nav-item a {
+          font-size: 0.9em !important;
+        }
+      }
+      
+      /* Extra small mobile */
+      @media (max-width: 480px) {
+        .header-nav-list {
+          gap: calc(${config.mobileSpacing} * 0.7) !important;
+        }
+        
+        .header-nav-item a {
+          font-size: 0.85em !important;
         }
       }
     `;
@@ -120,13 +198,16 @@
     document.head.appendChild(styles);
   }
 
+  // ========================================
+  // 6. INITIALIZE PLUGIN
+  // ========================================
   async function init() {
     try {
       await loadLicensingScript();
       
       const licenseManager = new window.AnavoLicenseManager(
         'ExpandedMenu',
-        '1.0.0',
+        '1.1.0',
         {
           licenseServer: 'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licenses.json',
           showUI: true
@@ -144,10 +225,12 @@
 
       injectStyles();
 
-      console.log('✅ Expanded Menu Plugin v1.0.0');
+      console.log('✅ Expanded Menu Plugin v1.1.0');
       console.log(`   Container: ${config.containerWidth}`);
-      console.log(`   Spacing: ${config.menuSpacing}`);
+      console.log(`   Desktop Spacing: ${config.menuSpacing}`);
+      console.log(`   Mobile Spacing: ${config.mobileSpacing}`);
       console.log(`   Centered: ${config.centerMenu}`);
+      console.log(`   Show on Mobile: ${config.showOnMobile}`);
 
     } catch (error) {
       console.error('Failed to initialize Expanded Menu Plugin:', error);
@@ -155,6 +238,9 @@
     }
   }
 
+  // ========================================
+  // 7. AUTO-INITIALIZE
+  // ========================================
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
@@ -162,3 +248,5 @@
   }
 
 })();
+
+
