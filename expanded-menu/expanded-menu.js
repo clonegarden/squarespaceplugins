@@ -154,7 +154,9 @@
         .header-menu-nav-wrapper,
         .header-menu-nav-list,
         .header-menu-nav-item,
+        .header-menu-nav-item-content,
         .header-menu-nav-folder,
+        .header-menu-nav-folder-content,
         .header-menu-cta {
           display: none !important;
         }
