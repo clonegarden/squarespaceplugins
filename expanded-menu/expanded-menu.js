@@ -131,7 +131,7 @@
       
       ${config.showOnMobile ? `
       @media (max-width: 767px) {
-        /* Force desktop nav to show */
+        /* Force desktop nav to show on mobile */
         .header-display-desktop {
           display: flex !important;
           visibility: visible !important;
@@ -181,6 +181,8 @@
           padding-left: 1.5vw !important;
           padding-right: 1.5vw !important;
         }
+        
+        ${centeringCSS}
       }
       
       /* Mobile spacing */
@@ -195,6 +197,8 @@
           padding-left: 1vw !important;
           padding-right: 1vw !important;
         }
+        
+        ${centeringCSS}
         
         /* Reduce font size for better fit */
         .header-nav-item a {
