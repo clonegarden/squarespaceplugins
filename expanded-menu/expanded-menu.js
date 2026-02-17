@@ -130,7 +130,7 @@
        * ======================================== */
       
       ${config.showOnMobile ? `
-      @media (max-width: 1024px) {
+      @media (max-width: 767px) {
         /* Force desktop nav to show */
         .header-display-desktop {
           display: flex !important;
