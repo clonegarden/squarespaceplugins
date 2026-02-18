@@ -532,8 +532,8 @@
     menuWrapper.innerHTML = menuHTML;
 
     // Insert at top of body (for sticky positioning)
-    document.querySelector('section')?.prepend(menuWrapper);
-    //document.body.insertBefore(menuWrapper, document.body.firstChild);
+    //document.querySelector('section')?.prepend(menuWrapper);
+    document.body.insertBefore(menuWrapper, document.body.firstChild);
     console.log('✅ Inserted menu at top of body (sticky mode)');
 
     // Verify insertion
