@@ -85,7 +85,6 @@
         top: -5px !important;
         left: 0px !important;
         pointer-events: none !important;
-        opacity: 0 !important;
         overflow: hidden !important;
       `;
     });
