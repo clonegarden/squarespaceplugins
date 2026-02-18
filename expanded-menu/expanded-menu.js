@@ -76,14 +76,14 @@
       header.style.cssText = `
         display: none !important;
         visibility: hidden !important;
-        height: 0 !important;
-        min-height: 0 !important;
-        max-height: 0 !important;
+        height: 5 !important;
+        min-height: 5 !important;
+        max-height: 5 !important;
         padding: 0 !important;
         margin: 0 !important;
         position: absolute !important;
-        top: -9999px !important;
-        left: -9999px !important;
+        top: -5px !important;
+        left: 0px !important;
         pointer-events: none !important;
         opacity: 0 !important;
         overflow: hidden !important;
