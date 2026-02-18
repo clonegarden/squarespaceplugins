@@ -2,61 +2,32 @@
  * =======================================
  * EXPANDED MENU PLUGIN - Squarespace
  * =======================================
- * @version 2.1.1
+ * @version 2.1.2
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
+ * FIXED v2.1.2:
+ * - CRITICAL FIX: Background transparency now works
+ * - Removed CSS/inline style conflicts
+ * - Added background-color override
+ * - Enhanced color parameter handling
+ * 
  * FIXED v2.1.1:
  * - Centralized item underlines
  * - Added itemBorderColor parameter
  * - Added sectionBorderColor parameter
- * - Fixed transparent background support
  * 
- * FEATURES:
- * - Removes native Squarespace navigation
- * - Builds custom responsive menu
- * - Desktop (>800px), Tablet (480-800px), Mobile (<480px)
- * - Full color, font, and size customization
- * - Optional burger menu mode
- *
- * USAGE:
- * <script src=".../expanded-menu.min.js?menuSpacing=80px&bgColor=transparent&fontColor=%23ffffff&itemBorderColor=%23ffffff"></script>
- *
- * PARAMETERS:
- * - containerWidth: Max width (default: 100%)
- * - menuSpacing: Desktop spacing (default: 60px)
- * - tabletSpacing: Tablet spacing (default: 30px)
- * - mobileSpacing: Mobile spacing (default: 20px)
- * - centerMenu: Center menu (default: true)
- * - mobileMode: 'custom' or 'burger' (default: custom)
- * 
- * CUSTOMIZATION:
- * - bgColor: Background color, hex encoded or 'transparent' (default: uses CSS var)
- * - fontColor: Text color, hex encoded (default: uses CSS var)
- * - fontFamily: Font family name (default: uses CSS var)
- * - fontSize: Font size in px (default: 16)
- * - fontWeight: Font weight 100-900 (default: 500)
- * - hoverOpacity: Hover opacity 0-1 (default: 0.7)
- * 
- * BORDERS (NEW):
- * - itemBorderColor: Color of lines under each menu item (default: uses CSS var)
- * - itemBorderWidth: Width of item borders in px (default: 1)
- * - sectionBorderColor: Color of line under entire menu section (default: uses CSS var)
- * - sectionBorderWidth: Width of section border in px (default: 1)
- * - showItemBorders: Show/hide item borders (default: true)
- * - showSectionBorder: Show/hide section border (default: true)
- * 
- * COLOR ENCODING:
- * #ffffff → %23ffffff
- * #000000 → %23000000
- * transparent → transparent (no encoding)
+ * NEW PARAMETERS:
+ * - bgColor: Background color or 'transparent'
+ * - itemBorderColor: Color of item underlines
+ * - sectionBorderColor: Color of section border
  * =======================================
  */
 
 (function() {
   'use strict';
 
-  console.log('🚀 Expanded Menu Plugin v2.1.1 - Starting...');
+  console.log('🚀 Expanded Menu Plugin v2.1.2 - Starting...');
 
   const currentScript = document.currentScript || (function() {
     const scripts = document.getElementsByTagName('script');
@@ -110,7 +81,7 @@
       fontWeight: params.get('fontWeight') || '500',
       hoverOpacity: params.get('hoverOpacity') || '0.7',
       
-      // NEW: Border customization
+      // Border customization
       itemBorderColor: fixHexColor(params.get('itemBorderColor')),
       itemBorderWidth: params.get('itemBorderWidth') || '1',
       sectionBorderColor: fixHexColor(params.get('sectionBorderColor')),
@@ -295,18 +266,12 @@
     ` : '';
 
     // CRITICAL FIX: Use CSS variables with parameter override
-    const bgColor = config.bgColor || 'var(--white, #fff)';
     const fontColor = config.fontColor || 'var(--menuTextColor, #000)';
     const fontFamily = config.fontFamily || 'var(--heading-font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif)';
     
-    // NEW: Border colors with CSS variable fallbacks
+    // Border colors with CSS variable fallbacks
     const itemBorderColor = config.itemBorderColor || 'var(--lightAccentColor, #e8e8e8)';
-    const sectionBorderColor = config.sectionBorderColor || 'var(--lightAccentColor, #e8e8e8)';
     const dropdownBgColor = config.dropdownBgColor || 'var(--white, #ffffff)';
-
-    // Section border (linha grande embaixo de toda a seção)
-    const sectionBorderCSS = config.showSectionBorder ? 
-      `border-bottom: ${config.sectionBorderWidth}px solid ${sectionBorderColor} !important;` : '';
 
     // Item borders (linhas embaixo de cada item)
     const itemBorderCSS = config.showItemBorders ?
@@ -319,9 +284,9 @@
     const styles = document.createElement('style');
     styles.id = 'anavo-expanded-menu-styles';
     styles.textContent = `
-      /* ANAVO CUSTOM MENU v2.1.1 - FORCE VISIBILITY + CUSTOMIZATION + CENTERED BORDERS */
+      /* ANAVO CUSTOM MENU v2.1.2 - TRANSPARENCY FIX */
       
-      /* CRITICAL: Force wrapper to be visible */
+      /* CRITICAL: Force wrapper to be visible - NO BACKGROUND IN CSS */
       div.anavo-menu-wrapper,
       div[class*="anavo-menu"] {
         display: block !important;
@@ -331,8 +296,7 @@
         height: auto !important;
         position: relative !important;
         z-index: 10000 !important;
-        background: ${bgColor} !important;
-        ${sectionBorderCSS}
+        /* Background set via INLINE STYLES only */
         overflow: visible !important;
         clip: auto !important;
         clip-path: none !important;
@@ -383,8 +347,6 @@
         letter-spacing: 0.05em !important;
         transition: opacity 0.2s ease !important;
         cursor: pointer !important;
-        
-        /* CENTERED BORDER UNDER EACH ITEM */
         ${itemBorderCSS}
         text-align: center !important;
       }
@@ -513,14 +475,12 @@
 
   function insertCustomMenu(menuHTML) {
     // CRITICAL FIX: Insert at BODY level, NOT inside header
-    // This prevents Squarespace's header CSS from hiding our menu
     
     const menuWrapper = document.createElement('div');
     menuWrapper.className = 'anavo-menu-wrapper';
     menuWrapper.id = 'anavo-menu-' + Date.now();
     
-    // CRITICAL: Force inline styles for guaranteed visibility
-    // Use CSS variables if no parameter provided, otherwise use parameter value
+    // CRITICAL FIX: Force inline styles with MULTIPLE background properties
     let inlineStyles = `
       display: block !important;
       visibility: visible !important;
@@ -530,14 +490,16 @@
       z-index: 10000 !important;
     `;
 
-    // Background: Use parameter if provided, otherwise let CSS handle it
+    // CRITICAL: Set BOTH background and background-color
     if (config.bgColor !== null) {
       inlineStyles += `background: ${config.bgColor} !important;\n`;
+      inlineStyles += `background-color: ${config.bgColor} !important;\n`;
     } else {
       inlineStyles += `background: var(--white, #fff) !important;\n`;
+      inlineStyles += `background-color: var(--white, #fff) !important;\n`;
     }
 
-    // Section Border: Only add if enabled
+    // Section Border
     if (config.showSectionBorder) {
       const borderColorValue = config.sectionBorderColor || 'var(--lightAccentColor, #e8e8e8)';
       inlineStyles += `border-bottom: ${config.sectionBorderWidth}px solid ${borderColorValue} !important;\n`;
@@ -553,11 +515,9 @@
                    document.querySelector('header');
 
     if (header && header.parentNode) {
-      // Insert AFTER header (not inside) - v2.0.3 method
       header.parentNode.insertBefore(menuWrapper, header.nextSibling);
       console.log('✅ Inserted menu AFTER header (outside header element)');
     } else {
-      // Fallback: Insert at top of body
       document.body.insertBefore(menuWrapper, document.body.firstChild);
       console.log('✅ Inserted menu at top of body (fallback)');
     }
@@ -570,21 +530,20 @@
         const rect = check.getBoundingClientRect();
         const wrapper = check.closest('.anavo-menu-wrapper');
         const computedBg = wrapper ? window.getComputedStyle(wrapper).backgroundColor : 'N/A';
+        const computedBgFull = wrapper ? window.getComputedStyle(wrapper).background : 'N/A';
         
         console.log(`📐 Menu dimensions:`, {
-          top: rect.top,
-          left: rect.left,
           width: rect.width,
           height: rect.height,
           display: window.getComputedStyle(check).display,
           visibility: window.getComputedStyle(check).visibility,
           opacity: window.getComputedStyle(check).opacity,
-          wrapperBackground: computedBg
+          wrapperBackgroundColor: computedBg,
+          wrapperBackground: computedBgFull
         });
         
         if (rect.width === 0 || rect.height === 0) {
           console.error('❌ Menu still has zero dimensions!');
-          console.error('Computed styles:', window.getComputedStyle(check));
         } else {
           console.log('✅ Menu is visible with proper dimensions!');
         }
@@ -662,7 +621,7 @@
 
       const licenseManager = new window.AnavoLicenseManager(
         'ExpandedMenu',
-        '2.1.1',
+        '2.1.2',
         {
           licenseServer: 'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licenses.json',
           showUI: true
@@ -712,15 +671,10 @@
         enableBurgerMode();
       }
 
-      console.log('✅ Expanded Menu Plugin v2.1.1 Active!');
+      console.log('✅ Expanded Menu Plugin v2.1.2 Active!');
       console.log('   Desktop Spacing:', config.menuSpacing);
-      console.log('   Tablet Spacing:', config.tabletSpacing);
-      console.log('   Mobile Spacing:', config.mobileSpacing);
-      console.log('   Mobile Mode:', config.mobileMode);
       console.log('   Background:', config.bgColor || 'CSS Variable (auto)');
       console.log('   Font Color:', config.fontColor || 'CSS Variable (auto)');
-      console.log('   Font Family:', config.fontFamily || 'CSS Variable (auto)');
-      console.log('   Font Size:', config.fontSize + 'px');
       console.log('   Item Border Color:', config.itemBorderColor || 'CSS Variable (auto)');
       console.log('   Section Border Color:', config.sectionBorderColor || 'CSS Variable (auto)');
 
