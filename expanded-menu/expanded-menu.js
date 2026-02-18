@@ -2,29 +2,23 @@
  * =======================================
  * EXPANDED MENU PLUGIN - Squarespace
  * =======================================
- * @version 2.1.3
+ * @version 2.1.4
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
- * FIXED v2.1.3:
- * - Added sticky/floating menu option
- * - Menu now floats over page content
- * - Perfect for transparent backgrounds
+ * FIXED v2.1.4:
+ * - Forces header hiding via JavaScript
+ * - Removes all Squarespace header space
+ * - Perfect sticky positioning
  * 
- * FIXED v2.1.2:
- * - Background transparency works
- * - Removed CSS/inline conflicts
- * 
- * NEW PARAMETERS:
- * - stickyMenu: true/false (default: true)
- * - stickyTop: Distance from top in px (default: 0)
+ * CRITICAL FIX: Uses inline styles to override Squarespace
  * =======================================
  */
 
 (function() {
   'use strict';
 
-  console.log('🚀 Expanded Menu Plugin v2.1.3 - Starting...');
+  console.log('🚀 Expanded Menu Plugin v2.1.4 - Starting...');
 
   const currentScript = document.currentScript || (function() {
     const scripts = document.getElementsByTagName('script');
@@ -36,57 +30,36 @@
     const url = new URL(src);
     const params = new URLSearchParams(url.search);
 
-    // Helper function to fix hex colors
     function fixHexColor(color) {
       if (!color) return null;
-      
       color = decodeURIComponent(color);
-      
-      if (color.toLowerCase() === 'transparent') {
-        return 'transparent';
-      }
-      
-      if (/^[0-9A-Fa-f]{6}$/.test(color)) {
-        return '#' + color;
-      }
-      
-      if (color.startsWith('#')) {
-        return color;
-      }
-      
+      if (color.toLowerCase() === 'transparent') return 'transparent';
+      if (/^[0-9A-Fa-f]{6}$/.test(color)) return '#' + color;
+      if (color.startsWith('#')) return color;
       return color;
     }
 
     return {
-      // Layout
       containerWidth: params.get('containerWidth') || '100%',
       menuSpacing: params.get('menuSpacing') || '60px',
       tabletSpacing: params.get('tabletSpacing') || '30px',
       mobileSpacing: params.get('mobileSpacing') || '20px',
       centerMenu: params.get('centerMenu') !== 'false',
       mobileMode: params.get('mobileMode') || 'custom',
-      
-      // NEW: Sticky menu
       stickyMenu: params.get('stickyMenu') !== 'false',
       stickyTop: params.get('stickyTop') || '0',
-      
-      // Customization
       bgColor: fixHexColor(params.get('bgColor')),
       fontColor: fixHexColor(params.get('fontColor')),
       fontFamily: params.get('fontFamily') ? decodeURIComponent(params.get('fontFamily')) : null,
       fontSize: params.get('fontSize') || '16',
       fontWeight: params.get('fontWeight') || '500',
       hoverOpacity: params.get('hoverOpacity') || '0.7',
-      
-      // Border customization
       itemBorderColor: fixHexColor(params.get('itemBorderColor')),
       itemBorderWidth: params.get('itemBorderWidth') || '1',
       sectionBorderColor: fixHexColor(params.get('sectionBorderColor')),
       sectionBorderWidth: params.get('sectionBorderWidth') || '1',
       showItemBorders: params.get('showItemBorders') !== 'false',
       showSectionBorder: params.get('showSectionBorder') !== 'false',
-      
-      // Dropdown customization
       dropdownBgColor: fixHexColor(params.get('dropdownBgColor')),
       dropdownShadow: params.get('dropdownShadow') !== 'false'
     };
@@ -94,6 +67,49 @@
 
   const config = getScriptParams();
   console.log('⚙️ Config:', config);
+
+  // NEW: Force hide Squarespace header via JavaScript
+  function forceHideSquarespaceHeader() {
+    const headers = document.querySelectorAll('.header, .Header, header, [data-nc-group="header"]');
+    
+    headers.forEach(header => {
+      header.style.cssText = `
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        max-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        position: absolute !important;
+        top: -9999px !important;
+        left: -9999px !important;
+        pointer-events: none !important;
+        opacity: 0 !important;
+        overflow: hidden !important;
+      `;
+    });
+
+    // Remove body padding from Squarespace
+    document.body.style.paddingTop = '0';
+    document.body.style.marginTop = '0';
+
+    // Remove first section padding
+    const firstSection = document.querySelector('#page .page-section:first-child, .page-section:first-child');
+    if (firstSection) {
+      firstSection.style.paddingTop = '0';
+      firstSection.style.marginTop = '0';
+    }
+
+    // Remove #page margins
+    const page = document.querySelector('#page');
+    if (page) {
+      page.style.paddingTop = '0';
+      page.style.marginTop = '0';
+    }
+
+    console.log('✅ Forced header hiding via inline styles');
+  }
 
   function waitForSquarespaceNav() {
     return new Promise((resolve) => {
@@ -227,7 +243,6 @@
 
   function hideSquarespaceNav() {
     const hideCSS = `
-      /* Hide ALL Squarespace navigation */
       .header-nav,
       .header-nav-wrapper,
       .header-nav-list,
@@ -262,7 +277,6 @@
       }
     ` : '';
 
-    // CRITICAL: Colors with fallbacks
     const fontColor = config.fontColor || 'var(--menuTextColor, #000)';
     const fontFamily = config.fontFamily || 'var(--heading-font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif)';
     const itemBorderColor = config.itemBorderColor || 'var(--lightAccentColor, #e8e8e8)';
@@ -275,7 +289,6 @@
       `box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;` :
       `box-shadow: none !important;`;
 
-    // NEW: Sticky positioning
     const stickyCSS = config.stickyMenu ? `
       position: fixed !important;
       top: ${config.stickyTop}px !important;
@@ -288,9 +301,8 @@
     const styles = document.createElement('style');
     styles.id = 'anavo-expanded-menu-styles';
     styles.textContent = `
-      /* ANAVO CUSTOM MENU v2.1.3 - STICKY TRANSPARENT MENU */
+      /* ANAVO CUSTOM MENU v2.1.4 - STICKY + NO HEADER SPACE */
       
-      /* Force wrapper to be visible + STICKY */
       div.anavo-menu-wrapper,
       div[class*="anavo-menu"] {
         display: block !important;
@@ -306,14 +318,6 @@
         transform: none !important;
       }
 
-      /* Add padding to body if sticky (prevent content jump) */
-      ${config.stickyMenu ? `
-        body {
-          padding-top: 80px !important;
-        }
-      ` : ''}
-
-      /* Force custom menu to be visible */
       nav.anavo-custom-menu {
         display: flex !important;
         visibility: visible !important;
@@ -330,7 +334,6 @@
         ${centeringCSS}
       }
 
-      /* Force menu items to be visible */
       div.anavo-menu-item {
         display: flex !important;
         flex-direction: column !important;
@@ -341,7 +344,6 @@
         white-space: nowrap !important;
       }
 
-      /* Force links to be visible + CENTERED BORDER */
       a.anavo-menu-link,
       span.anavo-menu-link {
         display: inline-block !important;
@@ -426,8 +428,6 @@
         opacity: ${config.hoverOpacity} !important;
       }
 
-      /* RESPONSIVE BREAKPOINTS */
-
       @media (max-width: 800px) and (min-width: 480px) {
         nav.anavo-custom-menu {
           gap: ${config.tabletSpacing} !important;
@@ -440,8 +440,6 @@
           padding: 6px 10px !important;
           padding-bottom: 10px !important;
         }
-
-        ${config.stickyMenu ? `body { padding-top: 70px !important; }` : ''}
       }
 
       @media (max-width: 479px) {
@@ -478,13 +476,11 @@
           padding: 8px 16px !important;
           font-size: ${Math.max(parseInt(config.fontSize) - 4, 12)}px !important;
         }
-
-        ${config.stickyMenu ? `body { padding-top: 60px !important; }` : ''}
       }
     `;
 
     document.head.appendChild(styles);
-    console.log('✅ Injected custom styles with STICKY positioning');
+    console.log('✅ Injected custom styles');
   }
 
   function insertCustomMenu(menuHTML) {
@@ -492,7 +488,6 @@
     menuWrapper.className = 'anavo-menu-wrapper';
     menuWrapper.id = 'anavo-menu-' + Date.now();
     
-    // CRITICAL: Inline styles for guaranteed visibility
     let inlineStyles = `
       display: block !important;
       visibility: visible !important;
@@ -501,7 +496,6 @@
       z-index: 99999 !important;
     `;
 
-    // Sticky positioning
     if (config.stickyMenu) {
       inlineStyles += `
         position: fixed !important;
@@ -513,7 +507,6 @@
       inlineStyles += `position: relative !important;\n`;
     }
 
-    // Background
     if (config.bgColor !== null) {
       inlineStyles += `background: ${config.bgColor} !important;\n`;
       inlineStyles += `background-color: ${config.bgColor} !important;\n`;
@@ -522,7 +515,6 @@
       inlineStyles += `background-color: var(--white, #fff) !important;\n`;
     }
 
-    // Section Border
     if (config.showSectionBorder) {
       const borderColorValue = config.sectionBorderColor || 'var(--lightAccentColor, #e8e8e8)';
       inlineStyles += `border-bottom: ${config.sectionBorderWidth}px solid ${borderColorValue} !important;\n`;
@@ -531,12 +523,18 @@
     menuWrapper.style.cssText = inlineStyles;
     menuWrapper.innerHTML = menuHTML;
 
-    // Insert at top of body (for sticky positioning)
-    //document.querySelector('section')?.prepend(menuWrapper);
     document.body.insertBefore(menuWrapper, document.body.firstChild);
-    console.log('✅ Inserted menu at top of body (sticky mode)');
+    console.log('✅ Inserted menu at top of body');
 
-    // Verify insertion
+    // CRITICAL: Add padding to body for sticky menu
+    if (config.stickyMenu) {
+      setTimeout(() => {
+        const menuHeight = menuWrapper.offsetHeight;
+        document.body.style.paddingTop = menuHeight + 'px';
+        console.log(`✅ Added body padding: ${menuHeight}px`);
+      }, 100);
+    }
+
     setTimeout(() => {
       const check = document.querySelector('.anavo-custom-menu');
       if (check) {
@@ -553,16 +551,8 @@
           zIndex: window.getComputedStyle(wrapper).zIndex,
           wrapperBackgroundColor: computedBg
         });
-        
-        if (rect.width === 0 || rect.height === 0) {
-          console.error('❌ Menu still has zero dimensions!');
-        } else {
-          console.log('✅ Menu is visible with proper dimensions!');
-        }
-      } else {
-        console.error('❌ Menu not found after insertion!');
       }
-    }, 100);
+    }, 150);
 
     initializeMobileFolders();
   }
@@ -633,7 +623,7 @@
 
       const licenseManager = new window.AnavoLicenseManager(
         'ExpandedMenu',
-        '2.1.3',
+        '2.1.4',
         {
           licenseServer: 'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licenses.json',
           showUI: true
@@ -659,6 +649,9 @@
     try {
       console.log('🔧 Starting initialization...');
 
+      // CRITICAL: Hide header FIRST, before everything else
+      forceHideSquarespaceHeader();
+
       const navList = await waitForSquarespaceNav();
       
       if (!navList) {
@@ -683,10 +676,12 @@
         enableBurgerMode();
       }
 
-      console.log('✅ Expanded Menu Plugin v2.1.3 Active!');
+      // Force hide header again after DOM settled
+      setTimeout(forceHideSquarespaceHeader, 500);
+      setTimeout(forceHideSquarespaceHeader, 1000);
+
+      console.log('✅ Expanded Menu Plugin v2.1.4 Active!');
       console.log('   Sticky Menu:', config.stickyMenu ? 'Enabled' : 'Disabled');
-      console.log('   Desktop Spacing:', config.menuSpacing);
-      console.log('   Background:', config.bgColor || 'CSS Variable (auto)');
 
       loadLicensing();
 
