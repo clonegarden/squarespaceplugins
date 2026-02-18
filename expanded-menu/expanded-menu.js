@@ -8,6 +8,7 @@
  *
  * COMPLETE REWRITE - Custom Menu Builder
  * NEW v2.1.0: Full theme customization support
+ * FIXED: Uses v2.0.3 stable insertion and styling logic
  * 
  * FEATURES:
  * - Removes native Squarespace navigation
@@ -17,7 +18,7 @@
  * - Optional burger menu mode
  *
  * USAGE:
- * <script src=".../expanded-menu.min.js?menuSpacing=60px&bgColor=%23ffffff&fontColor=%23000000"></script>
+ * <script src=".../expanded-menu.min.js?menuSpacing=80px&fontColor=%23ffffff"></script>
  *
  * PARAMETERS:
  * - containerWidth: Max width (default: 100%)
@@ -28,9 +29,9 @@
  * - mobileMode: 'custom' or 'burger' (default: custom)
  * 
  * CUSTOMIZATION (NEW):
- * - bgColor: Background color, hex encoded (default: %23ffffff) or 'transparent'
- * - fontColor: Text color, hex encoded (default: %23000000)
- * - fontFamily: Font family name (default: inherit)
+ * - bgColor: Background color, hex encoded (default: uses CSS var)
+ * - fontColor: Text color, hex encoded (default: uses CSS var)
+ * - fontFamily: Font family name (default: uses CSS var)
  * - fontSize: Font size in px (default: 16)
  * - fontWeight: Font weight 100-900 (default: 500)
  * - hoverOpacity: Hover opacity 0-1 (default: 0.7)
@@ -66,21 +67,21 @@
       centerMenu: params.get('centerMenu') !== 'false',
       mobileMode: params.get('mobileMode') || 'custom',
       
-      // NEW: Customization
-      bgColor: decodeURIComponent(params.get('bgColor') || 'transparent'),
-      fontColor: decodeURIComponent(params.get('fontColor') || '#000000'),
-      fontFamily: decodeURIComponent(params.get('fontFamily') || 'inherit'),
+      // Customization (with null defaults to use CSS vars)
+      bgColor: params.get('bgColor') ? decodeURIComponent(params.get('bgColor')) : null,
+      fontColor: params.get('fontColor') ? decodeURIComponent(params.get('fontColor')) : null,
+      fontFamily: params.get('fontFamily') ? decodeURIComponent(params.get('fontFamily')) : null,
       fontSize: params.get('fontSize') || '16',
       fontWeight: params.get('fontWeight') || '500',
       hoverOpacity: params.get('hoverOpacity') || '0.7',
       
       // Dropdown customization
-      dropdownBgColor: decodeURIComponent(params.get('dropdownBgColor') || '#ffffff'),
+      dropdownBgColor: params.get('dropdownBgColor') ? decodeURIComponent(params.get('dropdownBgColor')) : null,
       dropdownShadow: params.get('dropdownShadow') !== 'false',
       
       // Border
       borderBottom: params.get('borderBottom') !== 'false',
-      borderColor: decodeURIComponent(params.get('borderColor') || '#e8e8e8')
+      borderColor: params.get('borderColor') ? decodeURIComponent(params.get('borderColor')) : null
     };
   }
 
@@ -219,6 +220,7 @@
 
   function hideSquarespaceNav() {
     const hideCSS = `
+      /* Hide ALL Squarespace navigation */
       .header-nav,
       .header-nav-wrapper,
       .header-nav-list,
@@ -253,8 +255,15 @@
       }
     ` : '';
 
+    // CRITICAL FIX: Use CSS variables with parameter override
+    const bgColor = config.bgColor || 'var(--white, #fff)';
+    const fontColor = config.fontColor || 'var(--menuTextColor, #000)';
+    const fontFamily = config.fontFamily || 'var(--heading-font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif)';
+    const borderColor = config.borderColor || 'var(--lightAccentColor, #e8e8e8)';
+    const dropdownBgColor = config.dropdownBgColor || 'var(--white, #ffffff)';
+
     const borderCSS = config.borderBottom ? 
-      `border-bottom: 1px solid ${config.borderColor} !important;` : '';
+      `border-bottom: 1px solid ${borderColor} !important;` : '';
 
     const dropdownShadowCSS = config.dropdownShadow ?
       `box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;` :
@@ -263,8 +272,9 @@
     const styles = document.createElement('style');
     styles.id = 'anavo-expanded-menu-styles';
     styles.textContent = `
-      /* ANAVO CUSTOM MENU v2.1.0 - FULLY CUSTOMIZABLE */
+      /* ANAVO CUSTOM MENU v2.1.0 - FORCE VISIBILITY + CUSTOMIZATION */
       
+      /* CRITICAL: Force wrapper to be visible */
       div.anavo-menu-wrapper,
       div[class*="anavo-menu"] {
         display: block !important;
@@ -274,7 +284,7 @@
         height: auto !important;
         position: relative !important;
         z-index: 10000 !important;
-        background: ${config.bgColor} !important;
+        background: ${bgColor} !important;
         ${borderCSS}
         overflow: visible !important;
         clip: auto !important;
@@ -282,6 +292,7 @@
         transform: none !important;
       }
 
+      /* Force custom menu to be visible */
       nav.anavo-custom-menu {
         display: flex !important;
         visibility: visible !important;
@@ -292,12 +303,13 @@
         max-width: ${config.containerWidth} !important;
         margin: 0 auto !important;
         padding: 20px 2vw !important;
-        font-family: ${config.fontFamily} !important;
+        font-family: ${fontFamily} !important;
         min-height: 60px !important;
         box-sizing: border-box !important;
         ${centeringCSS}
       }
 
+      /* Force menu items to be visible */
       div.anavo-menu-item {
         display: block !important;
         visibility: visible !important;
@@ -306,17 +318,18 @@
         white-space: nowrap !important;
       }
 
+      /* Force links to be visible */
       a.anavo-menu-link,
       span.anavo-menu-link {
         display: inline-block !important;
         visibility: visible !important;
         opacity: 1 !important;
         padding: 8px 12px !important;
-        color: ${config.fontColor} !important;
+        color: ${fontColor} !important;
         text-decoration: none !important;
         font-weight: ${config.fontWeight} !important;
         font-size: ${config.fontSize}px !important;
-        font-family: ${config.fontFamily} !important;
+        font-family: ${fontFamily} !important;
         letter-spacing: 0.05em !important;
         transition: opacity 0.2s ease !important;
         cursor: pointer !important;
@@ -343,7 +356,7 @@
 
       .anavo-menu-arrow {
         transition: transform 0.2s ease !important;
-        color: ${config.fontColor} !important;
+        color: ${fontColor} !important;
       }
 
       .anavo-menu-folder:hover .anavo-menu-arrow {
@@ -355,7 +368,7 @@
         top: 100% !important;
         left: 0 !important;
         min-width: 200px !important;
-        background: ${config.dropdownBgColor} !important;
+        background: ${dropdownBgColor} !important;
         ${dropdownShadowCSS}
         border-radius: 4px !important;
         padding: 8px 0 !important;
@@ -375,10 +388,10 @@
       .anavo-menu-dropdown-item {
         display: block !important;
         padding: 12px 20px !important;
-        color: ${config.fontColor} !important;
+        color: ${fontColor} !important;
         text-decoration: none !important;
         font-size: ${Math.max(parseInt(config.fontSize) - 2, 12)}px !important;
-        font-family: ${config.fontFamily} !important;
+        font-family: ${fontFamily} !important;
         font-weight: ${config.fontWeight} !important;
         transition: opacity 0.2s !important;
       }
@@ -439,86 +452,71 @@
     `;
 
     document.head.appendChild(styles);
-    console.log('✅ Injected custom styles with full customization');
+    console.log('✅ Injected custom styles with MAXIMUM specificity');
   }
 
   function insertCustomMenu(menuHTML) {
+    // CRITICAL FIX: Insert at BODY level, NOT inside header
+    // This prevents Squarespace's header CSS from hiding our menu
+    
+    const menuWrapper = document.createElement('div');
+    menuWrapper.className = 'anavo-menu-wrapper';
+    menuWrapper.id = 'anavo-menu-' + Date.now();
+    
+    // CRITICAL: Force inline styles for guaranteed visibility
+    // Use hardcoded white background unless user specified transparent
+    const inlineBg = config.bgColor === 'transparent' ? 'transparent' : 
+                     config.bgColor || 'white';
+    const inlineBorder = config.borderColor || '#e8e8e8';
+    
+    menuWrapper.style.cssText = `
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      width: 100% !important;
+      position: relative !important;
+      z-index: 10000 !important;
+      background: ${inlineBg} !important;
+      ${config.borderBottom ? `border-bottom: 1px solid ${inlineBorder} !important;` : ''}
+    `;
+    
+    menuWrapper.innerHTML = menuHTML;
+
+    // Find the header to insert AFTER it (not inside it)
     const header = document.querySelector('.header') || 
                    document.querySelector('.Header') ||
                    document.querySelector('[data-nc-group="header"]') ||
                    document.querySelector('header');
 
-    if (!header) {
-      console.error('❌ Could not find header element');
-      const fallbackWrapper = document.createElement('div');
-      fallbackWrapper.className = 'anavo-menu-wrapper anavo-menu-fallback';
-      fallbackWrapper.style.cssText = `
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        z-index: 9999 !important;
-        background: ${config.bgColor} !important;
-      `;
-      fallbackWrapper.innerHTML = menuHTML;
-      document.body.insertBefore(fallbackWrapper, document.body.firstChild);
-      console.log('⚠️ Inserted menu at top of body (fallback mode)');
-      initializeMobileFolders();
-      return;
+    if (header && header.parentNode) {
+      // Insert AFTER header (not inside) - v2.0.3 method
+      header.parentNode.insertBefore(menuWrapper, header.nextSibling);
+      console.log('✅ Inserted menu AFTER header (outside header element)');
+    } else {
+      // Fallback: Insert at top of body
+      document.body.insertBefore(menuWrapper, document.body.firstChild);
+      console.log('✅ Inserted menu at top of body (fallback)');
     }
 
-    const menuWrapper = document.createElement('div');
-    menuWrapper.className = 'anavo-menu-wrapper';
-    menuWrapper.style.cssText = `
-      width: 100% !important;
-      display: block !important;
-      position: relative !important;
-      z-index: 1000 !important;
-    `;
-    menuWrapper.innerHTML = menuHTML;
-
-    const insertionPoints = [
-      { element: header.querySelector('.header-title-logo'), position: 'afterend' },
-      { element: header.querySelector('.header-title'), position: 'afterend' },
-      { element: header.querySelector('.header-display-desktop'), position: 'beforebegin' },
-      { element: header, position: 'beforeend' }
-    ];
-
-    let inserted = false;
-    for (const point of insertionPoints) {
-      if (point.element) {
-        if (point.position === 'afterend') {
-          point.element.parentNode.insertBefore(menuWrapper, point.element.nextSibling);
-        } else if (point.position === 'beforebegin') {
-          point.element.parentNode.insertBefore(menuWrapper, point.element);
-        } else if (point.position === 'beforeend') {
-          point.element.appendChild(menuWrapper);
-        }
-        console.log(`✅ Inserted menu ${point.position} ${point.element.className || point.element.tagName}`);
-        inserted = true;
-        break;
-      }
-    }
-
-    if (!inserted) {
-      header.appendChild(menuWrapper);
-      console.log('✅ Inserted menu at end of header (default)');
-    }
-
+    // Verify insertion with detailed logging
     setTimeout(() => {
       const check = document.querySelector('.anavo-custom-menu');
       if (check) {
         console.log('✅ Menu verified in DOM');
         const rect = check.getBoundingClientRect();
         console.log(`📐 Menu dimensions:`, {
+          top: rect.top,
+          left: rect.left,
           width: rect.width,
           height: rect.height,
           display: window.getComputedStyle(check).display,
-          visibility: window.getComputedStyle(check).visibility
+          visibility: window.getComputedStyle(check).visibility,
+          opacity: window.getComputedStyle(check).opacity
         });
         
         if (rect.width === 0 || rect.height === 0) {
           console.error('❌ Menu still has zero dimensions!');
+          console.error('Computed styles:', window.getComputedStyle(check));
         } else {
           console.log('✅ Menu is visible with proper dimensions!');
         }
@@ -651,9 +649,9 @@
       console.log('   Tablet Spacing:', config.tabletSpacing);
       console.log('   Mobile Spacing:', config.mobileSpacing);
       console.log('   Mobile Mode:', config.mobileMode);
-      console.log('   Background:', config.bgColor);
-      console.log('   Font Color:', config.fontColor);
-      console.log('   Font Family:', config.fontFamily);
+      console.log('   Background:', config.bgColor || 'CSS Variable (auto)');
+      console.log('   Font Color:', config.fontColor || 'CSS Variable (auto)');
+      console.log('   Font Family:', config.fontFamily || 'CSS Variable (auto)');
       console.log('   Font Size:', config.fontSize + 'px');
 
       loadLicensing();
