@@ -226,6 +226,8 @@
           padding-left: 1.5vw !important;
           padding-right: 1.5vw !important;
         }
+        
+        ${centeringCSS}
       }
 
       /* Mobile (768px and below) - only if expanded mode */
