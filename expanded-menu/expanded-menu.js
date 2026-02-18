@@ -8,7 +8,7 @@
  *
  * COMPLETE REWRITE - Custom Menu Builder
  * NEW v2.1.0: Full theme customization support
- * FIXED: Uses v2.0.3 stable insertion and styling logic
+ * FIXED: Background transparency + v2.0.3 stability
  * 
  * FEATURES:
  * - Removes native Squarespace navigation
@@ -18,7 +18,7 @@
  * - Optional burger menu mode
  *
  * USAGE:
- * <script src=".../expanded-menu.min.js?menuSpacing=80px&fontColor=%23ffffff"></script>
+ * <script src=".../expanded-menu.min.js?menuSpacing=80px&bgColor=transparent&fontColor=%23ffffff"></script>
  *
  * PARAMETERS:
  * - containerWidth: Max width (default: 100%)
@@ -29,7 +29,7 @@
  * - mobileMode: 'custom' or 'burger' (default: custom)
  * 
  * CUSTOMIZATION (NEW):
- * - bgColor: Background color, hex encoded (default: uses CSS var)
+ * - bgColor: Background color, hex encoded or 'transparent' (default: uses CSS var)
  * - fontColor: Text color, hex encoded (default: uses CSS var)
  * - fontFamily: Font family name (default: uses CSS var)
  * - fontSize: Font size in px (default: 16)
@@ -39,7 +39,7 @@
  * COLOR ENCODING:
  * #ffffff → %23ffffff
  * #000000 → %23000000
- * transparent → transparent
+ * transparent → transparent (no encoding)
  * =======================================
  */
 
@@ -67,7 +67,7 @@
       centerMenu: params.get('centerMenu') !== 'false',
       mobileMode: params.get('mobileMode') || 'custom',
       
-      // Customization (with null defaults to use CSS vars)
+      // Customization (null = use CSS variables)
       bgColor: params.get('bgColor') ? decodeURIComponent(params.get('bgColor')) : null,
       fontColor: params.get('fontColor') ? decodeURIComponent(params.get('fontColor')) : null,
       fontFamily: params.get('fontFamily') ? decodeURIComponent(params.get('fontFamily')) : null,
@@ -464,22 +464,30 @@
     menuWrapper.id = 'anavo-menu-' + Date.now();
     
     // CRITICAL: Force inline styles for guaranteed visibility
-    // Use hardcoded white background unless user specified transparent
-    const inlineBg = config.bgColor === 'transparent' ? 'transparent' : 
-                     config.bgColor || 'white';
-    const inlineBorder = config.borderColor || '#e8e8e8';
-    
-    menuWrapper.style.cssText = `
+    // Use CSS variables if no parameter provided, otherwise use parameter value
+    let inlineStyles = `
       display: block !important;
       visibility: visible !important;
       opacity: 1 !important;
       width: 100% !important;
       position: relative !important;
       z-index: 10000 !important;
-      background: ${inlineBg} !important;
-      ${config.borderBottom ? `border-bottom: 1px solid ${inlineBorder} !important;` : ''}
     `;
+
+    // Background: Use parameter if provided, otherwise let CSS handle it
+    if (config.bgColor !== null) {
+      inlineStyles += `background: ${config.bgColor} !important;\n`;
+    } else {
+      inlineStyles += `background: var(--white, #fff) !important;\n`;
+    }
+
+    // Border: Only add if enabled
+    if (config.borderBottom) {
+      const borderColorValue = config.borderColor || 'var(--lightAccentColor, #e8e8e8)';
+      inlineStyles += `border-bottom: 1px solid ${borderColorValue} !important;\n`;
+    }
     
+    menuWrapper.style.cssText = inlineStyles;
     menuWrapper.innerHTML = menuHTML;
 
     // Find the header to insert AFTER it (not inside it)
@@ -504,6 +512,9 @@
       if (check) {
         console.log('✅ Menu verified in DOM');
         const rect = check.getBoundingClientRect();
+        const wrapper = check.closest('.anavo-menu-wrapper');
+        const computedBg = wrapper ? window.getComputedStyle(wrapper).backgroundColor : 'N/A';
+        
         console.log(`📐 Menu dimensions:`, {
           top: rect.top,
           left: rect.left,
@@ -511,7 +522,8 @@
           height: rect.height,
           display: window.getComputedStyle(check).display,
           visibility: window.getComputedStyle(check).visibility,
-          opacity: window.getComputedStyle(check).opacity
+          opacity: window.getComputedStyle(check).opacity,
+          wrapperBackground: computedBg
         });
         
         if (rect.width === 0 || rect.height === 0) {
