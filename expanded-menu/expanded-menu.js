@@ -2,13 +2,15 @@
  * =======================================
  * EXPANDED MENU PLUGIN - Squarespace
  * =======================================
- * @version 2.1.0
+ * @version 2.1.1
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
- * COMPLETE REWRITE - Custom Menu Builder
- * NEW v2.1.0: Full theme customization support
- * FIXED: Background transparency + v2.0.3 stability
+ * FIXED v2.1.1:
+ * - Centralized item underlines
+ * - Added itemBorderColor parameter
+ * - Added sectionBorderColor parameter
+ * - Fixed transparent background support
  * 
  * FEATURES:
  * - Removes native Squarespace navigation
@@ -18,7 +20,7 @@
  * - Optional burger menu mode
  *
  * USAGE:
- * <script src=".../expanded-menu.min.js?menuSpacing=80px&bgColor=transparent&fontColor=%23ffffff"></script>
+ * <script src=".../expanded-menu.min.js?menuSpacing=80px&bgColor=transparent&fontColor=%23ffffff&itemBorderColor=%23ffffff"></script>
  *
  * PARAMETERS:
  * - containerWidth: Max width (default: 100%)
@@ -28,13 +30,21 @@
  * - centerMenu: Center menu (default: true)
  * - mobileMode: 'custom' or 'burger' (default: custom)
  * 
- * CUSTOMIZATION (NEW):
+ * CUSTOMIZATION:
  * - bgColor: Background color, hex encoded or 'transparent' (default: uses CSS var)
  * - fontColor: Text color, hex encoded (default: uses CSS var)
  * - fontFamily: Font family name (default: uses CSS var)
  * - fontSize: Font size in px (default: 16)
  * - fontWeight: Font weight 100-900 (default: 500)
  * - hoverOpacity: Hover opacity 0-1 (default: 0.7)
+ * 
+ * BORDERS (NEW):
+ * - itemBorderColor: Color of lines under each menu item (default: uses CSS var)
+ * - itemBorderWidth: Width of item borders in px (default: 1)
+ * - sectionBorderColor: Color of line under entire menu section (default: uses CSS var)
+ * - sectionBorderWidth: Width of section border in px (default: 1)
+ * - showItemBorders: Show/hide item borders (default: true)
+ * - showSectionBorder: Show/hide section border (default: true)
  * 
  * COLOR ENCODING:
  * #ffffff → %23ffffff
@@ -46,7 +56,7 @@
 (function() {
   'use strict';
 
-  console.log('🚀 Expanded Menu Plugin v2.1.0 - Starting...');
+  console.log('🚀 Expanded Menu Plugin v2.1.1 - Starting...');
 
   const currentScript = document.currentScript || (function() {
     const scripts = document.getElementsByTagName('script');
@@ -58,6 +68,31 @@
     const url = new URL(src);
     const params = new URLSearchParams(url.search);
 
+    // Helper function to fix hex colors
+    function fixHexColor(color) {
+      if (!color) return null;
+      
+      color = decodeURIComponent(color);
+      
+      // If it's "transparent", return as-is
+      if (color.toLowerCase() === 'transparent') {
+        return 'transparent';
+      }
+      
+      // If it's a hex color without #, add it
+      if (/^[0-9A-Fa-f]{6}$/.test(color)) {
+        return '#' + color;
+      }
+      
+      // If it already has #, return as-is
+      if (color.startsWith('#')) {
+        return color;
+      }
+      
+      // Otherwise, return as-is (could be rgb(), var(), etc.)
+      return color;
+    }
+
     return {
       // Layout
       containerWidth: params.get('containerWidth') || '100%',
@@ -68,20 +103,24 @@
       mobileMode: params.get('mobileMode') || 'custom',
       
       // Customization (null = use CSS variables)
-      bgColor: params.get('bgColor') ? decodeURIComponent(params.get('bgColor')) : null,
-      fontColor: params.get('fontColor') ? decodeURIComponent(params.get('fontColor')) : null,
+      bgColor: fixHexColor(params.get('bgColor')),
+      fontColor: fixHexColor(params.get('fontColor')),
       fontFamily: params.get('fontFamily') ? decodeURIComponent(params.get('fontFamily')) : null,
       fontSize: params.get('fontSize') || '16',
       fontWeight: params.get('fontWeight') || '500',
       hoverOpacity: params.get('hoverOpacity') || '0.7',
       
-      // Dropdown customization
-      dropdownBgColor: params.get('dropdownBgColor') ? decodeURIComponent(params.get('dropdownBgColor')) : null,
-      dropdownShadow: params.get('dropdownShadow') !== 'false',
+      // NEW: Border customization
+      itemBorderColor: fixHexColor(params.get('itemBorderColor')),
+      itemBorderWidth: params.get('itemBorderWidth') || '1',
+      sectionBorderColor: fixHexColor(params.get('sectionBorderColor')),
+      sectionBorderWidth: params.get('sectionBorderWidth') || '1',
+      showItemBorders: params.get('showItemBorders') !== 'false',
+      showSectionBorder: params.get('showSectionBorder') !== 'false',
       
-      // Border
-      borderBottom: params.get('borderBottom') !== 'false',
-      borderColor: params.get('borderColor') ? decodeURIComponent(params.get('borderColor')) : null
+      // Dropdown customization
+      dropdownBgColor: fixHexColor(params.get('dropdownBgColor')),
+      dropdownShadow: params.get('dropdownShadow') !== 'false'
     };
   }
 
@@ -259,11 +298,19 @@
     const bgColor = config.bgColor || 'var(--white, #fff)';
     const fontColor = config.fontColor || 'var(--menuTextColor, #000)';
     const fontFamily = config.fontFamily || 'var(--heading-font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif)';
-    const borderColor = config.borderColor || 'var(--lightAccentColor, #e8e8e8)';
+    
+    // NEW: Border colors with CSS variable fallbacks
+    const itemBorderColor = config.itemBorderColor || 'var(--lightAccentColor, #e8e8e8)';
+    const sectionBorderColor = config.sectionBorderColor || 'var(--lightAccentColor, #e8e8e8)';
     const dropdownBgColor = config.dropdownBgColor || 'var(--white, #ffffff)';
 
-    const borderCSS = config.borderBottom ? 
-      `border-bottom: 1px solid ${borderColor} !important;` : '';
+    // Section border (linha grande embaixo de toda a seção)
+    const sectionBorderCSS = config.showSectionBorder ? 
+      `border-bottom: ${config.sectionBorderWidth}px solid ${sectionBorderColor} !important;` : '';
+
+    // Item borders (linhas embaixo de cada item)
+    const itemBorderCSS = config.showItemBorders ?
+      `border-bottom: ${config.itemBorderWidth}px solid ${itemBorderColor} !important;` : '';
 
     const dropdownShadowCSS = config.dropdownShadow ?
       `box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;` :
@@ -272,7 +319,7 @@
     const styles = document.createElement('style');
     styles.id = 'anavo-expanded-menu-styles';
     styles.textContent = `
-      /* ANAVO CUSTOM MENU v2.1.0 - FORCE VISIBILITY + CUSTOMIZATION */
+      /* ANAVO CUSTOM MENU v2.1.1 - FORCE VISIBILITY + CUSTOMIZATION + CENTERED BORDERS */
       
       /* CRITICAL: Force wrapper to be visible */
       div.anavo-menu-wrapper,
@@ -285,7 +332,7 @@
         position: relative !important;
         z-index: 10000 !important;
         background: ${bgColor} !important;
-        ${borderCSS}
+        ${sectionBorderCSS}
         overflow: visible !important;
         clip: auto !important;
         clip-path: none !important;
@@ -311,20 +358,23 @@
 
       /* Force menu items to be visible */
       div.anavo-menu-item {
-        display: block !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
         visibility: visible !important;
         opacity: 1 !important;
         position: relative !important;
         white-space: nowrap !important;
       }
 
-      /* Force links to be visible */
+      /* Force links to be visible + CENTERED BORDER */
       a.anavo-menu-link,
       span.anavo-menu-link {
         display: inline-block !important;
         visibility: visible !important;
         opacity: 1 !important;
         padding: 8px 12px !important;
+        padding-bottom: 12px !important;
         color: ${fontColor} !important;
         text-decoration: none !important;
         font-weight: ${config.fontWeight} !important;
@@ -333,6 +383,10 @@
         letter-spacing: 0.05em !important;
         transition: opacity 0.2s ease !important;
         cursor: pointer !important;
+        
+        /* CENTERED BORDER UNDER EACH ITEM */
+        ${itemBorderCSS}
+        text-align: center !important;
       }
 
       a.anavo-menu-link:hover,
@@ -412,6 +466,7 @@
         span.anavo-menu-link {
           font-size: ${Math.max(parseInt(config.fontSize) - 2, 14)}px !important;
           padding: 6px 10px !important;
+          padding-bottom: 10px !important;
         }
       }
 
@@ -426,6 +481,7 @@
         span.anavo-menu-link {
           font-size: ${Math.max(parseInt(config.fontSize) - 4, 12)}px !important;
           padding: 6px 8px !important;
+          padding-bottom: 8px !important;
         }
 
         .anavo-menu-dropdown {
@@ -481,10 +537,10 @@
       inlineStyles += `background: var(--white, #fff) !important;\n`;
     }
 
-    // Border: Only add if enabled
-    if (config.borderBottom) {
-      const borderColorValue = config.borderColor || 'var(--lightAccentColor, #e8e8e8)';
-      inlineStyles += `border-bottom: 1px solid ${borderColorValue} !important;\n`;
+    // Section Border: Only add if enabled
+    if (config.showSectionBorder) {
+      const borderColorValue = config.sectionBorderColor || 'var(--lightAccentColor, #e8e8e8)';
+      inlineStyles += `border-bottom: ${config.sectionBorderWidth}px solid ${borderColorValue} !important;\n`;
     }
     
     menuWrapper.style.cssText = inlineStyles;
@@ -606,7 +662,7 @@
 
       const licenseManager = new window.AnavoLicenseManager(
         'ExpandedMenu',
-        '2.1.0',
+        '2.1.1',
         {
           licenseServer: 'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licenses.json',
           showUI: true
@@ -656,7 +712,7 @@
         enableBurgerMode();
       }
 
-      console.log('✅ Expanded Menu Plugin v2.1.0 Active!');
+      console.log('✅ Expanded Menu Plugin v2.1.1 Active!');
       console.log('   Desktop Spacing:', config.menuSpacing);
       console.log('   Tablet Spacing:', config.tabletSpacing);
       console.log('   Mobile Spacing:', config.mobileSpacing);
@@ -665,6 +721,8 @@
       console.log('   Font Color:', config.fontColor || 'CSS Variable (auto)');
       console.log('   Font Family:', config.fontFamily || 'CSS Variable (auto)');
       console.log('   Font Size:', config.fontSize + 'px');
+      console.log('   Item Border Color:', config.itemBorderColor || 'CSS Variable (auto)');
+      console.log('   Section Border Color:', config.sectionBorderColor || 'CSS Variable (auto)');
 
       loadLicensing();
 
