@@ -2,7 +2,7 @@
  * =======================================
  * EXPANDED MENU PLUGIN - Squarespace
  * =======================================
- * @version 2.1.4
+ * @version 2.1.5
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
