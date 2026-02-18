@@ -2,37 +2,20 @@
  * =======================================
  * EXPANDED MENU PLUGIN - Squarespace
  * =======================================
- * @version 2.0.1
+ * @version 2.0.2
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
  * COMPLETE REWRITE - Custom Menu Builder
- * - Extracts Squarespace navigation
- * - Builds custom responsive menu
- * - Works on Desktop (>800px), Tablet (480-800px), Mobile (<480px)
- * - Optional burger menu mode
- *
- * USAGE:
- * <script src=".../expanded-menu.min.js?menuSpacing=60px"></script>
- *
- * PARAMETERS:
- * - containerWidth: Max width (default: 100%)
- * - menuSpacing: Desktop spacing (default: 60px)
- * - tabletSpacing: Tablet spacing (default: 30px)
- * - mobileSpacing: Mobile spacing (default: 20px)
- * - centerMenu: Center menu (default: true)
- * - mobileMode: 'custom' or 'burger' (default: custom)
+ * IMPROVED: Better visibility and positioning
  * =======================================
  */
 
 (function() {
   'use strict';
 
-  console.log('🚀 Expanded Menu Plugin v2.0.1 - Starting...');
+  console.log('🚀 Expanded Menu Plugin v2.0.2 - Starting...');
 
-  // ========================================
-  // 1. CONFIGURATION
-  // ========================================
   const currentScript = document.currentScript || (function() {
     const scripts = document.getElementsByTagName('script');
     return scripts[scripts.length - 1];
@@ -56,12 +39,8 @@
   const config = getScriptParams();
   console.log('⚙️ Config:', config);
 
-  // ========================================
-  // 2. WAIT FOR SQUARESPACE NAVIGATION
-  // ========================================
   function waitForSquarespaceNav() {
     return new Promise((resolve) => {
-      // Try multiple selectors for 7.0 and 7.1
       const selectors = [
         '.header-nav-list',
         '.header-menu-nav-list',
@@ -81,10 +60,8 @@
         return false;
       }
 
-      // Check immediately
       if (checkNav()) return;
 
-      // Check every 100ms for up to 5 seconds
       let attempts = 0;
       const maxAttempts = 50;
       const interval = setInterval(() => {
@@ -101,9 +78,6 @@
     });
   }
 
-  // ========================================
-  // 3. EXTRACT MENU ITEMS
-  // ========================================
   function extractMenuItems(navList) {
     if (!navList) {
       console.error('❌ Cannot extract menu items - nav list is null');
@@ -131,7 +105,6 @@
         children: []
       };
 
-      // Extract folder children
       if (menuItem.isFolder) {
         const folderContent = item.querySelector('.header-nav-folder-content');
         if (folderContent) {
@@ -154,9 +127,6 @@
     return menuItems;
   }
 
-  // ========================================
-  // 4. BUILD CUSTOM MENU HTML
-  // ========================================
   function buildCustomMenu(menuItems) {
     if (!menuItems || menuItems.length === 0) {
       console.error('❌ No menu items to build');
@@ -165,7 +135,6 @@
 
     const menuHTML = menuItems.map((item, index) => {
       if (item.isFolder && item.children.length > 0) {
-        // Dropdown folder
         const childrenHTML = item.children.map(child => 
           `<a href="${child.href}" target="${child.target}" class="anavo-menu-dropdown-item">
             ${child.text}
@@ -186,7 +155,6 @@
           </div>
         `;
       } else {
-        // Regular link
         return `
           <div class="anavo-menu-item ${item.isActive ? 'anavo-menu-item--active' : ''}">
             <a href="${item.href}" target="${item.target}" class="anavo-menu-link">
@@ -201,12 +169,8 @@
     return `<nav class="anavo-custom-menu" role="navigation">${menuHTML}</nav>`;
   }
 
-  // ========================================
-  // 5. HIDE SQUARESPACE NAVIGATION
-  // ========================================
   function hideSquarespaceNav() {
     const hideCSS = `
-      /* Hide ALL Squarespace navigation */
       .header-nav,
       .header-nav-wrapper,
       .header-nav-list,
@@ -229,9 +193,6 @@
     console.log('✅ Hid Squarespace navigation');
   }
 
-  // ========================================
-  // 6. INJECT CUSTOM MENU STYLES
-  // ========================================
   function injectStyles() {
     if (document.getElementById('anavo-expanded-menu-styles')) {
       console.log('⚠️ Styles already injected');
@@ -247,164 +208,173 @@
     const styles = document.createElement('style');
     styles.id = 'anavo-expanded-menu-styles';
     styles.textContent = `
-      /* ANAVO CUSTOM MENU v2.0.1 */
-      
       .anavo-menu-wrapper {
-        width: 100%;
-        background: var(--white, #fff);
+        width: 100% !important;
+        display: block !important;
+        position: relative !important;
+        z-index: 1000 !important;
+        background: var(--white, #fff) !important;
         border-bottom: 1px solid var(--lightAccentColor, #e8e8e8);
+        visibility: visible !important;
+        opacity: 1 !important;
+      }
+
+      .anavo-menu-fallback {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        background: white !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
       }
 
       .anavo-custom-menu {
-        display: flex;
-        align-items: center;
-        gap: ${config.menuSpacing};
-        width: ${config.containerWidth};
-        max-width: ${config.containerWidth};
-        margin: 0 auto;
-        padding: 20px 2vw;
-        font-family: var(--heading-font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+        display: flex !important;
+        align-items: center !important;
+        gap: ${config.menuSpacing} !important;
+        width: 100% !important;
+        max-width: ${config.containerWidth} !important;
+        margin: 0 auto !important;
+        padding: 20px 2vw !important;
+        font-family: var(--heading-font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif) !important;
+        visibility: visible !important;
+        opacity: 1 !important;
         ${centeringCSS}
       }
 
       .anavo-menu-item {
-        position: relative;
-        white-space: nowrap;
+        position: relative !important;
+        white-space: nowrap !important;
+        display: block !important;
+        visibility: visible !important;
       }
 
       .anavo-menu-link {
-        display: inline-block;
-        padding: 8px 12px;
-        color: var(--menuTextColor, currentColor);
-        text-decoration: none;
-        font-weight: 500;
-        font-size: 1rem;
-        letter-spacing: 0.05em;
-        transition: opacity 0.2s ease;
-        cursor: pointer;
+        display: inline-block !important;
+        padding: 8px 12px !important;
+        color: var(--menuTextColor, currentColor) !important;
+        text-decoration: none !important;
+        font-weight: 500 !important;
+        font-size: 1rem !important;
+        letter-spacing: 0.05em !important;
+        transition: opacity 0.2s ease !important;
+        cursor: pointer !important;
+        visibility: visible !important;
       }
 
       .anavo-menu-link:hover {
-        opacity: 0.7;
+        opacity: 0.7 !important;
       }
 
       .anavo-menu-item--active .anavo-menu-link {
-        font-weight: 700;
+        font-weight: 700 !important;
       }
 
       .anavo-menu-folder {
-        position: relative;
+        position: relative !important;
       }
 
       .anavo-menu-folder-toggle {
-        display: flex;
-        align-items: center;
-        gap: 5px;
+        display: flex !important;
+        align-items: center !important;
+        gap: 5px !important;
       }
 
       .anavo-menu-arrow {
-        transition: transform 0.2s ease;
+        transition: transform 0.2s ease !important;
       }
 
       .anavo-menu-folder:hover .anavo-menu-arrow {
-        transform: rotate(180deg);
+        transform: rotate(180deg) !important;
       }
 
       .anavo-menu-dropdown {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        min-width: 200px;
-        background: var(--white, #ffffff);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        border-radius: 4px;
-        padding: 8px 0;
-        opacity: 0;
-        visibility: hidden;
-        transform: translateY(-10px);
-        transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
-        z-index: 1000;
+        position: absolute !important;
+        top: 100% !important;
+        left: 0 !important;
+        min-width: 200px !important;
+        background: var(--white, #ffffff) !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+        border-radius: 4px !important;
+        padding: 8px 0 !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        transform: translateY(-10px) !important;
+        transition: opacity 0.2s, transform 0.2s, visibility 0.2s !important;
+        z-index: 1000 !important;
       }
 
       .anavo-menu-folder:hover .anavo-menu-dropdown {
-        opacity: 1;
-        visibility: visible;
-        transform: translateY(0);
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: translateY(0) !important;
       }
 
       .anavo-menu-dropdown-item {
-        display: block;
-        padding: 12px 20px;
-        color: var(--menuTextColor, currentColor);
-        text-decoration: none;
-        font-size: 0.95rem;
-        transition: background 0.2s;
+        display: block !important;
+        padding: 12px 20px !important;
+        color: var(--menuTextColor, currentColor) !important;
+        text-decoration: none !important;
+        font-size: 0.95rem !important;
+        transition: background 0.2s !important;
       }
 
       .anavo-menu-dropdown-item:hover {
-        background: var(--lightAccentColor, #f5f5f5);
+        background: var(--lightAccentColor, #f5f5f5) !important;
       }
 
-      /* RESPONSIVE BREAKPOINTS */
-
-      /* Tablet (480-800px) */
       @media (max-width: 800px) and (min-width: 480px) {
         .anavo-custom-menu {
-          gap: ${config.tabletSpacing};
-          padding: 15px 1.5vw;
+          gap: ${config.tabletSpacing} !important;
+          padding: 15px 1.5vw !important;
         }
 
         .anavo-menu-link {
-          font-size: 0.95rem;
-          padding: 6px 10px;
+          font-size: 0.95rem !important;
+          padding: 6px 10px !important;
         }
       }
 
-      /* Mobile (<480px) */
       @media (max-width: 479px) {
         .anavo-custom-menu {
-          gap: ${config.mobileSpacing};
-          padding: 12px 1vw;
-          flex-wrap: wrap;
+          gap: ${config.mobileSpacing} !important;
+          padding: 12px 1vw !important;
+          flex-wrap: wrap !important;
         }
 
         .anavo-menu-link {
-          font-size: 0.9rem;
-          padding: 6px 8px;
+          font-size: 0.9rem !important;
+          padding: 6px 8px !important;
         }
 
         .anavo-menu-dropdown {
-          position: static;
-          box-shadow: none;
-          background: transparent;
-          opacity: 1;
-          visibility: visible;
-          transform: none;
-          display: none;
-          padding: 0;
-          margin-top: 8px;
+          position: static !important;
+          box-shadow: none !important;
+          background: transparent !important;
+          opacity: 1 !important;
+          visibility: visible !important;
+          transform: none !important;
+          display: none !important;
+          padding: 0 !important;
+          margin-top: 8px !important;
         }
 
         .anavo-menu-folder.anavo-folder-open .anavo-menu-dropdown {
-          display: block;
+          display: block !important;
         }
 
         .anavo-menu-dropdown-item {
-          padding: 8px 16px;
-          font-size: 0.85rem;
+          padding: 8px 16px !important;
+          font-size: 0.85rem !important;
         }
       }
     `;
 
     document.head.appendChild(styles);
-    console.log('✅ Injected custom styles');
+    console.log('✅ Injected custom styles with !important');
   }
 
-  // ========================================
-  // 7. INSERT CUSTOM MENU
-  // ========================================
   function insertCustomMenu(menuHTML) {
-    // Find header - try multiple selectors
     const header = document.querySelector('.header') || 
                    document.querySelector('.Header') ||
                    document.querySelector('[data-nc-group="header"]') ||
@@ -412,40 +382,66 @@
 
     if (!header) {
       console.error('❌ Could not find header element');
-      // Fallback: insert at top of body
       const fallbackWrapper = document.createElement('div');
-      fallbackWrapper.className = 'anavo-menu-wrapper';
+      fallbackWrapper.className = 'anavo-menu-wrapper anavo-menu-fallback';
+      fallbackWrapper.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; z-index: 9999; background: white;';
       fallbackWrapper.innerHTML = menuHTML;
       document.body.insertBefore(fallbackWrapper, document.body.firstChild);
-      console.log('⚠️ Inserted menu at top of body (fallback)');
+      console.log('⚠️ Inserted menu at top of body (fallback mode)');
+      initializeMobileFolders();
       return;
     }
 
-    // Create wrapper
     const menuWrapper = document.createElement('div');
     menuWrapper.className = 'anavo-menu-wrapper';
+    menuWrapper.style.cssText = 'width: 100%; display: block; position: relative; z-index: 1000;';
     menuWrapper.innerHTML = menuHTML;
 
-    // Insert after logo/title or at beginning
-    const titleLogo = header.querySelector('.header-title-logo') || 
-                      header.querySelector('.header-title') ||
-                      header.querySelector('.header-display-desktop');
-    
-    if (titleLogo && titleLogo.parentNode) {
-      titleLogo.parentNode.insertBefore(menuWrapper, titleLogo.nextSibling);
-      console.log('✅ Inserted menu after logo');
-    } else {
-      header.appendChild(menuWrapper);
-      console.log('✅ Inserted menu at end of header');
+    const insertionPoints = [
+      { element: header.querySelector('.header-title-logo'), position: 'afterend' },
+      { element: header.querySelector('.header-title'), position: 'afterend' },
+      { element: header.querySelector('.header-display-desktop'), position: 'beforebegin' },
+      { element: header, position: 'beforeend' }
+    ];
+
+    let inserted = false;
+    for (const point of insertionPoints) {
+      if (point.element) {
+        if (point.position === 'afterend') {
+          point.element.parentNode.insertBefore(menuWrapper, point.element.nextSibling);
+        } else if (point.position === 'beforebegin') {
+          point.element.parentNode.insertBefore(menuWrapper, point.element);
+        } else if (point.position === 'beforeend') {
+          point.element.appendChild(menuWrapper);
+        }
+        console.log(`✅ Inserted menu ${point.position} ${point.element.className || point.element.tagName}`);
+        inserted = true;
+        break;
+      }
     }
 
-    // Add mobile folder toggles
+    if (!inserted) {
+      header.appendChild(menuWrapper);
+      console.log('✅ Inserted menu at end of header (default)');
+    }
+
+    setTimeout(() => {
+      const check = document.querySelector('.anavo-custom-menu');
+      if (check) {
+        console.log('✅ Menu verified in DOM');
+        const rect = check.getBoundingClientRect();
+        console.log(`📐 Menu position: top=${rect.top}, left=${rect.left}, width=${rect.width}, height=${rect.height}`);
+        if (rect.width === 0 || rect.height === 0) {
+          console.warn('⚠️ Menu has zero dimensions - likely CSS issue');
+        }
+      } else {
+        console.error('❌ Menu not found after insertion!');
+      }
+    }, 100);
+
     initializeMobileFolders();
   }
 
-  // ========================================
-  // 8. INITIALIZE MOBILE FOLDER TOGGLES
-  // ========================================
   function initializeMobileFolders() {
     const folders = document.querySelectorAll('.anavo-menu-folder');
 
@@ -459,7 +455,6 @@
           e.preventDefault();
           folder.classList.toggle('anavo-folder-open');
           
-          // Close other folders
           folders.forEach(otherFolder => {
             if (otherFolder !== folder) {
               otherFolder.classList.remove('anavo-folder-open');
@@ -472,11 +467,7 @@
     console.log(`✅ Initialized ${folders.length} folder toggles`);
   }
 
-  // ========================================
-  // 9. BURGER MODE (OPTIONAL)
-  // ========================================
   function enableBurgerMode() {
-    // Re-enable Squarespace burger on mobile
     const hideStyle = document.getElementById('anavo-hide-squarespace-nav');
     if (hideStyle) hideStyle.remove();
 
@@ -502,9 +493,6 @@
     console.log('✅ Burger mode enabled');
   }
 
-  // ========================================
-  // 10. LOAD LICENSING
-  // ========================================
   async function loadLicensing() {
     try {
       if (window.AnavoLicenseManager) return null;
@@ -520,7 +508,7 @@
 
       const licenseManager = new window.AnavoLicenseManager(
         'ExpandedMenu',
-        '2.0.1',
+        '2.0.2',
         {
           licenseServer: 'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licenses.json',
           showUI: true
@@ -542,14 +530,10 @@
     }
   }
 
-  // ========================================
-  // 11. MAIN INITIALIZATION
-  // ========================================
   async function init() {
     try {
       console.log('🔧 Starting initialization...');
 
-      // Step 1: Wait for Squarespace navigation
       const navList = await waitForSquarespaceNav();
       
       if (!navList) {
@@ -557,7 +541,6 @@
         return;
       }
 
-      // Step 2: Extract menu items
       const menuItems = extractMenuItems(navList);
       
       if (menuItems.length === 0) {
@@ -565,30 +548,22 @@
         return;
       }
 
-      // Step 3: Build custom menu HTML
       const menuHTML = buildCustomMenu(menuItems);
 
-      // Step 4: Hide Squarespace navigation
       hideSquarespaceNav();
-
-      // Step 5: Inject custom styles
       injectStyles();
-
-      // Step 6: Insert custom menu
       insertCustomMenu(menuHTML);
 
-      // Step 7: Enable burger mode if requested
       if (config.mobileMode === 'burger') {
         enableBurgerMode();
       }
 
-      console.log('✅ Expanded Menu Plugin v2.0.1 Active!');
+      console.log('✅ Expanded Menu Plugin v2.0.2 Active!');
       console.log('   Desktop Spacing:', config.menuSpacing);
       console.log('   Tablet Spacing:', config.tabletSpacing);
       console.log('   Mobile Spacing:', config.mobileSpacing);
       console.log('   Mobile Mode:', config.mobileMode);
 
-      // Step 8: Load licensing (non-blocking)
       loadLicensing();
 
     } catch (error) {
@@ -597,9 +572,6 @@
     }
   }
 
-  // ========================================
-  // 12. AUTO-INITIALIZE
-  // ========================================
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
