@@ -2,32 +2,29 @@
  * =======================================
  * EXPANDED MENU PLUGIN - Squarespace
  * =======================================
- * @version 2.1.2
+ * @version 2.1.3
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
- * FIXED v2.1.2:
- * - CRITICAL FIX: Background transparency now works
- * - Removed CSS/inline style conflicts
- * - Added background-color override
- * - Enhanced color parameter handling
+ * FIXED v2.1.3:
+ * - Added sticky/floating menu option
+ * - Menu now floats over page content
+ * - Perfect for transparent backgrounds
  * 
- * FIXED v2.1.1:
- * - Centralized item underlines
- * - Added itemBorderColor parameter
- * - Added sectionBorderColor parameter
+ * FIXED v2.1.2:
+ * - Background transparency works
+ * - Removed CSS/inline conflicts
  * 
  * NEW PARAMETERS:
- * - bgColor: Background color or 'transparent'
- * - itemBorderColor: Color of item underlines
- * - sectionBorderColor: Color of section border
+ * - stickyMenu: true/false (default: true)
+ * - stickyTop: Distance from top in px (default: 0)
  * =======================================
  */
 
 (function() {
   'use strict';
 
-  console.log('🚀 Expanded Menu Plugin v2.1.2 - Starting...');
+  console.log('🚀 Expanded Menu Plugin v2.1.3 - Starting...');
 
   const currentScript = document.currentScript || (function() {
     const scripts = document.getElementsByTagName('script');
@@ -45,22 +42,18 @@
       
       color = decodeURIComponent(color);
       
-      // If it's "transparent", return as-is
       if (color.toLowerCase() === 'transparent') {
         return 'transparent';
       }
       
-      // If it's a hex color without #, add it
       if (/^[0-9A-Fa-f]{6}$/.test(color)) {
         return '#' + color;
       }
       
-      // If it already has #, return as-is
       if (color.startsWith('#')) {
         return color;
       }
       
-      // Otherwise, return as-is (could be rgb(), var(), etc.)
       return color;
     }
 
@@ -73,7 +66,11 @@
       centerMenu: params.get('centerMenu') !== 'false',
       mobileMode: params.get('mobileMode') || 'custom',
       
-      // Customization (null = use CSS variables)
+      // NEW: Sticky menu
+      stickyMenu: params.get('stickyMenu') !== 'false',
+      stickyTop: params.get('stickyTop') || '0',
+      
+      // Customization
       bgColor: fixHexColor(params.get('bgColor')),
       fontColor: fixHexColor(params.get('fontColor')),
       fontFamily: params.get('fontFamily') ? decodeURIComponent(params.get('fontFamily')) : null,
@@ -265,15 +262,12 @@
       }
     ` : '';
 
-    // CRITICAL FIX: Use CSS variables with parameter override
+    // CRITICAL: Colors with fallbacks
     const fontColor = config.fontColor || 'var(--menuTextColor, #000)';
     const fontFamily = config.fontFamily || 'var(--heading-font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif)';
-    
-    // Border colors with CSS variable fallbacks
     const itemBorderColor = config.itemBorderColor || 'var(--lightAccentColor, #e8e8e8)';
     const dropdownBgColor = config.dropdownBgColor || 'var(--white, #ffffff)';
 
-    // Item borders (linhas embaixo de cada item)
     const itemBorderCSS = config.showItemBorders ?
       `border-bottom: ${config.itemBorderWidth}px solid ${itemBorderColor} !important;` : '';
 
@@ -281,12 +275,22 @@
       `box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;` :
       `box-shadow: none !important;`;
 
+    // NEW: Sticky positioning
+    const stickyCSS = config.stickyMenu ? `
+      position: fixed !important;
+      top: ${config.stickyTop}px !important;
+      left: 0 !important;
+      right: 0 !important;
+    ` : `
+      position: relative !important;
+    `;
+
     const styles = document.createElement('style');
     styles.id = 'anavo-expanded-menu-styles';
     styles.textContent = `
-      /* ANAVO CUSTOM MENU v2.1.2 - TRANSPARENCY FIX */
+      /* ANAVO CUSTOM MENU v2.1.3 - STICKY TRANSPARENT MENU */
       
-      /* CRITICAL: Force wrapper to be visible - NO BACKGROUND IN CSS */
+      /* Force wrapper to be visible + STICKY */
       div.anavo-menu-wrapper,
       div[class*="anavo-menu"] {
         display: block !important;
@@ -294,14 +298,20 @@
         opacity: 1 !important;
         width: 100% !important;
         height: auto !important;
-        position: relative !important;
-        z-index: 10000 !important;
-        /* Background set via INLINE STYLES only */
+        z-index: 99999 !important;
+        ${stickyCSS}
         overflow: visible !important;
         clip: auto !important;
         clip-path: none !important;
         transform: none !important;
       }
+
+      /* Add padding to body if sticky (prevent content jump) */
+      ${config.stickyMenu ? `
+        body {
+          padding-top: 80px !important;
+        }
+      ` : ''}
 
       /* Force custom menu to be visible */
       nav.anavo-custom-menu {
@@ -392,7 +402,7 @@
         visibility: hidden !important;
         transform: translateY(-10px) !important;
         transition: opacity 0.2s, transform 0.2s, visibility 0.2s !important;
-        z-index: 10001 !important;
+        z-index: 100000 !important;
       }
 
       .anavo-menu-folder:hover .anavo-menu-dropdown {
@@ -430,6 +440,8 @@
           padding: 6px 10px !important;
           padding-bottom: 10px !important;
         }
+
+        ${config.stickyMenu ? `body { padding-top: 70px !important; }` : ''}
       }
 
       @media (max-width: 479px) {
@@ -466,31 +478,42 @@
           padding: 8px 16px !important;
           font-size: ${Math.max(parseInt(config.fontSize) - 4, 12)}px !important;
         }
+
+        ${config.stickyMenu ? `body { padding-top: 60px !important; }` : ''}
       }
     `;
 
     document.head.appendChild(styles);
-    console.log('✅ Injected custom styles with MAXIMUM specificity');
+    console.log('✅ Injected custom styles with STICKY positioning');
   }
 
   function insertCustomMenu(menuHTML) {
-    // CRITICAL FIX: Insert at BODY level, NOT inside header
-    
     const menuWrapper = document.createElement('div');
     menuWrapper.className = 'anavo-menu-wrapper';
     menuWrapper.id = 'anavo-menu-' + Date.now();
     
-    // CRITICAL FIX: Force inline styles with MULTIPLE background properties
+    // CRITICAL: Inline styles for guaranteed visibility
     let inlineStyles = `
       display: block !important;
       visibility: visible !important;
       opacity: 1 !important;
       width: 100% !important;
-      position: relative !important;
-      z-index: 10000 !important;
+      z-index: 99999 !important;
     `;
 
-    // CRITICAL: Set BOTH background and background-color
+    // Sticky positioning
+    if (config.stickyMenu) {
+      inlineStyles += `
+        position: fixed !important;
+        top: ${config.stickyTop}px !important;
+        left: 0 !important;
+        right: 0 !important;
+      `;
+    } else {
+      inlineStyles += `position: relative !important;\n`;
+    }
+
+    // Background
     if (config.bgColor !== null) {
       inlineStyles += `background: ${config.bgColor} !important;\n`;
       inlineStyles += `background-color: ${config.bgColor} !important;\n`;
@@ -508,21 +531,11 @@
     menuWrapper.style.cssText = inlineStyles;
     menuWrapper.innerHTML = menuHTML;
 
-    // Find the header to insert AFTER it (not inside it)
-    const header = document.querySelector('.header') || 
-                   document.querySelector('.Header') ||
-                   document.querySelector('[data-nc-group="header"]') ||
-                   document.querySelector('header');
+    // Insert at top of body (for sticky positioning)
+    document.body.insertBefore(menuWrapper, document.body.firstChild);
+    console.log('✅ Inserted menu at top of body (sticky mode)');
 
-    if (header && header.parentNode) {
-      header.parentNode.insertBefore(menuWrapper, header.nextSibling);
-      console.log('✅ Inserted menu AFTER header (outside header element)');
-    } else {
-      document.body.insertBefore(menuWrapper, document.body.firstChild);
-      console.log('✅ Inserted menu at top of body (fallback)');
-    }
-
-    // Verify insertion with detailed logging
+    // Verify insertion
     setTimeout(() => {
       const check = document.querySelector('.anavo-custom-menu');
       if (check) {
@@ -530,16 +543,14 @@
         const rect = check.getBoundingClientRect();
         const wrapper = check.closest('.anavo-menu-wrapper');
         const computedBg = wrapper ? window.getComputedStyle(wrapper).backgroundColor : 'N/A';
-        const computedBgFull = wrapper ? window.getComputedStyle(wrapper).background : 'N/A';
         
         console.log(`📐 Menu dimensions:`, {
           width: rect.width,
           height: rect.height,
-          display: window.getComputedStyle(check).display,
-          visibility: window.getComputedStyle(check).visibility,
-          opacity: window.getComputedStyle(check).opacity,
-          wrapperBackgroundColor: computedBg,
-          wrapperBackground: computedBgFull
+          position: window.getComputedStyle(wrapper).position,
+          top: window.getComputedStyle(wrapper).top,
+          zIndex: window.getComputedStyle(wrapper).zIndex,
+          wrapperBackgroundColor: computedBg
         });
         
         if (rect.width === 0 || rect.height === 0) {
@@ -621,7 +632,7 @@
 
       const licenseManager = new window.AnavoLicenseManager(
         'ExpandedMenu',
-        '2.1.2',
+        '2.1.3',
         {
           licenseServer: 'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licenses.json',
           showUI: true
@@ -671,12 +682,10 @@
         enableBurgerMode();
       }
 
-      console.log('✅ Expanded Menu Plugin v2.1.2 Active!');
+      console.log('✅ Expanded Menu Plugin v2.1.3 Active!');
+      console.log('   Sticky Menu:', config.stickyMenu ? 'Enabled' : 'Disabled');
       console.log('   Desktop Spacing:', config.menuSpacing);
       console.log('   Background:', config.bgColor || 'CSS Variable (auto)');
-      console.log('   Font Color:', config.fontColor || 'CSS Variable (auto)');
-      console.log('   Item Border Color:', config.itemBorderColor || 'CSS Variable (auto)');
-      console.log('   Section Border Color:', config.sectionBorderColor || 'CSS Variable (auto)');
 
       loadLicensing();
 
