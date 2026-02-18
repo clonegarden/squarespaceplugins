@@ -2,34 +2,36 @@
  * =======================================
  * EXPANDED MENU PLUGIN - Squarespace
  * =======================================
- * @version 2.0.0
+ * @version 2.0.1
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
- * COMPLETE REWRITE:
- * - Removes ALL native Squarespace navigation
- * - Builds custom menu from scratch
- * - Responsive breakpoints: Desktop (>800px), Tablet (480-800px), Mobile (<480px)
+ * COMPLETE REWRITE - Custom Menu Builder
+ * - Extracts Squarespace navigation
+ * - Builds custom responsive menu
+ * - Works on Desktop (>800px), Tablet (480-800px), Mobile (<480px)
  * - Optional burger menu mode
  *
  * USAGE:
- * <script src=".../expanded-menu.min.js?menuSpacing=60px&mobileMode=custom"></script>
+ * <script src=".../expanded-menu.min.js?menuSpacing=60px"></script>
  *
  * PARAMETERS:
- * - containerWidth: Max width of header (default: 100%)
+ * - containerWidth: Max width (default: 100%)
  * - menuSpacing: Desktop spacing (default: 60px)
- * - tabletSpacing: Tablet spacing (default: 30px) - more than native but less than desktop
- * - mobileSpacing: Mobile spacing (default: 20px) - normal Squarespace spacing
- * - centerMenu: Center the menu (default: true)
- * - mobileMode: 'custom' (rebuild menu) or 'burger' (use native burger) (default: custom)
+ * - tabletSpacing: Tablet spacing (default: 30px)
+ * - mobileSpacing: Mobile spacing (default: 20px)
+ * - centerMenu: Center menu (default: true)
+ * - mobileMode: 'custom' or 'burger' (default: custom)
  * =======================================
  */
 
 (function() {
   'use strict';
 
+  console.log('🚀 Expanded Menu Plugin v2.0.1 - Starting...');
+
   // ========================================
-  // 1. CAPTURE SCRIPT & PARSE PARAMETERS
+  // 1. CONFIGURATION
   // ========================================
   const currentScript = document.currentScript || (function() {
     const scripts = document.getElementsByTagName('script');
@@ -42,52 +44,94 @@
     const params = new URLSearchParams(url.search);
 
     return {
-      license: params.get('license') || '',
       containerWidth: params.get('containerWidth') || '100%',
       menuSpacing: params.get('menuSpacing') || '60px',
       tabletSpacing: params.get('tabletSpacing') || '30px',
       mobileSpacing: params.get('mobileSpacing') || '20px',
       centerMenu: params.get('centerMenu') !== 'false',
-      mobileMode: params.get('mobileMode') || 'custom' // 'custom' or 'burger'
+      mobileMode: params.get('mobileMode') || 'custom'
     };
   }
 
   const config = getScriptParams();
-
-  console.log('🚀 Expanded Menu Plugin v2.0.0 - Custom Menu Builder');
-  console.log('   Mode:', config.mobileMode);
+  console.log('⚙️ Config:', config);
 
   // ========================================
-  // 2. EXTRACT MENU ITEMS FROM SQUARESPACE
+  // 2. WAIT FOR SQUARESPACE NAVIGATION
   // ========================================
-  function extractMenuItems() {
-    const menuItems = [];
-    
-    // Find Squarespace's desktop navigation
-    const navList = document.querySelector('.header-nav-list');
-    
+  function waitForSquarespaceNav() {
+    return new Promise((resolve) => {
+      // Try multiple selectors for 7.0 and 7.1
+      const selectors = [
+        '.header-nav-list',
+        '.header-menu-nav-list',
+        '[data-folder="root"] .header-nav-list',
+        '.header-nav-wrapper .header-nav-list'
+      ];
+
+      function checkNav() {
+        for (const selector of selectors) {
+          const nav = document.querySelector(selector);
+          if (nav && nav.children.length > 0) {
+            console.log('✅ Found Squarespace navigation:', selector);
+            resolve(nav);
+            return true;
+          }
+        }
+        return false;
+      }
+
+      // Check immediately
+      if (checkNav()) return;
+
+      // Check every 100ms for up to 5 seconds
+      let attempts = 0;
+      const maxAttempts = 50;
+      const interval = setInterval(() => {
+        attempts++;
+        
+        if (checkNav()) {
+          clearInterval(interval);
+        } else if (attempts >= maxAttempts) {
+          clearInterval(interval);
+          console.error('❌ Squarespace navigation not found after 5 seconds');
+          resolve(null);
+        }
+      }, 100);
+    });
+  }
+
+  // ========================================
+  // 3. EXTRACT MENU ITEMS
+  // ========================================
+  function extractMenuItems(navList) {
     if (!navList) {
-      console.error('❌ Could not find Squarespace navigation');
-      return menuItems;
+      console.error('❌ Cannot extract menu items - nav list is null');
+      return [];
     }
 
-    // Extract each menu item
+    const menuItems = [];
     const items = navList.querySelectorAll('.header-nav-item');
     
-    items.forEach(item => {
+    console.log(`📋 Found ${items.length} menu items`);
+
+    items.forEach((item, index) => {
       const link = item.querySelector('a');
-      if (!link) return;
+      if (!link) {
+        console.warn(`⚠️ Item ${index} has no link, skipping`);
+        return;
+      }
 
       const menuItem = {
         text: link.textContent.trim(),
-        href: link.getAttribute('href'),
+        href: link.getAttribute('href') || '#',
         target: link.getAttribute('target') || '_self',
         isFolder: item.classList.contains('header-nav-item--folder'),
         isActive: item.classList.contains('header-nav-item--active'),
         children: []
       };
 
-      // Extract folder items if it's a dropdown
+      // Extract folder children
       if (menuItem.isFolder) {
         const folderContent = item.querySelector('.header-nav-folder-content');
         if (folderContent) {
@@ -95,27 +139,33 @@
           folderItems.forEach(folderLink => {
             menuItem.children.push({
               text: folderLink.textContent.trim(),
-              href: folderLink.getAttribute('href'),
+              href: folderLink.getAttribute('href') || '#',
               target: folderLink.getAttribute('target') || '_self'
             });
           });
+          console.log(`  📁 Folder "${menuItem.text}" has ${menuItem.children.length} children`);
         }
       }
 
       menuItems.push(menuItem);
+      console.log(`  ✓ ${index + 1}. ${menuItem.text} ${menuItem.isActive ? '(active)' : ''}`);
     });
 
-    console.log(`✅ Extracted ${menuItems.length} menu items`);
     return menuItems;
   }
 
   // ========================================
-  // 3. BUILD CUSTOM MENU HTML
+  // 4. BUILD CUSTOM MENU HTML
   // ========================================
   function buildCustomMenu(menuItems) {
+    if (!menuItems || menuItems.length === 0) {
+      console.error('❌ No menu items to build');
+      return '<nav class="anavo-custom-menu"><p style="color:red;">No menu items found</p></nav>';
+    }
+
     const menuHTML = menuItems.map((item, index) => {
       if (item.isFolder && item.children.length > 0) {
-        // Build dropdown folder
+        // Dropdown folder
         const childrenHTML = item.children.map(child => 
           `<a href="${child.href}" target="${child.target}" class="anavo-menu-dropdown-item">
             ${child.text}
@@ -136,7 +186,7 @@
           </div>
         `;
       } else {
-        // Build regular link
+        // Regular link
         return `
           <div class="anavo-menu-item ${item.isActive ? 'anavo-menu-item--active' : ''}">
             <a href="${item.href}" target="${item.target}" class="anavo-menu-link">
@@ -147,34 +197,27 @@
       }
     }).join('');
 
+    console.log('✅ Built custom menu HTML');
     return `<nav class="anavo-custom-menu" role="navigation">${menuHTML}</nav>`;
   }
 
   // ========================================
-  // 4. HIDE SQUARESPACE NAVIGATION
+  // 5. HIDE SQUARESPACE NAVIGATION
   // ========================================
   function hideSquarespaceNav() {
     const hideCSS = `
-      /* Hide ALL Squarespace native navigation (7.0 & 7.1) */
+      /* Hide ALL Squarespace navigation */
       .header-nav,
       .header-nav-wrapper,
       .header-nav-list,
       .header-display-desktop,
       .header-menu,
       .header-menu-bg,
-      .header-menu-nav,
       .header-menu-nav-wrapper,
       .header-burger,
-      [data-nc-element="header-nav"],
-      [data-nc-group="header-nav"] {
+      [data-nc-element="header-nav"] {
         display: none !important;
         visibility: hidden !important;
-      }
-
-      /* Prevent body scroll lock */
-      body.mobile-nav-open,
-      body[data-mobile-nav-open="true"] {
-        overflow: auto !important;
       }
     `;
 
@@ -183,15 +226,17 @@
     style.textContent = hideCSS;
     document.head.appendChild(style);
 
-    console.log('✅ Hid all Squarespace navigation');
+    console.log('✅ Hid Squarespace navigation');
   }
 
   // ========================================
-  // 5. INJECT CUSTOM MENU STYLES
+  // 6. INJECT CUSTOM MENU STYLES
   // ========================================
   function injectStyles() {
-    const existingStyles = document.getElementById('anavo-expanded-menu-styles');
-    if (existingStyles) existingStyles.remove();
+    if (document.getElementById('anavo-expanded-menu-styles')) {
+      console.log('⚠️ Styles already injected');
+      return;
+    }
 
     const centeringCSS = config.centerMenu ? `
       .anavo-custom-menu {
@@ -202,11 +247,14 @@
     const styles = document.createElement('style');
     styles.id = 'anavo-expanded-menu-styles';
     styles.textContent = `
-      /* ========================================
-       * ANAVO CUSTOM MENU - v2.0.0
-       * ======================================== */
+      /* ANAVO CUSTOM MENU v2.0.1 */
+      
+      .anavo-menu-wrapper {
+        width: 100%;
+        background: var(--white, #fff);
+        border-bottom: 1px solid var(--lightAccentColor, #e8e8e8);
+      }
 
-      /* Menu container */
       .anavo-custom-menu {
         display: flex;
         align-items: center;
@@ -219,13 +267,11 @@
         ${centeringCSS}
       }
 
-      /* Menu item container */
       .anavo-menu-item {
         position: relative;
         white-space: nowrap;
       }
 
-      /* Menu links */
       .anavo-menu-link {
         display: inline-block;
         padding: 8px 12px;
@@ -234,7 +280,7 @@
         font-weight: 500;
         font-size: 1rem;
         letter-spacing: 0.05em;
-        transition: color 0.2s ease, opacity 0.2s ease;
+        transition: opacity 0.2s ease;
         cursor: pointer;
       }
 
@@ -242,12 +288,10 @@
         opacity: 0.7;
       }
 
-      /* Active state */
       .anavo-menu-item--active .anavo-menu-link {
         font-weight: 700;
       }
 
-      /* Folder/Dropdown */
       .anavo-menu-folder {
         position: relative;
       }
@@ -266,7 +310,6 @@
         transform: rotate(180deg);
       }
 
-      /* Dropdown content */
       .anavo-menu-dropdown {
         position: absolute;
         top: 100%;
@@ -279,7 +322,7 @@
         opacity: 0;
         visibility: hidden;
         transform: translateY(-10px);
-        transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+        transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
         z-index: 1000;
       }
 
@@ -295,18 +338,16 @@
         color: var(--menuTextColor, currentColor);
         text-decoration: none;
         font-size: 0.95rem;
-        transition: background 0.2s ease;
+        transition: background 0.2s;
       }
 
       .anavo-menu-dropdown-item:hover {
         background: var(--lightAccentColor, #f5f5f5);
       }
 
-      /* ========================================
-       * RESPONSIVE BREAKPOINTS
-       * ======================================== */
+      /* RESPONSIVE BREAKPOINTS */
 
-      /* TABLET (480px - 800px) - Reduced spacing, centered */
+      /* Tablet (480-800px) */
       @media (max-width: 800px) and (min-width: 480px) {
         .anavo-custom-menu {
           gap: ${config.tabletSpacing};
@@ -317,17 +358,14 @@
           font-size: 0.95rem;
           padding: 6px 10px;
         }
-
-        .anavo-menu-dropdown {
-          min-width: 180px;
-        }
       }
 
-      /* MOBILE (<480px) - Normal Squarespace spacing */
+      /* Mobile (<480px) */
       @media (max-width: 479px) {
         .anavo-custom-menu {
           gap: ${config.mobileSpacing};
           padding: 12px 1vw;
+          flex-wrap: wrap;
         }
 
         .anavo-menu-link {
@@ -336,80 +374,86 @@
         }
 
         .anavo-menu-dropdown {
-          min-width: 160px;
-          font-size: 0.85rem;
+          position: static;
+          box-shadow: none;
+          background: transparent;
+          opacity: 1;
+          visibility: visible;
+          transform: none;
+          display: none;
+          padding: 0;
+          margin-top: 8px;
+        }
+
+        .anavo-menu-folder.anavo-folder-open .anavo-menu-dropdown {
+          display: block;
         }
 
         .anavo-menu-dropdown-item {
-          padding: 10px 16px;
-        }
-      }
-
-      /* EXTRA SMALL MOBILE (<360px) */
-      @media (max-width: 360px) {
-        .anavo-custom-menu {
-          gap: calc(${config.mobileSpacing} * 0.7);
-        }
-
-        .anavo-menu-link {
+          padding: 8px 16px;
           font-size: 0.85rem;
-          padding: 5px 6px;
         }
       }
     `;
 
     document.head.appendChild(styles);
-    console.log('✅ Custom menu styles injected');
+    console.log('✅ Injected custom styles');
   }
 
   // ========================================
-  // 6. INSERT CUSTOM MENU INTO HEADER
+  // 7. INSERT CUSTOM MENU
   // ========================================
   function insertCustomMenu(menuHTML) {
-    // Find header container
+    // Find header - try multiple selectors
     const header = document.querySelector('.header') || 
                    document.querySelector('.Header') ||
-                   document.querySelector('[data-nc-group="header"]');
+                   document.querySelector('[data-nc-group="header"]') ||
+                   document.querySelector('header');
 
     if (!header) {
       console.error('❌ Could not find header element');
+      // Fallback: insert at top of body
+      const fallbackWrapper = document.createElement('div');
+      fallbackWrapper.className = 'anavo-menu-wrapper';
+      fallbackWrapper.innerHTML = menuHTML;
+      document.body.insertBefore(fallbackWrapper, document.body.firstChild);
+      console.log('⚠️ Inserted menu at top of body (fallback)');
       return;
     }
 
-    // Create wrapper for custom menu
+    // Create wrapper
     const menuWrapper = document.createElement('div');
     menuWrapper.className = 'anavo-menu-wrapper';
     menuWrapper.innerHTML = menuHTML;
 
-    // Insert after header-title-logo or at beginning
+    // Insert after logo/title or at beginning
     const titleLogo = header.querySelector('.header-title-logo') || 
-                      header.querySelector('.header-title');
+                      header.querySelector('.header-title') ||
+                      header.querySelector('.header-display-desktop');
     
     if (titleLogo && titleLogo.parentNode) {
       titleLogo.parentNode.insertBefore(menuWrapper, titleLogo.nextSibling);
+      console.log('✅ Inserted menu after logo');
     } else {
       header.appendChild(menuWrapper);
+      console.log('✅ Inserted menu at end of header');
     }
 
-    console.log('✅ Custom menu inserted into header');
-
-    // Add folder click handlers
-    initializeFolderToggles();
+    // Add mobile folder toggles
+    initializeMobileFolders();
   }
 
   // ========================================
-  // 7. INITIALIZE FOLDER/DROPDOWN TOGGLES
+  // 8. INITIALIZE MOBILE FOLDER TOGGLES
   // ========================================
-  function initializeFolderToggles() {
+  function initializeMobileFolders() {
     const folders = document.querySelectorAll('.anavo-menu-folder');
 
     folders.forEach(folder => {
       const toggle = folder.querySelector('.anavo-menu-folder-toggle');
-      const dropdown = folder.querySelector('.anavo-menu-dropdown');
+      
+      if (!toggle) return;
 
-      if (!toggle || !dropdown) return;
-
-      // Mobile: Click to toggle
       toggle.addEventListener('click', (e) => {
         if (window.innerWidth <= 800) {
           e.preventDefault();
@@ -425,46 +469,25 @@
       });
     });
 
-    // Add mobile toggle styles
-    const mobileToggleCSS = `
-      @media (max-width: 800px) {
-        .anavo-menu-folder.anavo-folder-open .anavo-menu-dropdown {
-          opacity: 1;
-          visibility: visible;
-          transform: translateY(0);
-        }
-
-        .anavo-menu-folder.anavo-folder-open .anavo-menu-arrow {
-          transform: rotate(180deg);
-        }
-      }
-    `;
-
-    const style = document.createElement('style');
-    style.textContent = mobileToggleCSS;
-    document.head.appendChild(style);
+    console.log(`✅ Initialized ${folders.length} folder toggles`);
   }
 
   // ========================================
-  // 8. BURGER MODE (OPTIONAL)
+  // 9. BURGER MODE (OPTIONAL)
   // ========================================
   function enableBurgerMode() {
-    // Re-enable Squarespace's native burger menu
+    // Re-enable Squarespace burger on mobile
     const hideStyle = document.getElementById('anavo-hide-squarespace-nav');
     if (hideStyle) hideStyle.remove();
 
-    // Hide custom menu on mobile
     const burgerCSS = `
       @media (max-width: 800px) {
-        .anavo-custom-menu,
         .anavo-menu-wrapper {
           display: none !important;
         }
 
-        /* Re-enable Squarespace burger menu */
         .header-burger,
-        .header-menu,
-        .header-menu-nav-wrapper {
+        .header-menu {
           display: block !important;
           visibility: visible !important;
         }
@@ -476,15 +499,15 @@
     style.textContent = burgerCSS;
     document.head.appendChild(style);
 
-    console.log('✅ Burger mode enabled for mobile');
+    console.log('✅ Burger mode enabled');
   }
 
   // ========================================
-  // 9. LOAD LICENSING (NON-BLOCKING)
+  // 10. LOAD LICENSING
   // ========================================
-  async function validateLicense() {
+  async function loadLicensing() {
     try {
-      if (window.AnavoLicenseManager) return;
+      if (window.AnavoLicenseManager) return null;
 
       const script = document.createElement('script');
       script.src = 'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licensing.min.js';
@@ -497,7 +520,7 @@
 
       const licenseManager = new window.AnavoLicenseManager(
         'ExpandedMenu',
-        '2.0.0',
+        '2.0.1',
         {
           licenseServer: 'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licenses.json',
           showUI: true
@@ -505,65 +528,77 @@
       );
 
       await licenseManager.init();
-
+      
       if (!licenseManager.isLicensed) {
         const header = document.querySelector('.header');
         if (header) licenseManager.insertWatermark(header);
       }
 
+      return licenseManager;
+
     } catch (error) {
-      console.warn('⚠️ License validation unavailable:', error.message);
+      console.warn('⚠️ License check failed:', error.message);
+      return null;
     }
   }
 
   // ========================================
-  // 10. MAIN INITIALIZATION
+  // 11. MAIN INITIALIZATION
   // ========================================
   async function init() {
     try {
-      console.log('🔧 Building custom menu...');
+      console.log('🔧 Starting initialization...');
 
-      // Step 1: Extract menu items from Squarespace
-      const menuItems = extractMenuItems();
-
-      if (menuItems.length === 0) {
-        console.error('❌ No menu items found');
+      // Step 1: Wait for Squarespace navigation
+      const navList = await waitForSquarespaceNav();
+      
+      if (!navList) {
+        console.error('❌ Failed to find Squarespace navigation - aborting');
         return;
       }
 
-      // Step 2: Build custom menu HTML
+      // Step 2: Extract menu items
+      const menuItems = extractMenuItems(navList);
+      
+      if (menuItems.length === 0) {
+        console.error('❌ No menu items extracted - aborting');
+        return;
+      }
+
+      // Step 3: Build custom menu HTML
       const menuHTML = buildCustomMenu(menuItems);
 
-      // Step 3: Hide Squarespace navigation
+      // Step 4: Hide Squarespace navigation
       hideSquarespaceNav();
 
-      // Step 4: Inject custom styles
+      // Step 5: Inject custom styles
       injectStyles();
 
-      // Step 5: Insert custom menu
+      // Step 6: Insert custom menu
       insertCustomMenu(menuHTML);
 
-      // Step 6: Enable burger mode if requested
+      // Step 7: Enable burger mode if requested
       if (config.mobileMode === 'burger') {
         enableBurgerMode();
       }
 
-      console.log('✅ Expanded Menu Plugin v2.0.0 Active');
+      console.log('✅ Expanded Menu Plugin v2.0.1 Active!');
       console.log('   Desktop Spacing:', config.menuSpacing);
       console.log('   Tablet Spacing:', config.tabletSpacing);
       console.log('   Mobile Spacing:', config.mobileSpacing);
       console.log('   Mobile Mode:', config.mobileMode);
 
-      // Step 7: Validate license (non-blocking)
-      validateLicense();
+      // Step 8: Load licensing (non-blocking)
+      loadLicensing();
 
     } catch (error) {
       console.error('❌ Plugin initialization failed:', error);
+      console.error('Stack trace:', error.stack);
     }
   }
 
   // ========================================
-  // 11. AUTO-INITIALIZE
+  // 12. AUTO-INITIALIZE
   // ========================================
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
