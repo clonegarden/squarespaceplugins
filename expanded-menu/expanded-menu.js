@@ -2,19 +2,50 @@
  * =======================================
  * EXPANDED MENU PLUGIN - Squarespace
  * =======================================
- * @version 2.0.3
+ * @version 2.1.0
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
- * FIXED: Menu visibility issues
- * IMPROVED: Force menu to be visible at body level
+ * COMPLETE REWRITE - Custom Menu Builder
+ * NEW v2.1.0: Full theme customization support
+ * 
+ * FEATURES:
+ * - Removes native Squarespace navigation
+ * - Builds custom responsive menu
+ * - Desktop (>800px), Tablet (480-800px), Mobile (<480px)
+ * - Full color, font, and size customization
+ * - Optional burger menu mode
+ *
+ * USAGE:
+ * <script src=".../expanded-menu.min.js?menuSpacing=60px&bgColor=%23ffffff&fontColor=%23000000"></script>
+ *
+ * PARAMETERS:
+ * - containerWidth: Max width (default: 100%)
+ * - menuSpacing: Desktop spacing (default: 60px)
+ * - tabletSpacing: Tablet spacing (default: 30px)
+ * - mobileSpacing: Mobile spacing (default: 20px)
+ * - centerMenu: Center menu (default: true)
+ * - mobileMode: 'custom' or 'burger' (default: custom)
+ * 
+ * CUSTOMIZATION (NEW):
+ * - bgColor: Background color, hex encoded (default: %23ffffff) or 'transparent'
+ * - fontColor: Text color, hex encoded (default: %23000000)
+ * - fontFamily: Font family name (default: inherit)
+ * - fontSize: Font size in px (default: 16)
+ * - fontWeight: Font weight 100-900 (default: 500)
+ * - hoverOpacity: Hover opacity 0-1 (default: 0.7)
+ * 
+ * COLOR ENCODING:
+ * #ffffff → %23ffffff
+ * #000000 → %23000000
+ * transparent → transparent
  * =======================================
  */
 
 (function() {
   'use strict';
 
-  console.log('🚀 Expanded Menu Plugin v2.0.3 - Starting...');
+  console.log('🚀 Expanded Menu Plugin v2.1.0 - Starting...');
 
   const currentScript = document.currentScript || (function() {
     const scripts = document.getElementsByTagName('script');
@@ -27,12 +58,29 @@
     const params = new URLSearchParams(url.search);
 
     return {
+      // Layout
       containerWidth: params.get('containerWidth') || '100%',
       menuSpacing: params.get('menuSpacing') || '60px',
       tabletSpacing: params.get('tabletSpacing') || '30px',
       mobileSpacing: params.get('mobileSpacing') || '20px',
       centerMenu: params.get('centerMenu') !== 'false',
-      mobileMode: params.get('mobileMode') || 'custom'
+      mobileMode: params.get('mobileMode') || 'custom',
+      
+      // NEW: Customization
+      bgColor: decodeURIComponent(params.get('bgColor') || 'transparent'),
+      fontColor: decodeURIComponent(params.get('fontColor') || '#000000'),
+      fontFamily: decodeURIComponent(params.get('fontFamily') || 'inherit'),
+      fontSize: params.get('fontSize') || '16',
+      fontWeight: params.get('fontWeight') || '500',
+      hoverOpacity: params.get('hoverOpacity') || '0.7',
+      
+      // Dropdown customization
+      dropdownBgColor: decodeURIComponent(params.get('dropdownBgColor') || '#ffffff'),
+      dropdownShadow: params.get('dropdownShadow') !== 'false',
+      
+      // Border
+      borderBottom: params.get('borderBottom') !== 'false',
+      borderColor: decodeURIComponent(params.get('borderColor') || '#e8e8e8')
     };
   }
 
@@ -171,7 +219,6 @@
 
   function hideSquarespaceNav() {
     const hideCSS = `
-      /* Hide ALL Squarespace navigation */
       .header-nav,
       .header-nav-wrapper,
       .header-nav-list,
@@ -206,12 +253,18 @@
       }
     ` : '';
 
+    const borderCSS = config.borderBottom ? 
+      `border-bottom: 1px solid ${config.borderColor} !important;` : '';
+
+    const dropdownShadowCSS = config.dropdownShadow ?
+      `box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;` :
+      `box-shadow: none !important;`;
+
     const styles = document.createElement('style');
     styles.id = 'anavo-expanded-menu-styles';
     styles.textContent = `
-      /* ANAVO CUSTOM MENU v2.0.3 - FORCE VISIBILITY */
+      /* ANAVO CUSTOM MENU v2.1.0 - FULLY CUSTOMIZABLE */
       
-      /* CRITICAL: Force wrapper to be visible */
       div.anavo-menu-wrapper,
       div[class*="anavo-menu"] {
         display: block !important;
@@ -221,15 +274,14 @@
         height: auto !important;
         position: relative !important;
         z-index: 10000 !important;
-        background: var(--white, #fff) !important;
-        border-bottom: 1px solid var(--lightAccentColor, #e8e8e8) !important;
+        background: ${config.bgColor} !important;
+        ${borderCSS}
         overflow: visible !important;
         clip: auto !important;
         clip-path: none !important;
         transform: none !important;
       }
 
-      /* Force custom menu to be visible */
       nav.anavo-custom-menu {
         display: flex !important;
         visibility: visible !important;
@@ -240,13 +292,12 @@
         max-width: ${config.containerWidth} !important;
         margin: 0 auto !important;
         padding: 20px 2vw !important;
-        font-family: var(--heading-font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif) !important;
+        font-family: ${config.fontFamily} !important;
         min-height: 60px !important;
         box-sizing: border-box !important;
         ${centeringCSS}
       }
 
-      /* Force menu items to be visible */
       div.anavo-menu-item {
         display: block !important;
         visibility: visible !important;
@@ -255,17 +306,17 @@
         white-space: nowrap !important;
       }
 
-      /* Force links to be visible */
       a.anavo-menu-link,
       span.anavo-menu-link {
         display: inline-block !important;
         visibility: visible !important;
         opacity: 1 !important;
         padding: 8px 12px !important;
-        color: var(--menuTextColor, #000) !important;
+        color: ${config.fontColor} !important;
         text-decoration: none !important;
-        font-weight: 500 !important;
-        font-size: 1rem !important;
+        font-weight: ${config.fontWeight} !important;
+        font-size: ${config.fontSize}px !important;
+        font-family: ${config.fontFamily} !important;
         letter-spacing: 0.05em !important;
         transition: opacity 0.2s ease !important;
         cursor: pointer !important;
@@ -273,11 +324,11 @@
 
       a.anavo-menu-link:hover,
       span.anavo-menu-link:hover {
-        opacity: 0.7 !important;
+        opacity: ${config.hoverOpacity} !important;
       }
 
       .anavo-menu-item--active .anavo-menu-link {
-        font-weight: 700 !important;
+        font-weight: ${Math.min(parseInt(config.fontWeight) + 200, 900)} !important;
       }
 
       .anavo-menu-folder {
@@ -292,6 +343,7 @@
 
       .anavo-menu-arrow {
         transition: transform 0.2s ease !important;
+        color: ${config.fontColor} !important;
       }
 
       .anavo-menu-folder:hover .anavo-menu-arrow {
@@ -303,8 +355,8 @@
         top: 100% !important;
         left: 0 !important;
         min-width: 200px !important;
-        background: var(--white, #ffffff) !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+        background: ${config.dropdownBgColor} !important;
+        ${dropdownShadowCSS}
         border-radius: 4px !important;
         padding: 8px 0 !important;
         opacity: 0 !important;
@@ -323,14 +375,16 @@
       .anavo-menu-dropdown-item {
         display: block !important;
         padding: 12px 20px !important;
-        color: var(--menuTextColor, #000) !important;
+        color: ${config.fontColor} !important;
         text-decoration: none !important;
-        font-size: 0.95rem !important;
-        transition: background 0.2s !important;
+        font-size: ${Math.max(parseInt(config.fontSize) - 2, 12)}px !important;
+        font-family: ${config.fontFamily} !important;
+        font-weight: ${config.fontWeight} !important;
+        transition: opacity 0.2s !important;
       }
 
       .anavo-menu-dropdown-item:hover {
-        background: var(--lightAccentColor, #f5f5f5) !important;
+        opacity: ${config.hoverOpacity} !important;
       }
 
       /* RESPONSIVE BREAKPOINTS */
@@ -343,7 +397,7 @@
 
         a.anavo-menu-link,
         span.anavo-menu-link {
-          font-size: 0.95rem !important;
+          font-size: ${Math.max(parseInt(config.fontSize) - 2, 14)}px !important;
           padding: 6px 10px !important;
         }
       }
@@ -357,7 +411,7 @@
 
         a.anavo-menu-link,
         span.anavo-menu-link {
-          font-size: 0.9rem !important;
+          font-size: ${Math.max(parseInt(config.fontSize) - 4, 12)}px !important;
           padding: 6px 8px !important;
         }
 
@@ -379,72 +433,92 @@
 
         .anavo-menu-dropdown-item {
           padding: 8px 16px !important;
-          font-size: 0.85rem !important;
+          font-size: ${Math.max(parseInt(config.fontSize) - 4, 12)}px !important;
         }
       }
     `;
 
     document.head.appendChild(styles);
-    console.log('✅ Injected custom styles with MAXIMUM specificity');
+    console.log('✅ Injected custom styles with full customization');
   }
 
   function insertCustomMenu(menuHTML) {
-    // CRITICAL FIX: Insert at BODY level, NOT inside header
-    // This prevents Squarespace's header CSS from hiding our menu
-    
-    const menuWrapper = document.createElement('div');
-    menuWrapper.className = 'anavo-menu-wrapper';
-    menuWrapper.id = 'anavo-menu-' + Date.now();
-    
-    // Force inline styles for guaranteed visibility
-    menuWrapper.style.cssText = `
-      display: block !important;
-      visibility: visible !important;
-      opacity: 1 !important;
-      width: 100% !important;
-      position: relative !important;
-      z-index: 10000 !important;
-      background: white !important;
-      border-bottom: 1px solid #e8e8e8 !important;
-    `;
-    
-    menuWrapper.innerHTML = menuHTML;
-
-    // Find the header to insert AFTER it (not inside it)
     const header = document.querySelector('.header') || 
                    document.querySelector('.Header') ||
                    document.querySelector('[data-nc-group="header"]') ||
                    document.querySelector('header');
 
-    if (header && header.parentNode) {
-      // Insert AFTER header (not inside)
-      header.parentNode.insertBefore(menuWrapper, header.nextSibling);
-      console.log('✅ Inserted menu AFTER header (outside header element)');
-    } else {
-      // Fallback: Insert at top of body
-      document.body.insertBefore(menuWrapper, document.body.firstChild);
-      console.log('✅ Inserted menu at top of body (fallback)');
+    if (!header) {
+      console.error('❌ Could not find header element');
+      const fallbackWrapper = document.createElement('div');
+      fallbackWrapper.className = 'anavo-menu-wrapper anavo-menu-fallback';
+      fallbackWrapper.style.cssText = `
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 9999 !important;
+        background: ${config.bgColor} !important;
+      `;
+      fallbackWrapper.innerHTML = menuHTML;
+      document.body.insertBefore(fallbackWrapper, document.body.firstChild);
+      console.log('⚠️ Inserted menu at top of body (fallback mode)');
+      initializeMobileFolders();
+      return;
     }
 
-    // Verify insertion with detailed logging
+    const menuWrapper = document.createElement('div');
+    menuWrapper.className = 'anavo-menu-wrapper';
+    menuWrapper.style.cssText = `
+      width: 100% !important;
+      display: block !important;
+      position: relative !important;
+      z-index: 1000 !important;
+    `;
+    menuWrapper.innerHTML = menuHTML;
+
+    const insertionPoints = [
+      { element: header.querySelector('.header-title-logo'), position: 'afterend' },
+      { element: header.querySelector('.header-title'), position: 'afterend' },
+      { element: header.querySelector('.header-display-desktop'), position: 'beforebegin' },
+      { element: header, position: 'beforeend' }
+    ];
+
+    let inserted = false;
+    for (const point of insertionPoints) {
+      if (point.element) {
+        if (point.position === 'afterend') {
+          point.element.parentNode.insertBefore(menuWrapper, point.element.nextSibling);
+        } else if (point.position === 'beforebegin') {
+          point.element.parentNode.insertBefore(menuWrapper, point.element);
+        } else if (point.position === 'beforeend') {
+          point.element.appendChild(menuWrapper);
+        }
+        console.log(`✅ Inserted menu ${point.position} ${point.element.className || point.element.tagName}`);
+        inserted = true;
+        break;
+      }
+    }
+
+    if (!inserted) {
+      header.appendChild(menuWrapper);
+      console.log('✅ Inserted menu at end of header (default)');
+    }
+
     setTimeout(() => {
       const check = document.querySelector('.anavo-custom-menu');
       if (check) {
         console.log('✅ Menu verified in DOM');
         const rect = check.getBoundingClientRect();
         console.log(`📐 Menu dimensions:`, {
-          top: rect.top,
-          left: rect.left,
           width: rect.width,
           height: rect.height,
           display: window.getComputedStyle(check).display,
-          visibility: window.getComputedStyle(check).visibility,
-          opacity: window.getComputedStyle(check).opacity
+          visibility: window.getComputedStyle(check).visibility
         });
         
         if (rect.width === 0 || rect.height === 0) {
           console.error('❌ Menu still has zero dimensions!');
-          console.error('Computed styles:', window.getComputedStyle(check));
         } else {
           console.log('✅ Menu is visible with proper dimensions!');
         }
@@ -522,7 +596,7 @@
 
       const licenseManager = new window.AnavoLicenseManager(
         'ExpandedMenu',
-        '2.0.3',
+        '2.1.0',
         {
           licenseServer: 'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licenses.json',
           showUI: true
@@ -572,11 +646,15 @@
         enableBurgerMode();
       }
 
-      console.log('✅ Expanded Menu Plugin v2.0.3 Active!');
+      console.log('✅ Expanded Menu Plugin v2.1.0 Active!');
       console.log('   Desktop Spacing:', config.menuSpacing);
       console.log('   Tablet Spacing:', config.tabletSpacing);
       console.log('   Mobile Spacing:', config.mobileSpacing);
       console.log('   Mobile Mode:', config.mobileMode);
+      console.log('   Background:', config.bgColor);
+      console.log('   Font Color:', config.fontColor);
+      console.log('   Font Family:', config.fontFamily);
+      console.log('   Font Size:', config.fontSize + 'px');
 
       loadLicensing();
 
