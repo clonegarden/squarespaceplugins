@@ -475,6 +475,58 @@
           padding: 8px 16px !important;
           font-size: ${Math.max(parseInt(config.fontSize) - 4, 12)}px !important;
         }
+
+
+/* FORÇA ITENS COMPACTOS NO MOBILE - RESET TOTAL */
+
+  /* Reset completo do menu */
+  html body nav.anavo-custom-menu {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    gap: 15px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 12px 15px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Esconde scrollbar */
+  html body nav.anavo-custom-menu::-webkit-scrollbar {
+    display: none !important;
+  }
+  
+  /* FORÇA ITENS A TER APENAS TAMANHO DO CONTEÚDO */
+  html body div.anavo-menu-item {
+    flex: 0 0 auto !important;        /* NÃO cresce, NÃO encolhe */
+    flex-grow: 0 !important;
+    flex-shrink: 0 !important;
+    flex-basis: auto !important;
+    width: auto !important;           /* Apenas largura do conteúdo */
+    min-width: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* FORÇA LINKS COMPACTOS */
+  html body a.anavo-menu-link,
+  html body span.anavo-menu-link {
+    display: inline-block !important;
+    width: auto !important;           /* Apenas largura do texto */
+    min-width: 0 !important;
+    max-width: none !important;
+    padding: 8px 12px !important;     /* Padding compacto */
+    margin: 0 !important;
+    font-size: 14px !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+  }
+
+        
       }
     `;
 
