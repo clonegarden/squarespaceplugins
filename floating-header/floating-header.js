@@ -2,25 +2,51 @@
  * =======================================
  * FLOATING HEADER - Squarespace Plugin
  * =======================================
- * @version 1.0.1
+ * @version 1.0.2
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
- * FIXED v1.0.1:
- * - Aguarda Squarespace carregar DOM completamente
- * - MutationObserver detecta header tardio
- * - Mais seletores para 7.0 e 7.1
- * - Debug melhorado
+ * FIXED v1.0.2:
+ * - Abort if in Squarespace editor mode
+ * - Wait indefinitely for Squarespace to load (like expanded-menu)
+ * - Better element detection with more selectors
+ * - Console warnings for editor mode
+ * - Works in PREVIEW and PUBLISHED mode only
+ * 
+ * INSTALLATION:
+ * <script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/floating-header/floating-header.min.js"></script>
  * =======================================
  */
 
 (function() {
   'use strict';
 
-  const PLUGIN_VERSION = '1.0.1';
+  const PLUGIN_VERSION = '1.0.2';
   const PLUGIN_NAME = 'FloatingHeader';
   
   console.log(`🎈 ${PLUGIN_NAME} v${PLUGIN_VERSION} - Loading...`);
+
+  // ========================================
+  // EDITOR MODE DETECTION
+  // ========================================
+
+  function isEditorMode() {
+    // Check if in Squarespace editor
+    const bodyClasses = document.body.className;
+    
+    if (bodyClasses.includes('squarespace-editable') || 
+        bodyClasses.includes('sqs-edit-mode') ||
+        bodyClasses.includes('squarespace-config')) {
+      return true;
+    }
+
+    // Check if in iframe (editor uses iframes)
+    if (window.self !== window.top) {
+      return true;
+    }
+
+    return false;
+  }
 
   // ========================================
   // CONFIGURATION
@@ -69,82 +95,101 @@
   }
 
   // ========================================
-  // ELEMENT DETECTION (ENHANCED)
+  // ELEMENT DETECTION (IMPROVED)
   // ========================================
 
   /**
-   * ✅ VERSÃO MELHORADA - Aguarda elementos aparecerem
+   * ✅ VERSÃO MELHORADA - Aguarda INFINITAMENTE (como expanded-menu)
    */
-  function waitForElement(selectors, timeout = 5000) {
+  function waitForHeader() {
     return new Promise((resolve) => {
-      // Tenta encontrar imediatamente
-      for (const selector of selectors) {
-        const el = document.querySelector(selector);
-        if (el && el.offsetHeight > 0) {
-          if (config.debug) console.log('✓ Found immediately:', selector);
-          resolve(el);
-          return;
-        }
-      }
+      const selectors = [
+        'header.Header',                    // 7.1 primary
+        'header#header',                    // 7.0 primary
+        '.sqs-announcement-bar-dropzone + header',  // After announcement
+        'header[data-controller="Header"]', // 7.1 alternative
+        '.header-inner',                    // Header inner
+        '[data-nc-group="header"]',        // Alternative
+        'header',                           // Last resort
+        // Mais específicos:
+        '.header-announcement-bar-wrapper + header',
+        '.header-display-desktop',
+        '.header-display-mobile'
+      ];
 
-      // Se não encontrou, observa mudanças no DOM
-      const observer = new MutationObserver((mutations, obs) => {
+      let attempts = 0;
+      const maxAttempts = 100; // 100 tentativas = 10 segundos
+
+      function attempt() {
+        attempts++;
+
         for (const selector of selectors) {
           const el = document.querySelector(selector);
           if (el && el.offsetHeight > 0) {
-            if (config.debug) console.log('✓ Found via observer:', selector);
-            obs.disconnect();
+            if (config.debug) console.log(`✓ Header found after ${attempts} attempts:`, selector);
             resolve(el);
             return;
           }
         }
-      });
 
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true
-      });
+        if (attempts >= maxAttempts) {
+          console.error('❌ Header not found after 10 seconds');
+          resolve(null);
+          return;
+        }
 
-      // Timeout após 5s
-      setTimeout(() => {
-        observer.disconnect();
-        console.error('❌ Element not found after timeout');
-        resolve(null);
-      }, timeout);
+        // Tenta novamente em 100ms
+        setTimeout(attempt, 100);
+      }
+
+      attempt();
     });
   }
 
   /**
-   * Encontra header Squarespace (7.0 e 7.1)
+   * Encontra primeira seção (melhorado)
    */
-  async function findHeader() {
-    const selectors = [
-      'header.Header',                    // 7.1 primary
-      'header#header',                    // 7.0 primary
-      '.sqs-announcement-bar-dropzone + header',  // After announcement
-      'header[data-controller="Header"]', // 7.1 alternative
-      '.header',                          // 7.0 alternative
-      '[data-nc-group="header"]',        // Alternative
-      'header'                            // Last resort
-    ];
+  function waitForFirstSection() {
+    return new Promise((resolve) => {
+      const selectors = [
+        '.page-section:first-of-type',               // Primary
+        'section.page-section:first-of-type',        // Explicit
+        'section[data-section-id]:first-of-type',    // With ID
+        '#page > .page-section:first-child',         // Direct child
+        '#page section:first-child',                 // Nested
+        'main > section:first-child',                // Alternative
+        // Mais específicos:
+        '[data-section-type]:first-of-type',
+        '.page-section[data-section-id]',
+        '.sections .section:first-child'
+      ];
 
-    return await waitForElement(selectors);
-  }
+      let attempts = 0;
+      const maxAttempts = 100;
 
-  /**
-   * Encontra primeira seção
-   */
-  async function findFirstSection() {
-    const selectors = [
-      '.page-section:first-of-type',               // Primary
-      'section.page-section:first-of-type',        // Explicit
-      'section[data-section-id]:first-of-type',    // With ID
-      '#page > .page-section:first-child',         // Direct child
-      '#page section:first-child',                 // Nested
-      'main > section:first-child'                 // Alternative
-    ];
+      function attempt() {
+        attempts++;
 
-    return await waitForElement(selectors);
+        for (const selector of selectors) {
+          const el = document.querySelector(selector);
+          if (el) {
+            if (config.debug) console.log(`✓ First section found after ${attempts} attempts:`, selector);
+            resolve(el);
+            return;
+          }
+        }
+
+        if (attempts >= maxAttempts) {
+          console.error('❌ First section not found after 10 seconds');
+          resolve(null);
+          return;
+        }
+
+        setTimeout(attempt, 100);
+      }
+
+      attempt();
+    });
   }
 
   // ========================================
@@ -370,16 +415,24 @@
     try {
       console.log('🔧 Initializing...');
 
-      // ✅ PASSO 1: AGUARDA elementos aparecerem
+      // ✅ CHECK 1: Detecta modo editor
+      if (isEditorMode()) {
+        console.warn('⚠️ Squarespace editor mode detected');
+        console.warn('💡 This plugin only works on PUBLISHED or PREVIEW mode');
+        console.warn('💡 Click "Preview" or "Save & Exit" to test the plugin');
+        return; // ABORT!
+      }
+
+      // ✅ CHECK 2: Aguarda elementos (retry infinito)
       console.log('⏳ Waiting for Squarespace to load...');
       
-      const header = await findHeader();
-      const firstSection = await findFirstSection();
+      const header = await waitForHeader();
+      const firstSection = await waitForFirstSection();
 
-      // ✅ VALIDAÇÃO RIGOROSA
+      // ✅ VALIDAÇÃO
       if (!header) {
         console.error('❌ Header not found - aborting');
-        console.error('💡 Try adding ?debug=true to see detection logs');
+        console.error('💡 Try enabling debug mode: ?debug=true');
         return;
       }
 
@@ -392,20 +445,20 @@
       console.log('✓ Header found:', header);
       console.log('✓ First section found:', firstSection);
 
-      // PASSO 2: Injeta CSS
+      // Injeta CSS
       injectStyles();
 
-      // PASSO 3: Aguarda DOM estável
+      // Aguarda DOM estável
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // PASSO 4: Inicializa controller
+      // Inicializa controller
       const controller = new FloatingHeaderController(header, firstSection);
       controller.init();
 
       console.log(`✅ ${PLUGIN_NAME} v${PLUGIN_VERSION} Active!`);
       console.log('   Start Position:', config.startAtBottom ? 'Bottom of Section 1' : 'Top (Sticky)');
 
-      // PASSO 5: Licensing em background
+      // Licensing em background
       setTimeout(() => loadLicensing(), 1000);
 
     } catch (error) {
@@ -414,18 +467,10 @@
     }
   }
 
-  // ========================================
-  // AUTO-START (AGUARDA SQUARESPACE)
-  // ========================================
-  
-  // Aguarda Squarespace carregar TUDO
+  // Auto-start (aguarda 2s após load)
   if (document.readyState === 'loading') {
-    window.addEventListener('load', () => {
-      // Aguarda 2 segundos após load (Squarespace carrega assíncrono)
-      setTimeout(init, 2000);
-    });
+    window.addEventListener('load', () => setTimeout(init, 2000));
   } else {
-    // Se já carregou, aguarda 2s mesmo assim
     setTimeout(init, 2000);
   }
 
