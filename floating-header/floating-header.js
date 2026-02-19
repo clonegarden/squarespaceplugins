@@ -2,26 +2,22 @@
  * =======================================
  * FLOATING HEADER - Squarespace Plugin
  * =======================================
- * @version 1.0.0
+ * @version 1.0.1
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
- * DESCRIPTION:
- * Header starts fixed at bottom of first section,
- * smoothly floats up to sticky position on scroll.
- * 
- * INSTALLATION:
- * <script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/floating-header/floating-header.min.js"></script>
- * 
- * CUSTOMIZATION:
- * <script src="...?fontSize=18&bgColor=000000&customLogo=https://example.com/logo.png"></script>
+ * FIXED v1.0.1:
+ * - Aguarda Squarespace carregar DOM completamente
+ * - MutationObserver detecta header tardio
+ * - Mais seletores para 7.0 e 7.1
+ * - Debug melhorado
  * =======================================
  */
 
 (function() {
   'use strict';
 
-  const PLUGIN_VERSION = '1.0.0';
+  const PLUGIN_VERSION = '1.0.1';
   const PLUGIN_NAME = 'FloatingHeader';
   
   console.log(`🎈 ${PLUGIN_NAME} v${PLUGIN_VERSION} - Loading...`);
@@ -56,14 +52,8 @@
       fontColor: fixColor(params.get('fontColor')),
       bgColor: fixColor(params.get('bgColor')),
       
-      // Logo
-      customLogo: params.get('customLogo') ? decodeURIComponent(params.get('customLogo')) : null,
-      logoWidth: params.get('logoWidth') || null,
-      logoHeight: params.get('logoHeight') || null,
-      
       // Behavior
       transitionSpeed: parseInt(params.get('transitionSpeed') || '600'),
-      stickyTop: params.get('stickyTop') || '0',
       startAtBottom: params.get('startAtBottom') !== 'false',
       
       // Advanced
@@ -79,55 +69,82 @@
   }
 
   // ========================================
-  // ELEMENT DETECTION (UNIVERSAL)
+  // ELEMENT DETECTION (ENHANCED)
   // ========================================
+
+  /**
+   * ✅ VERSÃO MELHORADA - Aguarda elementos aparecerem
+   */
+  function waitForElement(selectors, timeout = 5000) {
+    return new Promise((resolve) => {
+      // Tenta encontrar imediatamente
+      for (const selector of selectors) {
+        const el = document.querySelector(selector);
+        if (el && el.offsetHeight > 0) {
+          if (config.debug) console.log('✓ Found immediately:', selector);
+          resolve(el);
+          return;
+        }
+      }
+
+      // Se não encontrou, observa mudanças no DOM
+      const observer = new MutationObserver((mutations, obs) => {
+        for (const selector of selectors) {
+          const el = document.querySelector(selector);
+          if (el && el.offsetHeight > 0) {
+            if (config.debug) console.log('✓ Found via observer:', selector);
+            obs.disconnect();
+            resolve(el);
+            return;
+          }
+        }
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+
+      // Timeout após 5s
+      setTimeout(() => {
+        observer.disconnect();
+        console.error('❌ Element not found after timeout');
+        resolve(null);
+      }, timeout);
+    });
+  }
 
   /**
    * Encontra header Squarespace (7.0 e 7.1)
    */
-  function findHeader() {
+  async function findHeader() {
     const selectors = [
-      'header.Header',
-      '#header',
-      '.header',
-      '[data-nc-group="header"]',
-      'header[data-controller="Header"]'
+      'header.Header',                    // 7.1 primary
+      'header#header',                    // 7.0 primary
+      '.sqs-announcement-bar-dropzone + header',  // After announcement
+      'header[data-controller="Header"]', // 7.1 alternative
+      '.header',                          // 7.0 alternative
+      '[data-nc-group="header"]',        // Alternative
+      'header'                            // Last resort
     ];
 
-    for (const selector of selectors) {
-      const el = document.querySelector(selector);
-      if (el) {
-        if (config.debug) console.log('✓ Header found:', selector);
-        return el;
-      }
-    }
-
-    console.error('❌ No header found');
-    return null;
+    return await waitForElement(selectors);
   }
 
   /**
-   * Encontra primeira seção (universal)
+   * Encontra primeira seção
    */
-  function findFirstSection() {
+  async function findFirstSection() {
     const selectors = [
-      'section[data-section-id]:first-of-type',
-      '.page-section:first-of-type',
-      '#page > section:first-child',
-      'main > section:first-child',
-      '[data-section-type]:first-of-type'
+      '.page-section:first-of-type',               // Primary
+      'section.page-section:first-of-type',        // Explicit
+      'section[data-section-id]:first-of-type',    // With ID
+      '#page > .page-section:first-child',         // Direct child
+      '#page section:first-child',                 // Nested
+      'main > section:first-child'                 // Alternative
     ];
 
-    for (const selector of selectors) {
-      const el = document.querySelector(selector);
-      if (el) {
-        if (config.debug) console.log('✓ First section found:', selector);
-        return el;
-      }
-    }
-
-    console.error('❌ No first section found');
-    return null;
+    return await waitForElement(selectors);
   }
 
   // ========================================
@@ -152,21 +169,24 @@
          FLOATING HEADER v${PLUGIN_VERSION}
          ======================================== */
 
-      /* Container wrapper */
+      /* Wrapper container */
       .anavo-floating-header-wrapper {
-        position: relative !important;
-        z-index: ${config.zIndex} !important;
         width: 100% !important;
+        z-index: ${config.zIndex} !important;
         transition: all ${config.transitionSpeed}ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+        left: 0 !important;
+        right: 0 !important;
       }
 
-      /* Header modifications */
+      /* Header overrides */
       .anavo-floating-header-wrapper header,
       .anavo-floating-header-wrapper .Header,
       .anavo-floating-header-wrapper .header {
         ${bgColorCSS}
         ${fontColorCSS}
         transition: all ${config.transitionSpeed}ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+        position: static !important;
+        margin: 0 !important;
       }
 
       /* Typography override */
@@ -179,30 +199,16 @@
         ${fontColorCSS}
       }
 
-      /* Custom logo */
-      ${config.customLogo ? `
-        .anavo-floating-header-wrapper .header-title-logo img,
-        .anavo-floating-header-wrapper .header-title-logo a {
-          content: url(${config.customLogo}) !important;
-          ${config.logoWidth ? `width: ${config.logoWidth}px !important;` : ''}
-          ${config.logoHeight ? `height: ${config.logoHeight}px !important;` : ''}
-          object-fit: contain !important;
-        }
-      ` : ''}
-
-      /* Hide original header */
-      body > header,
-      body > .header,
-      body > .Header,
-      #header:not(.anavo-floating-header-wrapper *) {
+      /* Hide original header position */
+      body > header:not(.anavo-floating-header-wrapper *),
+      body > .Header:not(.anavo-floating-header-wrapper *) {
         display: none !important;
       }
 
       /* Mobile responsive */
       @media (max-width: 768px) {
-        .anavo-floating-header-wrapper a,
-        .anavo-floating-header-wrapper nav {
-          ${config.fontSize ? `font-size: ${Math.max(parseInt(config.fontSize) - 2, 12)}px !important;` : ''}
+        .anavo-floating-header-wrapper {
+          width: 100% !important;
         }
       }
     `;
@@ -220,7 +226,7 @@
       this.originalHeader = header;
       this.firstSection = firstSection;
       this.wrapper = null;
-      this.isFloating = false;
+      this.isSticky = false;
       this.scrollTimeout = null;
 
       this.sectionBottom = 0;
@@ -232,8 +238,10 @@
       this.wrapper = document.createElement('div');
       this.wrapper.className = 'anavo-floating-header-wrapper';
       
-      // Mover header para wrapper
+      // Inserir wrapper ANTES do header original
       this.originalHeader.parentNode.insertBefore(this.wrapper, this.originalHeader);
+      
+      // Mover header para dentro do wrapper
       this.wrapper.appendChild(this.originalHeader);
 
       // Calcular dimensões
@@ -246,7 +254,7 @@
         this.positionAtTop();
       }
 
-      // Monitor scroll
+      // Monitor scroll e resize
       window.addEventListener('scroll', () => this.handleScroll(), { passive: true });
       window.addEventListener('resize', () => this.updateDimensions());
 
@@ -254,40 +262,43 @@
     }
 
     updateDimensions() {
+      // Força recalcular layout
       const rect = this.firstSection.getBoundingClientRect();
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
       
+      // Bottom absoluto da seção 1 (relativo ao documento)
       this.sectionBottom = scrollTop + rect.top + rect.height;
-      this.headerHeight = this.originalHeader.offsetHeight;
+      this.headerHeight = this.wrapper.offsetHeight || 60;
 
       if (config.debug) {
-        console.log('📐 Dimensions:', {
+        console.log('📐 Dimensions updated:', {
           sectionBottom: this.sectionBottom,
-          headerHeight: this.headerHeight
+          headerHeight: this.headerHeight,
+          scrollTop: scrollTop
         });
       }
     }
 
     positionAtBottom() {
+      // Position: absolute no BOTTOM da seção 1
       this.wrapper.style.position = 'absolute';
       this.wrapper.style.top = `${this.sectionBottom - this.headerHeight}px`;
-      this.wrapper.style.left = '0';
-      this.wrapper.style.right = '0';
+      this.wrapper.style.bottom = 'auto';
       
-      this.isFloating = false;
+      this.isSticky = false;
 
-      if (config.debug) console.log('📍 Positioned at bottom');
+      if (config.debug) console.log('📍 Positioned at BOTTOM of section 1');
     }
 
     positionAtTop() {
+      // Position: fixed no TOPO (sticky)
       this.wrapper.style.position = 'fixed';
-      this.wrapper.style.top = `${config.stickyTop}px`;
-      this.wrapper.style.left = '0';
-      this.wrapper.style.right = '0';
+      this.wrapper.style.top = '0px';
+      this.wrapper.style.bottom = 'auto';
       
-      this.isFloating = true;
+      this.isSticky = true;
 
-      if (config.debug) console.log('📍 Positioned at top (sticky)');
+      if (config.debug) console.log('📍 Positioned at TOP (sticky)');
     }
 
     handleScroll() {
@@ -295,12 +306,14 @@
       
       this.scrollTimeout = setTimeout(() => {
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        
+        // Trigger: quando scroll passa do bottom da seção 1
         const triggerPoint = this.sectionBottom - this.headerHeight;
 
-        if (scrollTop >= triggerPoint && !this.isFloating) {
+        if (scrollTop >= triggerPoint && !this.isSticky) {
           // Passou da seção 1 → sticky no topo
           this.positionAtTop();
-        } else if (scrollTop < triggerPoint && this.isFloating) {
+        } else if (scrollTop < triggerPoint && this.isSticky) {
           // Voltou pra seção 1 → volta pro bottom
           this.positionAtBottom();
         }
@@ -309,7 +322,7 @@
   }
 
   // ========================================
-  // LICENSING
+  // LICENSING (OPCIONAL)
   // ========================================
 
   async function loadLicensing() {
@@ -357,27 +370,43 @@
     try {
       console.log('🔧 Initializing...');
 
-      // Encontra elementos
-      const header = findHeader();
-      const firstSection = findFirstSection();
+      // ✅ PASSO 1: AGUARDA elementos aparecerem
+      console.log('⏳ Waiting for Squarespace to load...');
+      
+      const header = await findHeader();
+      const firstSection = await findFirstSection();
 
-      if (!header || !firstSection) {
-        console.error('❌ Required elements not found - aborting');
+      // ✅ VALIDAÇÃO RIGOROSA
+      if (!header) {
+        console.error('❌ Header not found - aborting');
+        console.error('💡 Try adding ?debug=true to see detection logs');
         return;
       }
 
-      // Injeta CSS
+      if (!firstSection) {
+        console.error('❌ First section not found - aborting');
+        console.error('💡 Check if page has .page-section elements');
+        return;
+      }
+
+      console.log('✓ Header found:', header);
+      console.log('✓ First section found:', firstSection);
+
+      // PASSO 2: Injeta CSS
       injectStyles();
 
-      // Inicializa controller
+      // PASSO 3: Aguarda DOM estável
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // PASSO 4: Inicializa controller
       const controller = new FloatingHeaderController(header, firstSection);
       controller.init();
 
       console.log(`✅ ${PLUGIN_NAME} v${PLUGIN_VERSION} Active!`);
       console.log('   Start Position:', config.startAtBottom ? 'Bottom of Section 1' : 'Top (Sticky)');
 
-      // Licensing em background
-      loadLicensing();
+      // PASSO 5: Licensing em background
+      setTimeout(() => loadLicensing(), 1000);
 
     } catch (error) {
       console.error('❌ Initialization failed:', error);
@@ -385,11 +414,19 @@
     }
   }
 
-  // Auto-start
+  // ========================================
+  // AUTO-START (AGUARDA SQUARESPACE)
+  // ========================================
+  
+  // Aguarda Squarespace carregar TUDO
   if (document.readyState === 'loading') {
-    window.addEventListener('load', () => setTimeout(init, 500));
+    window.addEventListener('load', () => {
+      // Aguarda 2 segundos após load (Squarespace carrega assíncrono)
+      setTimeout(init, 2000);
+    });
   } else {
-    setTimeout(init, 500);
+    // Se já carregou, aguarda 2s mesmo assim
+    setTimeout(init, 2000);
   }
 
 })();
