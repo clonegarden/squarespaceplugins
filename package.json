@@ -30,6 +30,7 @@
     "build": "npm run build:all",
     "build:all":  "node scripts/build-all.js",
     "build:quotation-builder": "npm run minify quotation-builder/quotation-builder.js",
+    "build:ascii-animation": "npm run minify ascii-animation/ascii-animation.js",
     "minify": "node scripts/minify.js",
     "watch": "node scripts/watch.js",
     "dev": "npm run watch",

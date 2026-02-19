@@ -11,6 +11,18 @@ Professional, production-ready plugins for Squarespace 7.0 & 7.1 websites.
 
 ## 🎨 Available Plugins
 
+### ASCII Animation
+Animated rotating text circles with explosion and rain effects.
+
+**Install:**
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/ascii-animation/ascii-animation.min.js?characters=ANAVOTECH"></script>
+```
+
+[📖 Documentation](ascii-animation/README.md)
+
+---
+
 ### Quotation Builder
 Interactive quotation calculator for service-based businesses.
 
