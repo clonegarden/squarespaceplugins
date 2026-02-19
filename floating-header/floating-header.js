@@ -2,10 +2,16 @@
  * =======================================
  * FLOATING HEADER - Squarespace Plugin
  * =======================================
- * @version 1.0.2
+ * @version 1.0.3
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
+ * FIXED v1.0.3:
+ * - Auto-adjusts first section to min-height: 90vh
+ * - Enhanced editor mode detection
+ * - Prevents execution in Squarespace editor
+ * - Better console warnings
+ * 
  * FIXED v1.0.2:
  * - Abort if in Squarespace editor mode
  * - Wait indefinitely for Squarespace to load (like expanded-menu)
@@ -21,27 +27,40 @@
 (function() {
   'use strict';
 
-  const PLUGIN_VERSION = '1.0.2';
+  const PLUGIN_VERSION = '1.0.3';
   const PLUGIN_NAME = 'FloatingHeader';
   
   console.log(`🎈 ${PLUGIN_NAME} v${PLUGIN_VERSION} - Loading...`);
 
   // ========================================
-  // EDITOR MODE DETECTION
+  // EDITOR MODE DETECTION (ENHANCED)
   // ========================================
 
   function isEditorMode() {
-    // Check if in Squarespace editor
+    // Check body classes (most reliable)
     const bodyClasses = document.body.className;
     
     if (bodyClasses.includes('squarespace-editable') || 
         bodyClasses.includes('sqs-edit-mode') ||
-        bodyClasses.includes('squarespace-config')) {
+        bodyClasses.includes('squarespace-config') ||
+        bodyClasses.includes('sqs-editing-mode')) {
       return true;
     }
 
     // Check if in iframe (editor uses iframes)
     if (window.self !== window.top) {
+      return true;
+    }
+
+    // Check URL parameters (editor sometimes uses ?edit=true)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('edit') === 'true' || urlParams.get('sqs-edit-mode')) {
+      return true;
+    }
+
+    // Check for Squarespace editor objects
+    if (window.Static && window.Static.SQUARESPACE_CONTEXT && 
+        window.Static.SQUARESPACE_CONTEXT.isEditing) {
       return true;
     }
 
@@ -81,6 +100,8 @@
       // Behavior
       transitionSpeed: parseInt(params.get('transitionSpeed') || '600'),
       startAtBottom: params.get('startAtBottom') !== 'false',
+      adjustSectionHeight: params.get('adjustSectionHeight') !== 'false', // ✅ NOVO
+      sectionMinHeight: params.get('sectionMinHeight') || '90vh',          // ✅ NOVO
       
       // Advanced
       zIndex: params.get('zIndex') || '9999',
@@ -190,6 +211,30 @@
 
       attempt();
     });
+  }
+
+  // ========================================
+  // ✅ NOVA FUNÇÃO: AJUSTAR ALTURA DA SEÇÃO
+  // ========================================
+
+  function adjustFirstSectionHeight(section) {
+    if (!config.adjustSectionHeight) {
+      if (config.debug) console.log('⏭️ Section height adjustment disabled');
+      return;
+    }
+
+    // Aplica min-height para garantir que menu seja visível
+    section.style.minHeight = config.sectionMinHeight;
+    section.style.boxSizing = 'border-box';
+
+    // Garante que conteúdo interno não force overflow
+    section.style.display = 'flex';
+    section.style.flexDirection = 'column';
+    section.style.justifyContent = 'center';
+
+    if (config.debug) {
+      console.log(`📐 Adjusted first section height to ${config.sectionMinHeight}`);
+    }
   }
 
   // ========================================
@@ -415,12 +460,17 @@
     try {
       console.log('🔧 Initializing...');
 
-      // ✅ CHECK 1: Detecta modo editor
+      // ✅ CHECK 1: Detecta modo editor (PRIMEIRA VERIFICAÇÃO)
       if (isEditorMode()) {
-        console.warn('⚠️ Squarespace editor mode detected');
-        console.warn('💡 This plugin only works on PUBLISHED or PREVIEW mode');
-        console.warn('💡 Click "Preview" or "Save & Exit" to test the plugin');
-        return; // ABORT!
+        console.warn('⚠️⚠️⚠️ SQUARESPACE EDITOR MODE DETECTED ⚠️⚠️⚠️');
+        console.warn('');
+        console.warn('📝 This plugin is DISABLED in editor mode to prevent design conflicts.');
+        console.warn('');
+        console.warn('✅ To test the plugin:');
+        console.warn('   1. Click "Preview" button in Squarespace editor');
+        console.warn('   2. Or click "Save & Exit" to test on live site');
+        console.warn('');
+        return; // ABORT IMEDIATAMENTE!
       }
 
       // ✅ CHECK 2: Aguarda elementos (retry infinito)
@@ -445,33 +495,8 @@
       console.log('✓ Header found:', header);
       console.log('✓ First section found:', firstSection);
 
-      // Injeta CSS
-      injectStyles();
+      // ✅ NOVO: Ajusta altura da primeira seção
+      adjustFirstSectionHeight(firstSection);
 
-      // Aguarda DOM estável
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      // Inicializa controller
-      const controller = new FloatingHeaderController(header, firstSection);
-      controller.init();
-
-      console.log(`✅ ${PLUGIN_NAME} v${PLUGIN_VERSION} Active!`);
-      console.log('   Start Position:', config.startAtBottom ? 'Bottom of Section 1' : 'Top (Sticky)');
-
-      // Licensing em background
-      setTimeout(() => loadLicensing(), 1000);
-
-    } catch (error) {
-      console.error('❌ Initialization failed:', error);
-      console.error('Stack trace:', error.stack);
-    }
-  }
-
-  // Auto-start (aguarda 2s após load)
-  if (document.readyState === 'loading') {
-    window.addEventListener('load', () => setTimeout(init, 2000));
-  } else {
-    setTimeout(init, 2000);
-  }
-
-})();
+      // Injeta CSS*
+
