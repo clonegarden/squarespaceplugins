@@ -31,6 +31,7 @@
     "build:all":  "node scripts/build-all.js",
     "build:quotation-builder": "npm run minify quotation-builder/quotation-builder.js",
     "build:ascii-animation": "npm run minify ascii-animation/ascii-animation.js",
+    "build:space-invaders": "npm run minify space-invaders/space-invaders.js",
     "minify": "node scripts/minify.js",
     "watch": "node scripts/watch.js",
     "dev": "npm run watch",

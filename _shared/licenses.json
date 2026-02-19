@@ -45,6 +45,20 @@
         "customization"
       ],
       "expires": "2026-12-31T23:59:59Z"
+    },
+    "SpaceInvaders": {
+      "license_key": "lic_space_invaders_demo",
+      "license_type": "trial",
+      "allowed_domains": [
+        "shallot-cone-9wym.squarespace.com",
+        "localhost",
+        "127.0.0.1"
+      ],
+      "features": [
+        "customization",
+        "no_watermark"
+      ],
+      "expires": null
     }
   }
 }

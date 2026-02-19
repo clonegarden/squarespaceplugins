@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Space Invaders Plugin - Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      min-height: 100vh;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 100px 20px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 48px;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    p {
+      font-size: 20px;
+      opacity: 0.9;
+      margin-bottom: 40px;
+    }
+
+    .controls {
+      margin-top: 50px;
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 15px 30px;
+      font-size: 16px;
+      font-weight: bold;
+      background: white;
+      color: #667eea;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .features {
+      margin-top: 80px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 30px;
+      text-align: left;
+    }
+
+    .feature {
+      background: rgba(255,255,255,0.1);
+      padding: 25px;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+    }
+
+    .feature h3 {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    .feature p {
+      font-size: 16px;
+      opacity: 0.8;
+      margin: 0;
+    }
+
+    .code-block {
+      background: rgba(0,0,0,0.3);
+      padding: 20px;
+      border-radius: 8px;
+      margin: 40px 0;
+      text-align: left;
+      font-family: monospace;
+      font-size: 14px;
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      color: #00ff00;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎮 Space Invaders Plugin</h1>
+    <p>Interactive game overlay for Squarespace sites</p>
+
+    <div class="controls">
+      <button onclick="window.SpaceInvadersGame.start()">🚀 Start Game</button>
+      <button onclick="window.SpaceInvadersGame.skip()">⏭️ Skip</button>
+      <button onclick="window.SpaceInvadersGame.reset()">🔄 Reset</button>
+      <button onclick="alert('Score: ' + window.SpaceInvadersGame.getScore())">📊 Get Score</button>
+    </div>
+
+    <div class="features">
+      <div class="feature">
+        <h3>🎯 Easy Integration</h3>
+        <p>Just one line of code in your Squarespace footer</p>
+      </div>
+      <div class="feature">
+        <h3>🎨 Fully Customizable</h3>
+        <p>Colors, icons, difficulty, tech stack - all configurable</p>
+      </div>
+      <div class="feature">
+        <h3>📱 Mobile Responsive</h3>
+        <p>Works perfectly on desktop, tablet, and mobile</p>
+      </div>
+      <div class="feature">
+        <h3>⚡ Lightweight</h3>
+        <p>Only ~15KB minified, zero dependencies</p>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <code>&lt;script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/space-invaders/space-invaders.min.js"&gt;&lt;/script&gt;</code>
+    </div>
+  </div>
+
+  <!-- Plugin Installation (Local for testing) -->
+  <script src="../space-invaders.js"></script>
+
+  <!-- OR use CDN (Production) -->
+  <!-- <script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/space-invaders/space-invaders.min.js"></script> -->
+</body>
+</html>

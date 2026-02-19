@@ -36,6 +36,18 @@ Interactive quotation calculator for service-based businesses.
 
 ---
 
+### Space Invaders Game
+Interactive Space Invaders game for tech portfolios and gamified experiences.
+
+**Install:**
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/space-invaders/space-invaders.min.js"></script>
+```
+
+[📖 Documentation](space-invaders/README.md) | [🎮 Live Demo](space-invaders/examples/basic.html)
+
+---
+
 ## 🔐 Licensing
 
 These plugins are **commercially licensed** and require activation. 
