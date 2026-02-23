@@ -196,6 +196,10 @@
     let headerAtBottom = false;
     let scrollTimeout = null;
 
+    // Store original DOM position for accurate restoration
+    const originalParent = $header.parentNode;
+    const originalNextSibling = $header.nextSibling;
+
     function isInFirstSection() {
       const scroll = window.scrollY;
       const top = $firstSection.offsetTop;
@@ -241,11 +245,11 @@
           $menuHolder.style.zIndex = '';
           $menuHolder.style.left = '';
 
-          const page = document.querySelector('#page');
-          if (page) {
-            document.body.insertBefore($header, page);
+          // Restore header to its original DOM position
+          if (originalNextSibling) {
+            originalParent.insertBefore($header, originalNextSibling);
           } else {
-            document.body.insertBefore($header, document.body.firstChild);
+            originalParent.appendChild($header);
           }
 
           headerAtBottom = false;
@@ -326,7 +330,7 @@
       link.addEventListener('click', function (e) {
         if (link.getAttribute('href') === '#scroll-to-section-2') {
           e.preventDefault();
-          const targetY = $section2.offsetTop + $section2.offsetHeight;
+          const targetY = $section2.offsetTop;
           window.scrollTo({ top: targetY, behavior: 'smooth' });
         }
       });
