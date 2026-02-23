@@ -2,19 +2,15 @@
  * =======================================
  * FLOATING HEADER - Squarespace Plugin
  * =======================================
- * @version 1.0.4
+ * @version 1.0.5
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
- * FIXED v1.0.4:
- * - CRITICAL: Fixed "jump" bug during transition
- * - Added isTransitioning flag to prevent race conditions
- * - Improved scroll handling with requestAnimationFrame
- * - Dimensions now cached (only recalc on resize)
- * 
- * FIXED v1.0.3:
- * - Auto-adjusts first section to min-height: 90vh
- * - Enhanced editor mode detection
+ * FIXED v1.0.5:
+ * - CRITICAL: Fixed initial "jump" - wrapper hidden until positioned
+ * - CRITICAL: Fixed sticky not working - removed isTransitioning lock
+ * - IMPROVED: CSS-first approach (less JavaScript)
+ * - IMPROVED: Simpler scroll logic with debounce
  * 
  * INSTALLATION:
  * <script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/floating-header/floating-header.min.js"></script>
@@ -24,13 +20,13 @@
 (function() {
   'use strict';
 
-  const PLUGIN_VERSION = '1.0.4';
+  const PLUGIN_VERSION = '1.0.5';
   const PLUGIN_NAME = 'FloatingHeader';
   
   console.log(`🎈 ${PLUGIN_NAME} v${PLUGIN_VERSION} - Loading...`);
 
   // ========================================
-  // EDITOR MODE DETECTION (ENHANCED)
+  // EDITOR MODE DETECTION
   // ========================================
 
   function isEditorMode() {
@@ -109,7 +105,7 @@
   }
 
   // ========================================
-  // ELEMENT DETECTION (IMPROVED)
+  // ELEMENT DETECTION
   // ========================================
 
   function waitForHeader() {
@@ -240,13 +236,19 @@
          FLOATING HEADER v${PLUGIN_VERSION}
          ======================================== */
 
-      /* Wrapper container */
+      /* ✅ NOVO: Esconde até estar posicionado */
       .anavo-floating-header-wrapper {
+        opacity: 0 !important;
         width: 100% !important;
         z-index: ${config.zIndex} !important;
         transition: all ${config.transitionSpeed}ms cubic-bezier(0.4, 0, 0.2, 1) !important;
         left: 0 !important;
         right: 0 !important;
+      }
+
+      /* ✅ NOVO: Mostra quando ready */
+      .anavo-floating-header-wrapper.ready {
+        opacity: 1 !important;
       }
 
       /* Header overrides */
@@ -289,7 +291,7 @@
   }
 
   // ========================================
-  // FLOATING LOGIC (FIXED)
+  // FLOATING LOGIC (SIMPLIFIED)
   // ========================================
 
   class FloatingHeaderController {
@@ -298,13 +300,11 @@
       this.firstSection = firstSection;
       this.wrapper = null;
       this.isSticky = false;
-      this.isTransitioning = false; // ✅ NOVO: Previne race conditions
       this.scrollTimeout = null;
-      this.ticking = false; // ✅ NOVO: Para requestAnimationFrame
 
       this.sectionBottom = 0;
       this.headerHeight = 0;
-      this.triggerPoint = 0; // ✅ NOVO: Cache do trigger point
+      this.triggerPoint = 0;
     }
 
     init() {
@@ -318,34 +318,35 @@
       // Mover header para dentro do wrapper
       this.wrapper.appendChild(this.originalHeader);
 
-      // Calcular dimensões INICIAIS
+      // ✅ CRÍTICO: Calcular dimensões ANTES de mostrar
       this.updateDimensions();
 
-      // Posição inicial
+      // ✅ CRÍTICO: Posicionar ANTES de mostrar
       if (config.startAtBottom) {
-        this.positionAtBottom();
+        this.positionAtBottom(true); // true = instant (sem transição)
       } else {
-        this.positionAtTop();
+        this.positionAtTop(true);
       }
 
-      // ✅ MELHORADO: Scroll com requestAnimationFrame
-      window.addEventListener('scroll', () => this.requestTick(), { passive: true });
-      
-      // ✅ MELHORADO: Resize recalcula dimensões
+      // ✅ CRÍTICO: Mostrar apenas DEPOIS de posicionar
+      setTimeout(() => {
+        this.wrapper.classList.add('ready');
+        if (config.debug) console.log('✅ Wrapper revealed');
+      }, 50);
+
+      // Monitor scroll e resize
+      window.addEventListener('scroll', () => this.handleScroll(), { passive: true });
       window.addEventListener('resize', () => {
         this.updateDimensions();
-        this.requestTick();
+        // Reposiciona imediatamente após resize
+        if (this.isSticky) {
+          this.positionAtTop(true);
+        } else {
+          this.positionAtBottom(true);
+        }
       });
 
       if (config.debug) console.log('✅ Controller initialized');
-    }
-
-    // ✅ NOVO: Usa requestAnimationFrame para scroll suave
-    requestTick() {
-      if (!this.ticking && !this.isTransitioning) {
-        requestAnimationFrame(() => this.handleScroll());
-        this.ticking = true;
-      }
     }
 
     updateDimensions() {
@@ -354,7 +355,7 @@
       
       this.sectionBottom = scrollTop + rect.top + rect.height;
       this.headerHeight = this.wrapper.offsetHeight || 60;
-      this.triggerPoint = this.sectionBottom - this.headerHeight; // ✅ CACHE
+      this.triggerPoint = this.sectionBottom - this.headerHeight;
 
       if (config.debug) {
         console.log('📐 Dimensions updated:', {
@@ -365,67 +366,64 @@
       }
     }
 
-    positionAtBottom() {
-      if (this.isTransitioning) return; // ✅ PREVINE MÚLTIPLAS TRANSIÇÕES
-      
+    positionAtBottom(instant = false) {
+      // Position: absolute no BOTTOM da seção 1
       this.wrapper.style.position = 'absolute';
       this.wrapper.style.top = `${this.sectionBottom - this.headerHeight}px`;
       this.wrapper.style.bottom = 'auto';
       
+      // ✅ NOVO: Desabilita transição se instant
+      if (instant) {
+        this.wrapper.style.transition = 'none';
+        // Force reflow
+        this.wrapper.offsetHeight;
+        // Re-enable transitions
+        setTimeout(() => {
+          this.wrapper.style.transition = '';
+        }, 10);
+      }
+      
       this.isSticky = false;
 
-      if (config.debug) console.log('📍 Positioned at BOTTOM of section 1');
+      if (config.debug && !instant) console.log('📍 Positioned at BOTTOM of section 1');
     }
 
-    positionAtTop() {
-      if (this.isTransitioning) return; // ✅ PREVINE MÚLTIPLAS TRANSIÇÕES
-      
+    positionAtTop(instant = false) {
+      // Position: fixed no TOPO (sticky)
       this.wrapper.style.position = 'fixed';
       this.wrapper.style.top = '0px';
       this.wrapper.style.bottom = 'auto';
       
+      // ✅ NOVO: Desabilita transição se instant
+      if (instant) {
+        this.wrapper.style.transition = 'none';
+        this.wrapper.offsetHeight;
+        setTimeout(() => {
+          this.wrapper.style.transition = '';
+        }, 10);
+      }
+      
       this.isSticky = true;
 
-      if (config.debug) console.log('📍 Positioned at TOP (sticky)');
+      if (config.debug && !instant) console.log('📍 Positioned at TOP (sticky)');
     }
 
     handleScroll() {
-      this.ticking = false;
+      // ✅ SIMPLIFICADO: Debounce simples sem locks
+      clearTimeout(this.scrollTimeout);
+      
+      this.scrollTimeout = setTimeout(() => {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const threshold = 10; // 10px de margem
 
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
-      // ✅ MELHORADO: Usa triggerPoint cacheado + margem de segurança
-      const threshold = 5; // 5px de margem para evitar "tremor"
-
-      if (scrollTop >= this.triggerPoint + threshold && !this.isSticky) {
-        // Passou da seção 1 → sticky no topo
-        this.transitionTo('top');
-      } else if (scrollTop < this.triggerPoint - threshold && this.isSticky) {
-        // Voltou pra seção 1 → volta pro bottom
-        this.transitionTo('bottom');
-      }
-    }
-
-    // ✅ NOVO: Gerencia transições com flag de lock
-    transitionTo(position) {
-      if (this.isTransitioning) {
-        if (config.debug) console.log('⏸️ Transition already in progress, skipping');
-        return;
-      }
-
-      this.isTransitioning = true;
-
-      if (position === 'top') {
-        this.positionAtTop();
-      } else {
-        this.positionAtBottom();
-      }
-
-      // ✅ Unlock após transição CSS terminar
-      setTimeout(() => {
-        this.isTransitioning = false;
-        if (config.debug) console.log('🔓 Transition complete');
-      }, config.transitionSpeed + 50); // +50ms de margem
+        if (scrollTop >= this.triggerPoint + threshold && !this.isSticky) {
+          // Passou da seção 1 → sticky no topo
+          this.positionAtTop(false);
+        } else if (scrollTop < this.triggerPoint - threshold && this.isSticky) {
+          // Voltou pra seção 1 → volta pro bottom
+          this.positionAtBottom(false);
+        }
+      }, 50); // ✅ AUMENTADO: 50ms debounce (mais estável)
     }
   }
 
@@ -519,10 +517,7 @@
       // Injeta CSS
       injectStyles();
 
-      // Aguarda DOM estável
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      // Inicializa controller
+      // ✅ CRÍTICO: NÃO aguardar - inicializar imediatamente
       const controller = new FloatingHeaderController(header, firstSection);
       controller.init();
 
