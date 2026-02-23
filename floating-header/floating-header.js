@@ -2,22 +2,19 @@
  * =======================================
  * FLOATING HEADER - Squarespace Plugin
  * =======================================
- * @version 1.0.3
+ * @version 1.0.4
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
+ * FIXED v1.0.4:
+ * - CRITICAL: Fixed "jump" bug during transition
+ * - Added isTransitioning flag to prevent race conditions
+ * - Improved scroll handling with requestAnimationFrame
+ * - Dimensions now cached (only recalc on resize)
+ * 
  * FIXED v1.0.3:
  * - Auto-adjusts first section to min-height: 90vh
  * - Enhanced editor mode detection
- * - Prevents execution in Squarespace editor
- * - Better console warnings
- * 
- * FIXED v1.0.2:
- * - Abort if in Squarespace editor mode
- * - Wait indefinitely for Squarespace to load (like expanded-menu)
- * - Better element detection with more selectors
- * - Console warnings for editor mode
- * - Works in PREVIEW and PUBLISHED mode only
  * 
  * INSTALLATION:
  * <script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/floating-header/floating-header.min.js"></script>
@@ -27,7 +24,7 @@
 (function() {
   'use strict';
 
-  const PLUGIN_VERSION = '1.0.3';
+  const PLUGIN_VERSION = '1.0.4';
   const PLUGIN_NAME = 'FloatingHeader';
   
   console.log(`🎈 ${PLUGIN_NAME} v${PLUGIN_VERSION} - Loading...`);
@@ -37,7 +34,6 @@
   // ========================================
 
   function isEditorMode() {
-    // Check body classes (most reliable)
     const bodyClasses = document.body.className;
     
     if (bodyClasses.includes('squarespace-editable') || 
@@ -47,18 +43,15 @@
       return true;
     }
 
-    // Check if in iframe (editor uses iframes)
     if (window.self !== window.top) {
       return true;
     }
 
-    // Check URL parameters (editor sometimes uses ?edit=true)
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('edit') === 'true' || urlParams.get('sqs-edit-mode')) {
       return true;
     }
 
-    // Check for Squarespace editor objects
     if (window.Static && window.Static.SQUARESPACE_CONTEXT && 
         window.Static.SQUARESPACE_CONTEXT.isEditing) {
       return true;
@@ -100,8 +93,8 @@
       // Behavior
       transitionSpeed: parseInt(params.get('transitionSpeed') || '600'),
       startAtBottom: params.get('startAtBottom') !== 'false',
-      adjustSectionHeight: params.get('adjustSectionHeight') !== 'false', // ✅ NOVO
-      sectionMinHeight: params.get('sectionMinHeight') || '90vh',          // ✅ NOVO
+      adjustSectionHeight: params.get('adjustSectionHeight') !== 'false',
+      sectionMinHeight: params.get('sectionMinHeight') || '90vh',
       
       // Advanced
       zIndex: params.get('zIndex') || '9999',
@@ -119,27 +112,23 @@
   // ELEMENT DETECTION (IMPROVED)
   // ========================================
 
-  /**
-   * ✅ VERSÃO MELHORADA - Aguarda INFINITAMENTE (como expanded-menu)
-   */
   function waitForHeader() {
     return new Promise((resolve) => {
       const selectors = [
-        'header.Header',                    // 7.1 primary
-        'header#header',                    // 7.0 primary
-        '.sqs-announcement-bar-dropzone + header',  // After announcement
-        'header[data-controller="Header"]', // 7.1 alternative
-        '.header-inner',                    // Header inner
-        '[data-nc-group="header"]',        // Alternative
-        'header',                           // Last resort
-        // Mais específicos:
+        'header.Header',
+        'header#header',
+        '.sqs-announcement-bar-dropzone + header',
+        'header[data-controller="Header"]',
+        '.header-inner',
+        '[data-nc-group="header"]',
+        'header',
         '.header-announcement-bar-wrapper + header',
         '.header-display-desktop',
         '.header-display-mobile'
       ];
 
       let attempts = 0;
-      const maxAttempts = 100; // 100 tentativas = 10 segundos
+      const maxAttempts = 100;
 
       function attempt() {
         attempts++;
@@ -159,7 +148,6 @@
           return;
         }
 
-        // Tenta novamente em 100ms
         setTimeout(attempt, 100);
       }
 
@@ -167,19 +155,15 @@
     });
   }
 
-  /**
-   * Encontra primeira seção (melhorado)
-   */
   function waitForFirstSection() {
     return new Promise((resolve) => {
       const selectors = [
-        '.page-section:first-of-type',               // Primary
-        'section.page-section:first-of-type',        // Explicit
-        'section[data-section-id]:first-of-type',    // With ID
-        '#page > .page-section:first-child',         // Direct child
-        '#page section:first-child',                 // Nested
-        'main > section:first-child',                // Alternative
-        // Mais específicos:
+        '.page-section:first-of-type',
+        'section.page-section:first-of-type',
+        'section[data-section-id]:first-of-type',
+        '#page > .page-section:first-child',
+        '#page section:first-child',
+        'main > section:first-child',
         '[data-section-type]:first-of-type',
         '.page-section[data-section-id]',
         '.sections .section:first-child'
@@ -214,7 +198,7 @@
   }
 
   // ========================================
-  // ✅ NOVA FUNÇÃO: AJUSTAR ALTURA DA SEÇÃO
+  // ADJUST SECTION HEIGHT
   // ========================================
 
   function adjustFirstSectionHeight(section) {
@@ -223,11 +207,8 @@
       return;
     }
 
-    // Aplica min-height para garantir que menu seja visível
     section.style.minHeight = config.sectionMinHeight;
     section.style.boxSizing = 'border-box';
-
-    // Garante que conteúdo interno não force overflow
     section.style.display = 'flex';
     section.style.flexDirection = 'column';
     section.style.justifyContent = 'center';
@@ -308,7 +289,7 @@
   }
 
   // ========================================
-  // FLOATING LOGIC
+  // FLOATING LOGIC (FIXED)
   // ========================================
 
   class FloatingHeaderController {
@@ -317,10 +298,13 @@
       this.firstSection = firstSection;
       this.wrapper = null;
       this.isSticky = false;
+      this.isTransitioning = false; // ✅ NOVO: Previne race conditions
       this.scrollTimeout = null;
+      this.ticking = false; // ✅ NOVO: Para requestAnimationFrame
 
       this.sectionBottom = 0;
       this.headerHeight = 0;
+      this.triggerPoint = 0; // ✅ NOVO: Cache do trigger point
     }
 
     init() {
@@ -334,7 +318,7 @@
       // Mover header para dentro do wrapper
       this.wrapper.appendChild(this.originalHeader);
 
-      // Calcular dimensões
+      // Calcular dimensões INICIAIS
       this.updateDimensions();
 
       // Posição inicial
@@ -344,33 +328,46 @@
         this.positionAtTop();
       }
 
-      // Monitor scroll e resize
-      window.addEventListener('scroll', () => this.handleScroll(), { passive: true });
-      window.addEventListener('resize', () => this.updateDimensions());
+      // ✅ MELHORADO: Scroll com requestAnimationFrame
+      window.addEventListener('scroll', () => this.requestTick(), { passive: true });
+      
+      // ✅ MELHORADO: Resize recalcula dimensões
+      window.addEventListener('resize', () => {
+        this.updateDimensions();
+        this.requestTick();
+      });
 
       if (config.debug) console.log('✅ Controller initialized');
     }
 
+    // ✅ NOVO: Usa requestAnimationFrame para scroll suave
+    requestTick() {
+      if (!this.ticking && !this.isTransitioning) {
+        requestAnimationFrame(() => this.handleScroll());
+        this.ticking = true;
+      }
+    }
+
     updateDimensions() {
-      // Força recalcular layout
       const rect = this.firstSection.getBoundingClientRect();
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
       
-      // Bottom absoluto da seção 1 (relativo ao documento)
       this.sectionBottom = scrollTop + rect.top + rect.height;
       this.headerHeight = this.wrapper.offsetHeight || 60;
+      this.triggerPoint = this.sectionBottom - this.headerHeight; // ✅ CACHE
 
       if (config.debug) {
         console.log('📐 Dimensions updated:', {
           sectionBottom: this.sectionBottom,
           headerHeight: this.headerHeight,
-          scrollTop: scrollTop
+          triggerPoint: this.triggerPoint
         });
       }
     }
 
     positionAtBottom() {
-      // Position: absolute no BOTTOM da seção 1
+      if (this.isTransitioning) return; // ✅ PREVINE MÚLTIPLAS TRANSIÇÕES
+      
       this.wrapper.style.position = 'absolute';
       this.wrapper.style.top = `${this.sectionBottom - this.headerHeight}px`;
       this.wrapper.style.bottom = 'auto';
@@ -381,7 +378,8 @@
     }
 
     positionAtTop() {
-      // Position: fixed no TOPO (sticky)
+      if (this.isTransitioning) return; // ✅ PREVINE MÚLTIPLAS TRANSIÇÕES
+      
       this.wrapper.style.position = 'fixed';
       this.wrapper.style.top = '0px';
       this.wrapper.style.bottom = 'auto';
@@ -392,22 +390,42 @@
     }
 
     handleScroll() {
-      clearTimeout(this.scrollTimeout);
-      
-      this.scrollTimeout = setTimeout(() => {
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        
-        // Trigger: quando scroll passa do bottom da seção 1
-        const triggerPoint = this.sectionBottom - this.headerHeight;
+      this.ticking = false;
 
-        if (scrollTop >= triggerPoint && !this.isSticky) {
-          // Passou da seção 1 → sticky no topo
-          this.positionAtTop();
-        } else if (scrollTop < triggerPoint && this.isSticky) {
-          // Voltou pra seção 1 → volta pro bottom
-          this.positionAtBottom();
-        }
-      }, 10);
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+      // ✅ MELHORADO: Usa triggerPoint cacheado + margem de segurança
+      const threshold = 5; // 5px de margem para evitar "tremor"
+
+      if (scrollTop >= this.triggerPoint + threshold && !this.isSticky) {
+        // Passou da seção 1 → sticky no topo
+        this.transitionTo('top');
+      } else if (scrollTop < this.triggerPoint - threshold && this.isSticky) {
+        // Voltou pra seção 1 → volta pro bottom
+        this.transitionTo('bottom');
+      }
+    }
+
+    // ✅ NOVO: Gerencia transições com flag de lock
+    transitionTo(position) {
+      if (this.isTransitioning) {
+        if (config.debug) console.log('⏸️ Transition already in progress, skipping');
+        return;
+      }
+
+      this.isTransitioning = true;
+
+      if (position === 'top') {
+        this.positionAtTop();
+      } else {
+        this.positionAtBottom();
+      }
+
+      // ✅ Unlock após transição CSS terminar
+      setTimeout(() => {
+        this.isTransitioning = false;
+        if (config.debug) console.log('🔓 Transition complete');
+      }, config.transitionSpeed + 50); // +50ms de margem
     }
   }
 
@@ -460,7 +478,7 @@
     try {
       console.log('🔧 Initializing...');
 
-      // ✅ CHECK 1: Detecta modo editor (PRIMEIRA VERIFICAÇÃO)
+      // CHECK 1: Detecta modo editor
       if (isEditorMode()) {
         console.warn('⚠️⚠️⚠️ SQUARESPACE EDITOR MODE DETECTED ⚠️⚠️⚠️');
         console.warn('');
@@ -470,16 +488,16 @@
         console.warn('   1. Click "Preview" button in Squarespace editor');
         console.warn('   2. Or click "Save & Exit" to test on live site');
         console.warn('');
-        return; // ABORT IMEDIATAMENTE!
+        return;
       }
 
-      // ✅ CHECK 2: Aguarda elementos (retry infinito)
+      // CHECK 2: Aguarda elementos
       console.log('⏳ Waiting for Squarespace to load...');
       
       const header = await waitForHeader();
       const firstSection = await waitForFirstSection();
 
-      // ✅ VALIDAÇÃO
+      // VALIDAÇÃO
       if (!header) {
         console.error('❌ Header not found - aborting');
         console.error('💡 Try enabling debug mode: ?debug=true');
@@ -495,8 +513,37 @@
       console.log('✓ Header found:', header);
       console.log('✓ First section found:', firstSection);
 
-      // ✅ NOVO: Ajusta altura da primeira seção
+      // Ajusta altura da primeira seção
       adjustFirstSectionHeight(firstSection);
 
-      // Injeta CSS*
-
+      // Injeta CSS
+      injectStyles();
+
+      // Aguarda DOM estável
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Inicializa controller
+      const controller = new FloatingHeaderController(header, firstSection);
+      controller.init();
+
+      console.log(`✅ ${PLUGIN_NAME} v${PLUGIN_VERSION} Active!`);
+      console.log('   Start Position:', config.startAtBottom ? 'Bottom of Section 1' : 'Top (Sticky)');
+      console.log('   Section Height:', config.adjustSectionHeight ? config.sectionMinHeight : 'Not adjusted');
+
+      // Licensing em background
+      setTimeout(() => loadLicensing(), 1000);
+
+    } catch (error) {
+      console.error('❌ Initialization failed:', error);
+      console.error('Stack trace:', error.stack);
+    }
+  }
+
+  // Auto-start
+  if (document.readyState === 'loading') {
+    window.addEventListener('load', () => setTimeout(init, 2000));
+  } else {
+    setTimeout(init, 2000);
+  }
+
+})();
