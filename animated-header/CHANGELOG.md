@@ -1,6 +1,41 @@
 # Changelog - Animated Sticky Header
 
-## [1.0.0] - 2026-02-23
+## [2.0.0] - 2026-02-23
+
+### 🔥 BREAKING CHANGES
+- **Reescrita completa** usando arquitetura Expanded Menu
+- Removidos parâmetros: `section1Selector`, `section2Selector`, `menuHolderSelector`, `headerSelector`, `visibilityThreshold`
+- Não depende mais de `#menuholder` ou `#header`
+
+### ✨ Added
+- Captura menu nativo do Squarespace automaticamente
+- Cria header customizado do zero (não usa elementos nativos)
+- Sticky animation (bottom → top) com fade suave
+- Dynamic home button com scroll inteligente
+- 100% compatibilidade com todos os temas Squarespace
+
+### 🎯 Features
+- `transitionDuration` - Duração do fade (default: 400ms)
+- `scrollDuration` - Duração do scroll suave (default: 800ms)
+- `bgColor` - Cor de fundo (default: transparent)
+- `fontColor` - Cor do texto (default: #000)
+- `fontSize` - Tamanho da fonte (default: 16px)
+- `fontWeight` - Peso da fonte (default: 500)
+- `menuSpacing` - Gap entre itens (default: 40px)
+- `hoverOpacity` - Opacidade hover (default: 0.7)
+
+### 🐛 Fixed
+- Compatibilidade universal (todos os temas)
+- Mobile responsivo (horizontal scroll)
+- Accessibility (reduced motion support)
+
+---
+
+## [1.0.0] - 2026-02-23 - DEPRECATED
+
+### ❌ Deprecated
+- Versão inicial descontinuada
+- Dependia de elementos que não existem em todos os temas
 
 ### ✨ Added
 - Initial release
@@ -9,31 +44,9 @@
 - Dynamic home button with intelligent scrolling
 - Automatic section detection (3 priority levels)
 - URL parameter configuration
-- Data attribute configuration
 - Anavo Tech licensing system
-- 100% Vanilla JavaScript
-- Squarespace 7.0 & 7.1 compatibility
-- Reduced motion support
-- Editor mode protection
-
-### 🎯 Features
-- `transitionDuration` parameter (default: 400ms)
-- `visibilityThreshold` parameter (default: 10%)
-- `scrollDuration` parameter (default: 800ms)
-- Custom section selectors
-- Custom menu/header selectors
-
-### 📖 Documentation
-- Complete README with examples
-- Basic HTML example
-- Troubleshooting guide
-- Parameter reference
-
-### 🔐 Security
-- Licensing validation
-- Development mode whitelist
-- Domain authorization check
 
 ---
 
+[2.0.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/animated-header-v2.0.0
 [1.0.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/animated-header-v1.0.0
