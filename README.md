@@ -11,6 +11,27 @@ Professional, production-ready plugins for Squarespace 7.0 & 7.1 websites.
 
 ## 🎨 Available Plugins
 
+### Header Pro
+Squarekicker-inspired header enhancement — centered layout, sticky/auto-hide, CTA button, dropdown modes (list/mega), glassy blur, animated blue-line glow, and glitch effect. Non-destructive: skins the native header without replacing it.
+
+**Install (Settings → Advanced → Code Injection → Footer):**
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/header-pro/header-pro.min.js"></script>
+```
+
+**Presets:**
+```html
+<!-- Frosted glass + animated glow + CTA -->
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/header-pro/header-pro.min.js?preset=glassy&ctaEnabled=true&ctaText=Get+Started&ctaUrl=/contact"></script>
+
+<!-- Dark tech + glitch hover + outline CTA -->
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/header-pro/header-pro.min.js?preset=tech&ctaEnabled=true&ctaText=Book+a+Call&ctaUrl=/book"></script>
+```
+
+[📖 Documentation](header-pro/README.md) | [🎬 Live Demo](header-pro/examples/basic.html) | [📋 Changelog](header-pro/CHANGELOG.md)
+
+---
+
 ### ASCII Animation
 Animated rotating text circles with explosion and rain effects.
 
