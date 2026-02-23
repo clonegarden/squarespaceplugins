@@ -77,17 +77,28 @@ Menu sticky que inicia no footer e sobe smooth para o topo ao rolar. **v2.0.0 - 
 <script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/animated-header/animated-header.min.js"></script>
 ```
 
-**Customize:**
+**Presets:**
 ```html
-<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/animated-header/animated-header.min.js?fontColor=ffffff&bgColor=rgba(0,0,0,0.8)&fontSize=18"></script>
+<!-- Glass Morphism (transparente com blur) -->
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/animated-header/animated-header.min.js?bgColor=transparent&bgEffect=blur&fontColor=FFFFFF&showBorder=true&borderColor=FFFFFF&borderWidth=1"></script>
+
+<!-- Header preto sólido com fonte customizada -->
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/animated-header/animated-header.min.js?bgColor=000000&fontColor=FFFFFF&fontSize=18&fontFamily=Montserrat"></script>
+
+<!-- Header branco com borda dupla -->
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/animated-header/animated-header.min.js?bgColor=FFFFFF&fontColor=000000&showBorder=true&borderPosition=both&borderColor=CCCCCC&borderWidth=1"></script>
+
+<!-- Semi-transparente overlay -->
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/animated-header/animated-header.min.js?bgColor=rgba(0,0,0,0.9)&fontColor=FFFFFF&showBorder=true&borderColor=FFFFFF&borderWidth=2"></script>
 ```
 
 [📖 Documentation](animated-header/README.md) | [🎬 Demo](animated-header/examples/basic.html)
 
-**v2.0.0 Breaking Changes:**
-- Reescrito com arquitetura Expanded Menu
-- 100% compatível com todos os temas
-- Não depende mais de `#menuholder`/`#header`
+**v2.0.0 New Features:**
+- ✨ Font family customizável (`fontFamily`)
+- ✨ Background modes (sólido, transparente, blur via `bgEffect`)
+- ✨ Bordas customizáveis (`showBorder`, `borderPosition`, `borderWidth`, `borderColor`)
+- ✅ 100% compatível com todos os temas
 
 ---
 
