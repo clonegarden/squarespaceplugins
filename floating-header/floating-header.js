@@ -521,9 +521,9 @@
 
   // ✅ CRÍTICO: Inicia IMEDIATAMENTE (sem delay de 2s)
   if (document.readyState === 'loading') {
-    window.addEventListener('load', () => setTimeout(init, 500)); // ✅ REDUZIDO: 500ms (antes 2000ms)
+    window.addEventListener('load', () => setTimeout(init, 100)); // ✅ REDUZIDO: 100ms (antes 2000ms)
   } else {
-    setTimeout(init, 500); // ✅ REDUZIDO
+    setTimeout(init, 100); // ✅ REDUZIDO
   }
 
 })();
