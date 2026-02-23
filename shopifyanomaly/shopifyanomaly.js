@@ -1,5 +1,5 @@
 /*!
- * Shopify Auto Fade On Scroll (Squarespace-like)
+ * Shopify Anomaly (Auto Fade On Scroll Squarespace-like)
  * Designed for Shopify themes (incl. Pipeline) with minimal assumptions.
  *
  * What it does:
