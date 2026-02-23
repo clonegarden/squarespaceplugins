@@ -48,6 +48,18 @@ Interactive Space Invaders game for tech portfolios and gamified experiences.
 
 ---
 
+### Animated Sticky Header
+Menu sticky que inicia no footer e sobe smooth para o topo ao rolar.
+
+**Install:**
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/animated-header/animated-header.min.js"></script>
+```
+
+[📖 Documentation](animated-header/README.md) | [🎬 Demo](animated-header/examples/basic.html)
+
+---
+
 ## 🔐 Licensing
 
 These plugins are **commercially licensed** and require activation. 
