@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Animated Sticky Header - Basic Example</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+      }
+
+      /* Fake Squarespace menuholder / header structure */
+      #menuholder {
+        background: rgba(10, 10, 40, 0.92);
+        padding: 0 32px;
+      }
+
+      #header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 64px;
+        color: #fff;
+      }
+
+      #header .logo {
+        font-size: 1.4rem;
+        font-weight: bold;
+        letter-spacing: 2px;
+        color: #fff;
+        text-decoration: none;
+      }
+
+      #header nav a {
+        color: #fff;
+        text-decoration: none;
+        margin-left: 24px;
+        font-size: 0.95rem;
+        letter-spacing: 1px;
+      }
+
+      #header nav a:hover {
+        opacity: 0.75;
+      }
+
+      /* Sections */
+      section[data-section-id] {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        font-size: 2rem;
+        font-weight: bold;
+        color: #fff;
+        text-align: center;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      section[data-section-id] p {
+        font-size: 1rem;
+        font-weight: normal;
+        opacity: 0.8;
+        max-width: 480px;
+        line-height: 1.6;
+      }
+
+      /* Section colors */
+      #section-1 { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+      #section-2 { background: linear-gradient(135deg, #0f3460 0%, #533483 100%); }
+      #section-3 { background: linear-gradient(135deg, #2c003e 0%, #1a1a2e 100%); }
+      #section-4 { background: linear-gradient(135deg, #004e92 0%, #000428 100%); }
+
+      /* Demo info box */
+      .demo-info {
+        position: fixed;
+        bottom: 80px;
+        right: 24px;
+        background: rgba(0, 0, 0, 0.85);
+        color: #fff;
+        padding: 16px 20px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        line-height: 1.8;
+        z-index: 10000;
+        max-width: 260px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+
+      .demo-info strong {
+        display: block;
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+        color: #7ec8e3;
+      }
+
+      .demo-info .badge {
+        display: inline-block;
+        background: #7ec8e3;
+        color: #000;
+        border-radius: 4px;
+        padding: 1px 6px;
+        font-size: 0.7rem;
+        font-weight: bold;
+        margin-right: 4px;
+      }
+
+      #page {
+        /* Simulates Squarespace page container */
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Fake Squarespace menu structure (7.0 style) -->
+    <div id="menuholder">
+      <div id="header">
+        <a href="/" class="logo header-nav-item--homepage">
+          <span>ANAVO TECH</span>
+        </a>
+        <!-- Fake homepage nav link (used by the plugin for dynamic home button) -->
+        <nav>
+          <span class="header-nav-item--homepage"><a href="/">Home</a></span>
+          <a href="#section-2">About</a>
+          <a href="#section-3">Services</a>
+          <a href="#section-4">Contact</a>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Page content -->
+    <div id="page">
+      <!--
+        Section 1: data-anavo-role="header-section"
+        The header starts anchored at the bottom of this section.
+        When user scrolls past it, the header transitions to the top.
+      -->
+      <section
+        id="section-1"
+        data-section-id="sec-001"
+        data-anavo-role="header-section"
+      >
+        <span>Section 1 — Hero</span>
+        <p>
+          The header is fixed at the bottom of this section.<br />
+          Scroll down to see it transition smoothly to the top.
+        </p>
+        <p style="font-size: 0.85rem; opacity: 0.5">(data-anavo-role="header-section")</p>
+      </section>
+
+      <!--
+        Section 2: data-anavo-role="home-section"
+        When this section is NOT visible, the Home button scrolls here instead of navigating to /.
+      -->
+      <section
+        id="section-2"
+        data-section-id="sec-002"
+        data-anavo-role="home-section"
+      >
+        <span>Section 2 — About</span>
+        <p>
+          When this section is hidden, the Home button scrolls here.<br />
+          When visible, it navigates to the homepage.
+        </p>
+        <p style="font-size: 0.85rem; opacity: 0.5">(data-anavo-role="home-section")</p>
+      </section>
+
+      <section id="section-3" data-section-id="sec-003">
+        <span>Section 3 — Services</span>
+        <p>The header is now sticky at the top of the page.</p>
+      </section>
+
+      <section id="section-4" data-section-id="sec-004">
+        <span>Section 4 — Contact</span>
+        <p>Scroll back up to see the header transition back to the bottom.</p>
+      </section>
+    </div>
+
+    <!-- Demo info overlay -->
+    <div class="demo-info">
+      <strong>🎯 Demo: Animated Sticky Header</strong>
+      <span class="badge">v1.0.0</span> Anavo Tech<br /><br />
+      <b>Scroll down</b> → header slides to top<br />
+      <b>Scroll up</b> → header returns to bottom<br />
+      <b>Home button</b> → smart scroll / navigate
+    </div>
+
+    <!--
+      Load plugin (use local source for demo; in production use CDN)
+      Parameters demo: transition duration 600ms, visibility threshold 20%
+    -->
+    <script src="../animated-header.js?transitionDuration=600&visibilityThreshold=20"></script>
+  </body>
+</html>
