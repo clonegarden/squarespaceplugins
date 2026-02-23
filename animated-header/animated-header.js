@@ -2,12 +2,12 @@
  * =======================================
  * ANIMATED STICKY HEADER - Squarespace Plugin
  * =======================================
- * @version 1.0.0
+ * @version 2.0.0
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
- * Menu sticky animado que inicia no footer e desliza
- * suavemente para o topo ao rolar a página.
+ * BREAKING CHANGE: Reescrito do zero usando arquitetura Expanded Menu
+ * Menu sticky que inicia no footer e sobe suavemente para o topo ao rolar.
  *
  * INSTALLATION:
  * <script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/animated-header/animated-header.min.js"></script>
@@ -17,13 +17,13 @@
 (function () {
   'use strict';
 
-  const PLUGIN_VERSION = '1.0.0';
+  const PLUGIN_VERSION = '2.0.0';
   const PLUGIN_NAME = 'AnimatedHeader';
 
-  console.log(`🎯 ${PLUGIN_NAME} v${PLUGIN_VERSION} - Loading...`);
+  console.log(`🎨 ${PLUGIN_NAME} v${PLUGIN_VERSION} - Loading...`);
 
   // ========================================
-  // CONFIGURATION
+  // 1. PARSE PARAMETERS (igual Expanded Menu)
   // ========================================
 
   const currentScript =
@@ -41,26 +41,24 @@
 
       return {
         transitionDuration: parseInt(params.get('transitionDuration') || '400', 10),
-        visibilityThreshold: parseFloat(params.get('visibilityThreshold') || '10'),
         scrollDuration: parseInt(params.get('scrollDuration') || '800', 10),
-        section1Selector: params.get('section1Selector')
-          ? decodeURIComponent(params.get('section1Selector'))
-          : null,
-        section2Selector: params.get('section2Selector')
-          ? decodeURIComponent(params.get('section2Selector'))
-          : null,
-        menuHolderSelector: params.get('menuHolderSelector') || '#menuholder',
-        headerSelector: params.get('headerSelector') || '#header',
+        bgColor: params.get('bgColor') || 'transparent',
+        fontColor: params.get('fontColor') || '#000',
+        fontSize: params.get('fontSize') || '16',
+        fontWeight: params.get('fontWeight') || '500',
+        menuSpacing: params.get('menuSpacing') || '40px',
+        hoverOpacity: params.get('hoverOpacity') || '0.7',
       };
     } catch (_e) {
       return {
         transitionDuration: 400,
-        visibilityThreshold: 10,
         scrollDuration: 800,
-        section1Selector: null,
-        section2Selector: null,
-        menuHolderSelector: '#menuholder',
-        headerSelector: '#header',
+        bgColor: 'transparent',
+        fontColor: '#000',
+        fontSize: '16',
+        fontWeight: '500',
+        menuSpacing: '40px',
+        hoverOpacity: '0.7',
       };
     }
   }
@@ -68,261 +66,339 @@
   const config = getScriptParams();
 
   // ========================================
-  // SECTION DETECTION
+  // 2. WAIT FOR SQUARESPACE NAV (igual Expanded Menu)
   // ========================================
 
-  function detectSections() {
-    // Priority 1: Custom selectors via URL params
-    if (config.section1Selector && config.section2Selector) {
-      const s1 = document.querySelector(config.section1Selector);
-      const s2 = document.querySelector(config.section2Selector);
-      if (s1 && s2) {
-        return { section1: s1, section2: s2 };
+  async function waitForSquarespaceNav(maxTries) {
+    maxTries = maxTries || 20;
+    const selectors = [
+      '.header-nav-list',
+      '.header-menu-nav-list',
+      '[data-folder="root"]',
+      '.header-menu-nav-wrapper nav',
+      '.header-nav',
+      'nav.header-nav',
+    ];
+
+    for (let i = 0; i < maxTries; i++) {
+      for (let s = 0; s < selectors.length; s++) {
+        const nav = document.querySelector(selectors[s]);
+        if (nav) {
+          console.log(`✅ Found nav: ${selectors[s]}`);
+          return nav;
+        }
       }
+      await new Promise(resolve => setTimeout(resolve, 200));
     }
 
-    // Priority 2: Data attributes
-    const roleEls = document.querySelectorAll('[data-anavo-role]');
-    let section1 = null;
-    let section2 = null;
-    roleEls.forEach(el => {
-      const role = el.getAttribute('data-anavo-role');
-      if (role === 'header-section') section1 = el;
-      if (role === 'home-section') section2 = el;
+    console.error('❌ Could not find Squarespace navigation');
+    return null;
+  }
+
+  // ========================================
+  // 3. EXTRACT MENU ITEMS (igual Expanded Menu)
+  // ========================================
+
+  function extractMenuItems(navList) {
+    const items = [];
+    const links = navList.querySelectorAll('a');
+
+    links.forEach(link => {
+      const text = link.textContent.trim();
+      const url = link.href;
+      const isActive =
+        link.classList.contains('active') || link.getAttribute('aria-current') === 'page';
+      const isHome =
+        link.classList.contains('header-nav-item--homepage') ||
+        link.classList.contains('header-menu-nav-item--homepage');
+
+      items.push({ text, url, isActive, isHome });
     });
-    if (section1 && section2) {
-      return { section1, section2 };
-    }
 
-    // Priority 3: Auto-detect first two <section data-section-id>
-    const allSections = document.querySelectorAll('section[data-section-id]');
-    return {
-      section1: allSections[0] || null,
-      section2: allSections[1] || null,
-    };
+    console.log(`✅ Extracted ${items.length} menu items`);
+    return items;
   }
 
   // ========================================
-  // WAIT FOR ELEMENTS
+  // 4. BUILD CUSTOM HEADER (com sticky animation)
   // ========================================
 
-  function waitForElements(selectors, callback) {
-    const maxAttempts = 50;
-    let attempts = 0;
+  function buildCustomHeader(menuItems) {
+    const itemsHTML = menuItems
+      .map(
+        item => `
+      <div class="anavo-sticky-item ${item.isActive ? 'active' : ''}">
+        <a href="${item.url}"
+           class="anavo-sticky-link ${item.isHome ? 'home-link' : ''}"
+           ${item.isActive ? 'aria-current="page"' : ''}>
+          ${item.text}
+        </a>
+      </div>
+    `
+      )
+      .join('');
 
-    function attempt() {
-      attempts++;
-      const elements = selectors.map(sel => document.querySelector(sel));
-      if (elements.every(el => el !== null)) {
-        callback.apply(null, elements);
-        return;
-      }
-      if (attempts >= maxAttempts) {
-        console.error(`❌ ${PLUGIN_NAME}: Required elements not found:`, selectors);
-        return;
-      }
-      setTimeout(attempt, 100);
-    }
-
-    attempt();
+    return `
+      <div class="anavo-sticky-wrapper" data-position="bottom">
+        <nav class="anavo-sticky-nav">
+          ${itemsHTML}
+        </nav>
+      </div>
+    `;
   }
 
   // ========================================
-  // CSS INJECTION
+  // 5. HIDE SQUARESPACE HEADER (igual Expanded Menu)
   // ========================================
 
-  function injectFadeCSS() {
-    if (document.getElementById('anavo-animated-header-styles')) return;
+  function hideSquarespaceHeader() {
+    const headers = document.querySelectorAll(
+      '.header, .Header, header, [data-nc-group="header"]'
+    );
 
-    const prefersReducedMotion =
-      window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    const transitionValue = prefersReducedMotion
-      ? '0ms'
-      : `${config.transitionDuration}ms`;
-
-    const style = document.createElement('style');
-    style.id = 'anavo-animated-header-styles';
-    style.textContent = `
-      /* ========================================
-         ANIMATED STICKY HEADER v${PLUGIN_VERSION}
-         ======================================== */
-
-      body.header-transitioning ${config.menuHolderSelector},
-      body.header-transitioning ${config.headerSelector} {
-        opacity: 0 !important;
-        transition: opacity ${transitionValue} ease !important;
+    headers.forEach(header => {
+      header.style.cssText = `
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        position: absolute !important;
+        top: -9999px !important;
         pointer-events: none !important;
+      `;
+    });
+
+    document.body.style.paddingTop = '0';
+    document.body.style.marginTop = '0';
+
+    const firstSection = document.querySelector('section[data-section-id]:first-child');
+    if (firstSection) {
+      firstSection.style.paddingTop = '0';
+      firstSection.style.marginTop = '0';
+    }
+
+    console.log('✅ Squarespace header hidden');
+  }
+
+  // ========================================
+  // 6. INJECT STYLES (sticky animation CSS)
+  // ========================================
+
+  function injectStyles() {
+    if (document.getElementById('anavo-sticky-header-styles')) return;
+
+    const styles = document.createElement('style');
+    styles.id = 'anavo-sticky-header-styles';
+    styles.textContent = `
+      /* ANAVO STICKY HEADER v${PLUGIN_VERSION} */
+
+      .anavo-sticky-wrapper {
+        position: fixed;
+        width: 100%;
+        z-index: 99999;
+        transition: all ${config.transitionDuration}ms cubic-bezier(0.4, 0, 0.2, 1);
+        background: ${config.bgColor};
+        backdrop-filter: blur(10px);
       }
 
-      body.header-positioned ${config.menuHolderSelector},
-      body.header-positioned ${config.headerSelector} {
-        opacity: 1 !important;
-        transition: opacity ${transitionValue} ease !important;
-        pointer-events: auto !important;
+      /* BOTTOM POSITION (inicial) */
+      .anavo-sticky-wrapper[data-position="bottom"] {
+        bottom: 0;
+        top: auto;
       }
 
+      /* TOP POSITION (após scroll) */
+      .anavo-sticky-wrapper[data-position="top"] {
+        top: 0;
+        bottom: auto;
+      }
+
+      /* FADE durante transição */
+      .anavo-sticky-wrapper.transitioning {
+        opacity: 0;
+      }
+
+      nav.anavo-sticky-nav {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: ${config.menuSpacing};
+        padding: 20px;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      .anavo-sticky-item {
+        display: flex;
+      }
+
+      a.anavo-sticky-link {
+        color: ${config.fontColor};
+        text-decoration: none;
+        font-size: ${config.fontSize}px;
+        font-weight: ${config.fontWeight};
+        padding: 8px 16px;
+        transition: opacity 0.2s;
+        white-space: nowrap;
+      }
+
+      a.anavo-sticky-link:hover {
+        opacity: ${config.hoverOpacity};
+      }
+
+      .anavo-sticky-item.active a {
+        font-weight: ${Math.min(parseInt(config.fontWeight, 10) + 200, 900)};
+      }
+
+      /* MOBILE */
+      @media (max-width: 768px) {
+        nav.anavo-sticky-nav {
+          gap: 20px;
+          padding: 15px;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+          justify-content: flex-start;
+        }
+
+        nav.anavo-sticky-nav::-webkit-scrollbar {
+          display: none;
+        }
+
+        a.anavo-sticky-link {
+          font-size: ${Math.max(parseInt(config.fontSize, 10) - 2, 14)}px;
+          padding: 6px 12px;
+        }
+      }
+
+      /* ACCESSIBILITY */
       @media (prefers-reduced-motion: reduce) {
-        body.header-transitioning ${config.menuHolderSelector},
-        body.header-transitioning ${config.headerSelector},
-        body.header-positioned ${config.menuHolderSelector},
-        body.header-positioned ${config.headerSelector} {
+        .anavo-sticky-wrapper {
           transition: none !important;
         }
       }
     `;
-    document.head.appendChild(style);
+
+    document.head.appendChild(styles);
+    console.log('✅ Styles injected');
   }
 
   // ========================================
-  // TRANSITION HELPERS
+  // 7. INSERT CUSTOM HEADER
   // ========================================
 
-  function startTransition() {
-    document.body.classList.remove('header-positioned');
-    document.body.classList.add('header-transitioning');
+  function insertCustomHeader(headerHTML) {
+    const existing = document.querySelector('.anavo-sticky-wrapper');
+    if (existing) existing.remove();
+
+    document.body.insertAdjacentHTML('afterbegin', headerHTML);
+    console.log('✅ Custom header inserted');
   }
 
-  function endTransition() {
-    document.body.classList.remove('header-transitioning');
-    document.body.classList.add('header-positioned');
-  }
-
   // ========================================
-  // STICKY HEADER LOGIC
+  // 8. STICKY ANIMATION LOGIC (core feature!)
   // ========================================
 
-  function initStickyHeader($menuHolder, $header, $firstSection) {
-    let headerAtBottom = false;
-    let scrollTimeout = null;
+  function initStickyAnimation() {
+    const $header = document.querySelector('.anavo-sticky-wrapper');
+    const $section1 = document.querySelector('section[data-section-id]:first-child');
 
-    // Store original DOM position for accurate restoration
-    const originalParent = $header.parentNode;
-    const originalNextSibling = $header.nextSibling;
-
-    function isInFirstSection() {
-      const scroll = window.scrollY;
-      const top = $firstSection.offsetTop;
-      const bottom = top + $firstSection.offsetHeight;
-      return scroll >= top && scroll < bottom;
+    if (!$header || !$section1) {
+      console.error('❌ Missing elements for animation');
+      return;
     }
 
-    function moveHeaderToBottom(instant) {
-      if (headerAtBottom) return;
-      if (!instant) startTransition();
-
-      setTimeout(
-        () => {
-          $menuHolder.style.position = 'fixed';
-          $menuHolder.style.bottom = '0';
-          $menuHolder.style.top = '';
-          $menuHolder.style.width = '100%';
-          $menuHolder.style.zIndex = '9999';
-          $menuHolder.style.left = '0';
-
-          if (!$menuHolder.contains($header)) {
-            $menuHolder.appendChild($header);
-          }
-
-          headerAtBottom = true;
-
-          if (!instant) setTimeout(endTransition, 50);
-        },
-        instant ? 0 : config.transitionDuration
-      );
-    }
-
-    function restoreHeader(instant) {
-      if (!headerAtBottom) return;
-      if (!instant) startTransition();
-
-      setTimeout(
-        () => {
-          $menuHolder.style.position = '';
-          $menuHolder.style.bottom = '';
-          $menuHolder.style.top = '';
-          $menuHolder.style.width = '';
-          $menuHolder.style.zIndex = '';
-          $menuHolder.style.left = '';
-
-          // Restore header to its original DOM position
-          if (originalNextSibling) {
-            originalParent.insertBefore($header, originalNextSibling);
-          } else {
-            originalParent.appendChild($header);
-          }
-
-          headerAtBottom = false;
-          if (!instant) setTimeout(endTransition, 50);
-        },
-        instant ? 0 : config.transitionDuration
-      );
-    }
+    let isAtTop = false;
 
     function handleScroll() {
-      if (scrollTimeout) return;
-      scrollTimeout = setTimeout(() => {
-        scrollTimeout = null;
-        if (isInFirstSection()) {
-          if (!headerAtBottom) moveHeaderToBottom(false);
-        } else {
-          if (headerAtBottom) restoreHeader(false);
-        }
-      }, 16); // ~60fps debounce
-    }
+      const scrollY = window.scrollY;
+      const section1Bottom = $section1.offsetTop + $section1.offsetHeight;
 
-    // Set initial position instantly
-    if (isInFirstSection()) {
-      moveHeaderToBottom(true);
-      endTransition();
-    } else {
-      endTransition();
-    }
+      if (scrollY > section1Bottom && !isAtTop) {
+        $header.classList.add('transitioning');
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
+        setTimeout(() => {
+          $header.setAttribute('data-position', 'top');
 
-    window.addEventListener('resize', () => {
-      if (isInFirstSection()) {
-        moveHeaderToBottom(true);
-      } else {
-        restoreHeader(true);
+          setTimeout(() => {
+            $header.classList.remove('transitioning');
+          }, 50);
+        }, config.transitionDuration);
+
+        isAtTop = true;
+        console.log('→ Header moved to TOP');
+      } else if (scrollY <= section1Bottom && isAtTop) {
+        $header.classList.add('transitioning');
+
+        setTimeout(() => {
+          $header.setAttribute('data-position', 'bottom');
+
+          setTimeout(() => {
+            $header.classList.remove('transitioning');
+          }, 50);
+        }, config.transitionDuration);
+
+        isAtTop = false;
+        console.log('→ Header moved to BOTTOM');
       }
-    });
+    }
+
+    let scrollTimeout;
+    window.addEventListener(
+      'scroll',
+      () => {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(handleScroll, 100);
+      },
+      { passive: true }
+    );
+
+    console.log('✅ Sticky animation initialized');
   }
 
   // ========================================
-  // DYNAMIC HOME BUTTON
+  // 9. DYNAMIC HOME BUTTON (extra feature)
   // ========================================
 
-  function initHomeButton($section2, $homeLinks) {
-    if (!$section2 || $homeLinks.length === 0) return;
+  function initDynamicHomeButton() {
+    const $section2 = document.querySelector('section[data-section-id]:nth-child(2)');
+    const $homeLinks = document.querySelectorAll('.anavo-sticky-link.home-link');
+
+    if (!$section2 || $homeLinks.length === 0) {
+      console.log('⚠️ Home button feature disabled (missing section 2 or home links)');
+      return;
+    }
 
     let isScrollMode = false;
-    let scrollCheckTimeout = null;
 
     function isSection2Visible() {
       const scroll = window.scrollY;
       const viewportH = window.innerHeight;
+      const viewportB = scroll + viewportH;
       const sectionTop = $section2.offsetTop;
-      const sectionH = $section2.offsetHeight;
+      const sectionBot = sectionTop + $section2.offsetHeight;
 
-      // Calculate visible area of section2 within the viewport
       const visibleTop = Math.max(sectionTop, scroll);
-      const visibleBottom = Math.min(sectionTop + sectionH, scroll + viewportH);
-      const visiblePx = Math.max(0, visibleBottom - visibleTop);
-      const visiblePercent = sectionH > 0 ? (visiblePx / sectionH) * 100 : 0;
+      const visibleBot = Math.min(sectionBot, viewportB);
+      const visibleH = Math.max(0, visibleBot - visibleTop);
+      const percent = $section2.offsetHeight > 0 ? (visibleH / $section2.offsetHeight) * 100 : 0;
 
-      return visiblePercent >= config.visibilityThreshold;
+      return percent >= 10;
     }
 
     function updateHomeLink() {
-      const visible = isSection2Visible();
-      if (visible && isScrollMode) {
-        $homeLinks.forEach(a => a.setAttribute('href', '/'));
-        isScrollMode = false;
-      } else if (!visible && !isScrollMode) {
-        $homeLinks.forEach(a => a.setAttribute('href', '#scroll-to-section-2'));
-        isScrollMode = true;
+      if (isSection2Visible()) {
+        if (isScrollMode) {
+          $homeLinks.forEach(a => a.setAttribute('href', '/'));
+          isScrollMode = false;
+        }
+      } else {
+        if (!isScrollMode) {
+          $homeLinks.forEach(a => a.setAttribute('href', '#scroll-to-section-2'));
+          isScrollMode = true;
+        }
       }
     }
 
@@ -330,43 +406,43 @@
       link.addEventListener('click', function (e) {
         if (link.getAttribute('href') === '#scroll-to-section-2') {
           e.preventDefault();
-          const targetY = $section2.offsetTop;
+          const targetY = $section2.offsetTop + $section2.offsetHeight;
           window.scrollTo({ top: targetY, behavior: 'smooth' });
         }
       });
     });
 
-    function onScroll() {
-      if (scrollCheckTimeout) return;
-      scrollCheckTimeout = setTimeout(() => {
-        scrollCheckTimeout = null;
-        updateHomeLink();
-      }, 50);
-    }
+    let timeout;
+    window.addEventListener(
+      'scroll',
+      function () {
+        clearTimeout(timeout);
+        timeout = setTimeout(updateHomeLink, 50);
+      },
+      { passive: true }
+    );
 
-    window.addEventListener('scroll', onScroll, { passive: true });
-
-    // Set initial state
     updateHomeLink();
+    console.log('✅ Dynamic home button initialized');
   }
 
   // ========================================
-  // LICENSING (NON-BLOCKING)
+  // 10. LICENSING (igual Expanded Menu)
   // ========================================
 
   async function loadLicensing() {
     try {
-      if (!window.AnavoLicenseManager) {
-        const script = document.createElement('script');
-        script.src =
-          'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licensing.min.js';
+      if (window.AnavoLicenseManager) return null;
 
-        await new Promise((resolve, reject) => {
-          script.onload = resolve;
-          script.onerror = reject;
-          document.head.appendChild(script);
-        });
-      }
+      const script = document.createElement('script');
+      script.src =
+        'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licensing.min.js';
+
+      await new Promise((resolve, reject) => {
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
 
       const licenseManager = new window.AnavoLicenseManager(PLUGIN_NAME, PLUGIN_VERSION, {
         licenseServer:
@@ -377,69 +453,62 @@
       await licenseManager.init();
 
       if (!licenseManager.isLicensed) {
-        const menuHolder = document.querySelector(config.menuHolderSelector);
-        if (menuHolder) licenseManager.insertWatermark(menuHolder);
+        const header = document.querySelector('.anavo-sticky-wrapper');
+        if (header) licenseManager.insertWatermark(header);
       }
+
+      return licenseManager;
     } catch (error) {
       console.warn('⚠️ License check failed:', error.message);
+      return null;
     }
   }
 
   // ========================================
-  // MAIN INITIALIZATION
+  // 11. MAIN INIT
   // ========================================
 
-  function runPlugin() {
-    // Editor mode protection
-    if (
-      window.top !== window.self ||
-      document.body.classList.contains('sqs-edit-mode') ||
-      document.body.classList.contains('squarespace-editable') ||
-      document.body.classList.contains('sqs-editing-mode')
-    ) {
-      document.body.classList.add('header-positioned');
-      console.log(`ℹ️ ${PLUGIN_NAME}: Editor mode detected - plugin disabled`);
-      return;
-    }
+  async function init() {
+    try {
+      console.log('🔧 Starting initialization...');
 
-    const { section1, section2 } = detectSections();
+      const navList = await waitForSquarespaceNav();
 
-    if (!section1) {
-      console.warn(`⚠️ ${PLUGIN_NAME}: Section 1 not found. Check selectors or add data-anavo-role attributes.`);
-    }
-
-    injectFadeCSS();
-
-    waitForElements([config.menuHolderSelector, config.headerSelector], function (
-      $menuHolder,
-      $header
-    ) {
-      if (section1) {
-        initStickyHeader($menuHolder, $header, section1);
-      } else {
-        endTransition();
+      if (!navList) {
+        console.error('❌ AnimatedHeader: Navigation not found');
+        return;
       }
 
-      const $homeLinks = Array.from(
-        document.querySelectorAll(
-          '.header-nav-item--homepage > a, .header-menu-nav-item--homepage > a'
-        )
-      );
+      const menuItems = extractMenuItems(navList);
 
-      if ($homeLinks.length > 0 && section2) {
-        initHomeButton(section2, $homeLinks);
+      if (menuItems.length === 0) {
+        console.error('❌ AnimatedHeader: No menu items found');
+        return;
       }
 
-      // Load licensing non-blocking
-      setTimeout(() => loadLicensing(), 1000);
+      hideSquarespaceHeader();
+
+      const headerHTML = buildCustomHeader(menuItems);
+
+      injectStyles();
+
+      insertCustomHeader(headerHTML);
+
+      initStickyAnimation();
+
+      initDynamicHomeButton();
+
+      loadLicensing();
 
       console.log(`✅ ${PLUGIN_NAME} v${PLUGIN_VERSION} Active!`);
-    });
+    } catch (error) {
+      console.error('❌ AnimatedHeader initialization failed:', error);
+    }
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', runPlugin);
+    document.addEventListener('DOMContentLoaded', init);
   } else {
-    runPlugin();
+    init();
   }
 })();

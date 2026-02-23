@@ -49,14 +49,24 @@ Interactive Space Invaders game for tech portfolios and gamified experiences.
 ---
 
 ### Animated Sticky Header
-Menu sticky que inicia no footer e sobe smooth para o topo ao rolar.
+Menu sticky que inicia no footer e sobe smooth para o topo ao rolar. **v2.0.0 - Reescrito!**
 
 **Install:**
 ```html
 <script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/animated-header/animated-header.min.js"></script>
 ```
 
+**Customize:**
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/animated-header/animated-header.min.js?fontColor=ffffff&bgColor=rgba(0,0,0,0.8)&fontSize=18"></script>
+```
+
 [📖 Documentation](animated-header/README.md) | [🎬 Demo](animated-header/examples/basic.html)
+
+**v2.0.0 Breaking Changes:**
+- Reescrito com arquitetura Expanded Menu
+- 100% compatível com todos os temas
+- Não depende mais de `#menuholder`/`#header`
 
 ---
 

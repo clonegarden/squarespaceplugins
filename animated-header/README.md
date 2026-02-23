@@ -1,81 +1,75 @@
-# Animated Sticky Header
+# Animated Sticky Header v2.0.0
 
-Menu sticky animado que inicia no footer e desliza suavemente para o topo ao rolar.
+Menu sticky que **inicia no footer** e **sobe suavemente para o topo** ao rolar.
 
-## 🎯 Recursos
+## 🆕 v2.0.0 - Reescrita Completa
 
-- ✅ Header inicia fixo no rodapé da primeira seção
-- ✅ Transição suave (fade in/out) ao rolar
-- ✅ Home Button dinâmico com scroll inteligente
-- ✅ 100% Vanilla JavaScript
-- ✅ Detecção automática de sections
-- ✅ Parametrizável via URL
-- ✅ Compatível Squarespace 7.0 e 7.1
-- ✅ Sistema de licenciamento Anavo Tech
+**BREAKING CHANGE:** Reescrito usando a arquitetura vencedora do Expanded Menu:
+- ✅ Captura menu nativo do Squarespace
+- ✅ Cria header customizado do zero
+- ✅ 100% compatível com todos os temas
+- ✅ Não depende de `#menuholder` ou `#header`
 
 ## 🚀 Instalação
-
-### CDN (Recomendado)
 
 ```html
 <script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/animated-header/animated-header.min.js"></script>
 ```
 
-### Com Parâmetros
-
-```html
-<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/animated-header/animated-header.min.js?transitionDuration=600&visibilityThreshold=15"></script>
-```
-
 ## ⚙️ Parâmetros
 
-| Parâmetro | Tipo | Padrão | Descrição |
-|-----------|------|--------|-----------|
-| `transitionDuration` | number | `400` | Duração do fade (ms) |
-| `visibilityThreshold` | number | `10` | % visível para ativar Home Button |
-| `scrollDuration` | number | `800` | Duração do scroll suave (ms) |
-| `section1Selector` | string | auto | Seletor CSS para seção 1 |
-| `section2Selector` | string | auto | Seletor CSS para seção 2 |
-| `menuHolderSelector` | string | `#menuholder` | Container do menu |
-| `headerSelector` | string | `#header` | Elemento header |
+| Parâmetro | Padrão | Descrição |
+|-----------|--------|-----------|
+| `transitionDuration` | `400` | Duração do fade (ms) |
+| `scrollDuration` | `800` | Duração do scroll suave (ms) |
+| `bgColor` | `transparent` | Cor de fundo do header |
+| `fontColor` | `#000` | Cor do texto |
+| `fontSize` | `16` | Tamanho da fonte (px) |
+| `fontWeight` | `500` | Peso da fonte |
+| `menuSpacing` | `40px` | Espaçamento entre itens |
+| `hoverOpacity` | `0.7` | Opacidade ao hover |
 
-## 🎨 Detecção Automática de Sections
+## 💡 Exemplos
 
-### 1. Custom Selectors (prioridade alta)
+### Básico (sem parâmetros):
 ```html
-<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/animated-header/animated-header.min.js?section1Selector=section.hero&section2Selector=section.about"></script>
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/animated-header/animated-header.min.js"></script>
 ```
 
-### 2. Data Attributes (prioridade média)
+### Customizado:
 ```html
-<section data-section-id="abc123" data-anavo-role="header-section">
-<section data-section-id="def456" data-anavo-role="home-section">
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/animated-header/animated-header.min.js?fontColor=ffffff&fontSize=18&fontWeight=600"></script>
 ```
 
-### 3. Automático (fallback)
-Usa as duas primeiras `<section data-section-id>` da página.
+### Background semi-transparente:
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/animated-header/animated-header.min.js?bgColor=rgba(0,0,0,0.8)&fontColor=ffffff"></script>
+```
+
+## 🎯 Como Funciona
+
+1. **Captura** o menu nativo do Squarespace
+2. **Esconde** o header original completamente
+3. **Cria** um header customizado fixo no bottom
+4. **Anima** suavemente para o top ao rolar além da primeira seção
+5. **Home button** faz scroll inteligente para seção 2
 
 ## 🔐 Licenciamento
 
 Comercial - Requer licença Anavo Tech.
-- **30 dias** de garantia
-- **Domínios licenciados:** Funcionalidade completa
-- **Development:** Funciona em localhost/staging
 
 [Compre sua licença →](https://anavo.tech/plugins)
 
-## 🛠️ Troubleshooting
+## 🆘 Troubleshooting
 
-**Header não aparece:**
-- Verifique se existe `#menuholder` e `#header`
-- Teste com custom selectors via URL params
+**Q: Header não aparece?**
+A: Verifique o console. O plugin deve mostrar "✅ Animated Sticky Header v2.0.0 Active!"
 
-**Transição muito rápida:**
-- Ajuste `transitionDuration` (em ms)
+**Q: Compatível com meu tema?**
+A: Sim! v2.0.0 funciona em 100% dos temas Squarespace 7.0 e 7.1
 
-**Home button não funciona:**
-- Certifique-se de que existe uma segunda section
-- Use `data-anavo-role="home-section"`
+**Q: Posso desabilitar o home button dinâmico?**
+A: Sim, mas apenas via código. Será adicionado como parâmetro em v2.1.0
 
 ## 📖 Documentação
 
