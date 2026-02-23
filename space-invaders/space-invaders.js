@@ -6,11 +6,16 @@
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  * 
- * GAMIFICATION SHOWCASE - Developer Tech Stack
- * Every 5 invaders destroyed = 1 technology badge unlocked
+ * Interactive Space Invaders game overlay for Squarespace sites.
+ * Perfect for tech portfolios, developer showcases, and gamified experiences.
+ * 
+ * BADGE SYSTEM: Every 5 invaders destroyed = 1 tech badge unlocked (20 total)
  * 
  * USAGE:
  * <script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/space-invaders/space-invaders.min.js"></script>
+ * 
+ * CUSTOMIZATION:
+ * Add URL parameters: ?autoStart=true&difficulty=hard&bgColor=000000
  * =======================================
  */
 
@@ -103,7 +108,7 @@
     const styles = document.createElement('style');
     styles.id = 'anavo-space-invaders-styles';
     styles.textContent = `
-      /* ANAVO SPACE INVADERS v${PLUGIN_VERSION} - GAMIFICATION SHOWCASE */
+      /* ANAVO SPACE INVADERS v${PLUGIN_VERSION} */
       
       #space-invaders-game {
         position: fixed !important;
@@ -180,32 +185,28 @@
         top: 50% !important;
         left: 50% !important;
         transform: translate(-50%, -50%) !important;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 30px 50px;
-        border-radius: 12px;
-        border: 4px solid white;
-        font-size: 32px;
+        background: white;
+        color: black;
+        padding: 20px 40px;
+        border-radius: 0;
+        border: 4px solid black;
+        font-size: 24px;
         font-weight: bold;
         font-family: 'Syne Mono', monospace;
         z-index: 999998 !important;
-        animation: badgeEarned 1.5s ease-out forwards;
+        animation: badgeEarned 1s ease-out forwards;
         pointer-events: none;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-        text-align: center;
+        box-shadow: 0 0 0 2px white, 0 0 0 4px black;
       }
       
       @keyframes badgeEarned {
         0% {
-          transform: translate(-50%, -50%) scale(0) rotate(-180deg);
+          transform: translate(-50%, -50%) scale(0);
           opacity: 0;
         }
         50% {
-          transform: translate(-50%, -50%) scale(1.3) rotate(0deg);
+          transform: translate(-50%, -50%) scale(1.2);
           opacity: 1;
-        }
-        75% {
-          transform: translate(-50%, -50%) scale(0.95);
         }
         100% {
           transform: translate(-50%, -50%) scale(1);
@@ -213,7 +214,7 @@
         }
       }
       
-      /* ✅ HUD SIMPLES NO TOPO */
+      /* ✅ HUD CORRIGIDO - VISUAL MELHORADO */
       .game-hud {
         position: fixed !important;
         top: 20px;
@@ -222,126 +223,47 @@
         z-index: 999994;
         font-family: 'Syne Mono', monospace;
         color: ${config.fontColor};
-        text-shadow: 2px 2px 4px black;
+        text-shadow: 2px 2px 0 black;
         background: rgba(0, 0, 0, 0.8);
         padding: 15px 30px;
-        border-radius: 8px;
-        border: 2px solid ${config.fontColor};
+        border-radius: 0;
+        border: 3px solid ${config.fontColor};
         min-width: 400px;
         text-align: center;
+      }
+      
+      .game-hud-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
         font-size: 18px;
         font-weight: bold;
       }
       
-      /* ✅ TECH SHOWCASE - PAINEL LATERAL DIREITO */
-      .tech-showcase {
-        position: fixed !important;
-        top: 120px;
-        right: 20px;
-        z-index: 999994;
-        background: rgba(0, 0, 0, 0.9);
-        border: 3px solid ${config.fontColor};
-        border-radius: 12px;
-        padding: 20px;
-        max-width: 400px;
-        max-height: calc(100vh - 200px);
-        overflow-y: auto;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      .game-hud-badges {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        min-height: 30px;
       }
       
-      .tech-showcase h2 {
-        color: ${config.fontColor};
-        font-family: 'Syne Mono', monospace;
-        font-size: 20px;
-        margin: 0 0 20px 0;
-        text-align: center;
-        text-shadow: 2px 2px 4px black;
-        border-bottom: 2px solid ${config.fontColor};
-        padding-bottom: 12px;
+      .badge-icon {
+        font-size: 24px;
+        animation: badgeSlideIn 0.3s ease-out;
       }
       
-      .tech-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 15px;
-      }
-      
-      .tech-card {
-        background: rgba(255, 255, 255, 0.1);
-        border: 2px solid rgba(255, 255, 255, 0.2);
-        border-radius: 8px;
-        padding: 12px;
-        text-align: center;
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-      }
-      
-      .tech-card.locked {
-        opacity: 0.3;
-        filter: grayscale(100%);
-      }
-      
-      .tech-card.unlocked {
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
-        border-color: ${config.fontColor};
-        animation: cardUnlock 0.5s ease-out;
-      }
-      
-      @keyframes cardUnlock {
-        0% {
-          transform: scale(0.8) rotate(-5deg);
+      @keyframes badgeSlideIn {
+        from {
+          transform: scale(0) rotate(-180deg);
           opacity: 0;
         }
-        50% {
-          transform: scale(1.1) rotate(5deg);
-        }
-        100% {
+        to {
           transform: scale(1) rotate(0);
           opacity: 1;
         }
-      }
-      
-      .tech-card-icon {
-        font-size: 36px;
-        margin-bottom: 8px;
-        display: block;
-      }
-      
-      .tech-card-name {
-        color: ${config.fontColor};
-        font-family: 'Syne Mono', monospace;
-        font-size: 11px;
-        font-weight: bold;
-        text-shadow: 1px 1px 2px black;
-      }
-      
-      .tech-card-lock {
-        position: absolute;
-        top: 5px;
-        right: 5px;
-        font-size: 14px;
-        opacity: 0.6;
-      }
-      
-      /* Scrollbar customizado */
-      .tech-showcase {
-        scrollbar-width: thin;
-        scrollbar-color: ${config.fontColor} rgba(0,0,0,0.3);
-      }
-      
-      .tech-showcase::-webkit-scrollbar {
-        width: 8px;
-      }
-      
-      .tech-showcase::-webkit-scrollbar-track {
-        background: rgba(0,0,0,0.3);
-        border-radius: 4px;
-      }
-      
-      .tech-showcase::-webkit-scrollbar-thumb {
-        background: ${config.fontColor};
-        border-radius: 4px;
       }
       
       .game-prompt {
@@ -353,7 +275,7 @@
         z-index: 999999 !important;
         background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
         padding: 50px 70px;
-        border-radius: 12px;
+        border-radius: 0;
         pointer-events: auto !important;
         border: 6px solid black;
       }
@@ -389,15 +311,14 @@
         font-weight: bold;
         font-family: 'Syne Mono', monospace;
         cursor: pointer;
-        border-radius: 8px;
-        transition: all 0.2s;
+        border-radius: 0;
+        transition: all 0.1s;
         margin: 0 10px;
         text-transform: uppercase;
       }
       
       .game-prompt button:hover {
         background: #f0f0f0;
-        transform: translateY(-2px);
       }
       
       .game-prompt button.secondary {
@@ -415,11 +336,10 @@
         z-index: 999999 !important;
         background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
         padding: 50px 70px;
-        border-radius: 12px;
+        border-radius: 0;
         border: 6px solid black;
         display: none;
         pointer-events: auto;
-        max-width: 600px;
       }
       
       .game-over.active {
@@ -444,21 +364,11 @@
       }
       
       .game-over .badges-earned {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
+        display: flex;
+        justify-content: center;
         gap: 15px;
         margin: 30px 0;
-        padding: 20px;
-        background: rgba(255,255,255,0.1);
-        border-radius: 8px;
-      }
-      
-      .game-over .badge-final {
         font-size: 32px;
-        padding: 10px;
-        background: rgba(255,255,255,0.1);
-        border-radius: 8px;
-        border: 2px solid rgba(255,255,255,0.3);
       }
       
       .game-over button {
@@ -470,15 +380,14 @@
         font-weight: bold;
         font-family: 'Syne Mono', monospace;
         cursor: pointer;
-        border-radius: 8px;
-        transition: all 0.2s;
+        border-radius: 0;
+        transition: all 0.1s;
         margin: 10px;
         text-transform: uppercase;
       }
       
       .game-over button:hover {
         background: #f0f0f0;
-        transform: translateY(-2px);
       }
       
       .game-over button.secondary {
@@ -487,31 +396,20 @@
         border: 3px solid #666;
       }
       
-      @media (max-width: 1200px) {
-        .tech-showcase {
-          right: 10px;
-          max-width: 300px;
-        }
-        
-        .tech-grid {
-          grid-template-columns: repeat(2, 1fr);
-        }
-      }
-      
       @media (max-width: 768px) {
         .game-hud {
           min-width: 90%;
           padding: 12px 20px;
+        }
+        
+        .game-hud-header {
           font-size: 14px;
+          flex-direction: column;
+          gap: 5px;
         }
         
-        .tech-showcase {
-          display: none !important;
-        }
-        
-        .game-over .badges-earned {
-          grid-template-columns: repeat(4, 1fr);
-          gap: 10px;
+        .badge-icon {
+          font-size: 20px;
         }
       }
     `;
@@ -532,27 +430,26 @@
         
         ${config.showPrompt ? `
         <div class="game-prompt" id="gamePrompt">
-          <h2>SHOWCASE YOUR TECH STACK</h2>
-          <p>Destroy invaders • Unlock ${techStack.length} technologies • Show your skills!</p>
+          <h2>WANT TO PLAY A GAME?</h2>
+          <p>Shoot logo invaders • Collect tech badges • Have fun!</p>
           <button onclick="window.SpaceInvadersGame.start()">START GAME</button>
           <button class="secondary" onclick="window.SpaceInvadersGame.skip()">SKIP</button>
         </div>
         ` : ''}
         
         <div class="game-hud" style="display: none;" id="gameHUD">
-          SCORE: <span id="gameScore">0</span> │ TECHNOLOGIES: <span id="badgeCount">0</span>/${techStack.length}
-        </div>
-        
-        <div class="tech-showcase" style="display: none;" id="techShowcase">
-          <h2>🏆 TECH STACK</h2>
-          <div class="tech-grid" id="techGrid"></div>
+          <div class="game-hud-header">
+            <span>SCORE: <span id="gameScore">0</span></span>
+            <span>TECHNOLOGIES CONQUERED: <span id="badgeCount">0</span></span>
+          </div>
+          <div class="game-hud-badges" id="badgesList"></div>
         </div>
         
         <div class="game-over" id="gameOver">
-          <h2>TECH STACK COMPLETE!</h2>
+          <h2>MISSION COMPLETE!</h2>
           <div class="final-stats">
             <div>Final Score: <span id="finalScore">0</span></div>
-            <div>Technologies Mastered: <span id="finalBadgeCount">0</span>/${techStack.length}</div>
+            <div>Tech Badges Earned:</div>
           </div>
           <div class="badges-earned" id="badgesEarned"></div>
           <button onclick="window.SpaceInvadersGame.reset()">PLAY AGAIN</button>
@@ -573,7 +470,7 @@
   let invaders = [];
   let bullets = [];
   let earnedBadges = new Set();
-  let gameContainer, gameHUD, gamePrompt, gameOver, shooter, techGrid, techShowcase, badgeCount;
+  let gameContainer, gameHUD, gamePrompt, gameOver, shooter, badgesList, badgeCount;
   let animationFrameId = null;
   let mouseX = window.innerWidth / 2;
 
@@ -583,16 +480,12 @@
     gamePrompt = document.getElementById('gamePrompt');
     gameOver = document.getElementById('gameOver');
     shooter = document.getElementById('shooter');
-    techGrid = document.getElementById('techGrid');
-    techShowcase = document.getElementById('techShowcase');
+    badgesList = document.getElementById('badgesList');
     badgeCount = document.getElementById('badgeCount');
 
     if (!gameContainer) return;
 
     gameContainer.classList.add('active');
-
-    // Inicializar tech grid
-    renderTechGrid();
 
     document.addEventListener('mousemove', (e) => {
       if (gameActive) {
@@ -619,29 +512,10 @@
     }
   }
 
-  function renderTechGrid() {
-    if (!techGrid) return;
-    
-    techGrid.innerHTML = '';
-    
-    techStack.forEach((tech, index) => {
-      const card = document.createElement('div');
-      card.className = `tech-card ${earnedBadges.has(tech.name) ? 'unlocked' : 'locked'}`;
-      card.id = `tech-card-${index}`;
-      card.innerHTML = `
-        <span class="tech-card-lock">${earnedBadges.has(tech.name) ? '✅' : '🔒'}</span>
-        <span class="tech-card-icon">${tech.icon}</span>
-        <div class="tech-card-name">${tech.name}</div>
-      `;
-      techGrid.appendChild(card);
-    });
-  }
-
   function startGame() {
     if (gamePrompt) gamePrompt.classList.add('hidden');
 
     if (gameHUD) gameHUD.style.display = 'block';
-    if (techShowcase) techShowcase.style.display = 'block';
     if (shooter) shooter.style.display = 'block';
 
     gameContainer.classList.add('playing');
@@ -653,7 +527,6 @@
     invaders = [];
 
     updateHUD();
-    renderTechGrid();
 
     spawnWave();
     startGameLoop();
@@ -676,7 +549,6 @@
 
     gameActive = false;
     if (shooter) shooter.style.display = 'none';
-    if (techShowcase) techShowcase.style.display = 'none';
   }
 
   function cleanupGame() {
@@ -823,6 +695,7 @@
     }
   }
 
+  // ✅ FUNÇÃO CORRIGIDA: Atualiza HUD com badges
   function updateHUD() {
     if (document.getElementById('gameScore')) {
       document.getElementById('gameScore').textContent = score;
@@ -831,40 +704,40 @@
     if (badgeCount) {
       badgeCount.textContent = earnedBadges.size;
     }
+    
+    if (badgesList) {
+      badgesList.innerHTML = '';
+      earnedBadges.forEach(badgeName => {
+        const tech = techStack.find(t => t.name === badgeName);
+        if (tech) {
+          const badgeIcon = document.createElement('span');
+          badgeIcon.className = 'badge-icon';
+          badgeIcon.textContent = tech.icon;
+          badgeIcon.title = tech.name;
+          badgesList.appendChild(badgeIcon);
+        }
+      });
+    }
   }
 
+  // ✅ FUNÇÃO CORRIGIDA: Checa badges a cada 5 kills
   function checkBadgeUnlock() {
-    techStack.forEach((tech, index) => {
+    techStack.forEach(tech => {
       if (score >= tech.pointsNeeded && !earnedBadges.has(tech.name)) {
         earnedBadges.add(tech.name);
         showBadgeEarned(tech);
-        updateTechCard(index);
         updateHUD();
       }
     });
   }
 
-  function updateTechCard(index) {
-    const card = document.getElementById(`tech-card-${index}`);
-    if (card) {
-      card.classList.remove('locked');
-      card.classList.add('unlocked');
-      const lock = card.querySelector('.tech-card-lock');
-      if (lock) lock.textContent = '✅';
-    }
-  }
-
   function showBadgeEarned(tech) {
     const notification = document.createElement('div');
     notification.className = 'tech-badge-earned';
-    notification.innerHTML = `
-      <div>${tech.icon}</div>
-      <div>${tech.name}</div>
-      <div style="font-size: 18px; margin-top: 10px;">UNLOCKED!</div>
-    `;
+    notification.innerHTML = `${tech.icon} ${tech.name} UNLOCKED!`;
     document.body.appendChild(notification);
 
-    setTimeout(() => notification.remove(), 1500);
+    setTimeout(() => notification.remove(), 1000);
   }
 
   function endGame() {
@@ -877,15 +750,10 @@
     gameContainer.classList.remove('playing');
 
     if (gameHUD) gameHUD.style.display = 'none';
-    if (techShowcase) techShowcase.style.display = 'none';
     if (shooter) shooter.style.display = 'none';
 
     if (document.getElementById('finalScore')) {
       document.getElementById('finalScore').textContent = score;
-    }
-
-    if (document.getElementById('finalBadgeCount')) {
-      document.getElementById('finalBadgeCount').textContent = earnedBadges.size;
     }
 
     const badgesEarnedContainer = document.getElementById('badgesEarned');
@@ -893,15 +761,14 @@
       badgesEarnedContainer.innerHTML = '';
 
       if (earnedBadges.size === 0) {
-        badgesEarnedContainer.innerHTML = '<div style="grid-column: 1/-1; color: #888;">No technologies unlocked - Try again!</div>';
+        badgesEarnedContainer.innerHTML = '<div style="color: #888;">None - Try again!</div>';
       } else {
         earnedBadges.forEach(badgeName => {
           const tech = techStack.find(t => t.name === badgeName);
-          const badge = document.createElement('div');
-          badge.className = 'badge-final';
-          badge.textContent = tech.icon;
-          badge.title = tech.name;
-          badgesEarnedContainer.appendChild(badge);
+          const icon = document.createElement('span');
+          icon.textContent = tech.icon;
+          icon.title = tech.name;
+          badgesEarnedContainer.appendChild(icon);
         });
       }
     }
@@ -1001,12 +868,12 @@
     const watermark = document.createElement('div');
     watermark.className = 'anavo-watermark-game';
     watermark.innerHTML = `
-      ⚠️ Unlicensed Version • <a href="https://anavotech.com/plugins/space-invaders" target="_blank" style="color: white;">Get License</a>
+      ⚠️ Unlicensed Version • <a href="https://anavotech.com/plugins/space-invaders" target="_blank">Get License</a>
     `;
     watermark.style.cssText = `
       position: fixed;
       bottom: 20px;
-      left: 20px;
+      right: 20px;
       background: rgba(255, 255, 255, 0.9);
       padding: 10px 20px;
       border: 2px solid black;
@@ -1014,7 +881,6 @@
       font-size: 12px;
       z-index: 999999;
       pointer-events: auto;
-      border-radius: 8px;
     `;
     document.body.appendChild(watermark);
   }
@@ -1042,7 +908,6 @@
     loadLicensing();
 
     console.log(`✅ Space Invaders Plugin v${PLUGIN_VERSION} Active!`);
-    console.log(`   📊 ${techStack.length} technologies available`);
   }
 
   if (document.readyState === 'loading') {
