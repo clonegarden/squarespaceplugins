@@ -34,6 +34,7 @@
     "build:space-invaders": "npm run minify space-invaders/space-invaders.js",
     "build:animated-header": "npm run minify animated-header/animated-header.js",
     "build:header-pro": "npm run minify header-pro/header-pro.js",
+    "build:logo-reaper": "npm run minify logo-reaper/logo-reaper.js",
     "minify": "node scripts/minify.js",
     "watch": "node scripts/watch.js",
     "dev": "npm run watch",
