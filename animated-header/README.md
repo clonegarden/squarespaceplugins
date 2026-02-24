@@ -18,16 +18,22 @@ Menu sticky que **inicia no footer** e **sobe suavemente para o topo** ao rolar.
 
 ## ⚙️ Parâmetros
 
-| Parâmetro | Padrão | Descrição |
-|-----------|--------|-----------|
-| `transitionDuration` | `400` | Duração do fade (ms) |
-| `scrollDuration` | `800` | Duração do scroll suave (ms) |
-| `bgColor` | `transparent` | Cor de fundo do header |
-| `fontColor` | `#000` | Cor do texto |
-| `fontSize` | `16` | Tamanho da fonte (px) |
-| `fontWeight` | `500` | Peso da fonte |
-| `menuSpacing` | `40px` | Espaçamento entre itens |
-| `hoverOpacity` | `0.7` | Opacidade ao hover |
+| Parâmetro | Tipo | Padrão | Descrição |
+|-----------|------|--------|-----------|
+| `transitionDuration` | number | `400` | Duração do fade (ms) |
+| `scrollDuration` | number | `800` | Duração do scroll suave (ms) |
+| **`fontFamily`** | string | auto | Família da fonte (ex: `Montserrat`) |
+| `fontColor` | string | `#000` | Cor do texto |
+| `fontSize` | number | `16` | Tamanho da fonte (px) |
+| `fontWeight` | number | `500` | Peso da fonte |
+| `menuSpacing` | string | `40px` | Gap entre itens |
+| `hoverOpacity` | number | `0.7` | Opacidade ao hover |
+| **`bgColor`** | string | `transparent` | Cor de fundo (hex, rgba, transparent) |
+| **`bgEffect`** | string | none | Efeito de fundo (`blur`) |
+| **`showBorder`** | boolean | `false` | Mostrar borda |
+| **`borderWidth`** | number | `1` | Largura da borda (px) |
+| **`borderColor`** | string | `#000` | Cor da borda |
+| **`borderPosition`** | string | `bottom` | Posição (`top`, `bottom`, `both`) |
 
 ## 💡 Exemplos
 
@@ -36,14 +42,24 @@ Menu sticky que **inicia no footer** e **sobe suavemente para o topo** ao rolar.
 <script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/animated-header/animated-header.min.js"></script>
 ```
 
-### Customizado:
+### Glass Morphism (transparente com blur):
 ```html
-<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/animated-header/animated-header.min.js?fontColor=ffffff&fontSize=18&fontWeight=600"></script>
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/animated-header/animated-header.min.js?bgColor=transparent&bgEffect=blur&fontColor=FFFFFF&showBorder=true&borderColor=FFFFFF&borderWidth=1"></script>
 ```
 
-### Background semi-transparente:
+### Header preto sólido com fonte customizada:
 ```html
-<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/animated-header/animated-header.min.js?bgColor=rgba(0,0,0,0.8)&fontColor=ffffff"></script>
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/animated-header/animated-header.min.js?bgColor=000000&fontColor=FFFFFF&fontSize=18&fontFamily=Montserrat"></script>
+```
+
+### Header branco com borda dupla:
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/animated-header/animated-header.min.js?bgColor=FFFFFF&fontColor=000000&showBorder=true&borderPosition=both&borderColor=CCCCCC&borderWidth=1"></script>
+```
+
+### Semi-transparente overlay:
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/animated-header/animated-header.min.js?bgColor=rgba(0,0,0,0.9)&fontColor=FFFFFF&showBorder=true&borderColor=FFFFFF&borderWidth=2"></script>
 ```
 
 ## 🎯 Como Funciona

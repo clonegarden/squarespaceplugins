@@ -62,20 +62,51 @@
       p {
         font-size: 1.2em;
         line-height: 1.6;
+        margin-bottom: 10px;
       }
 
       .demo-info {
         position: fixed;
         bottom: 80px;
         right: 20px;
-        background: rgba(0, 0, 0, 0.8);
+        background: rgba(0, 0, 0, 0.85);
         color: white;
         padding: 15px 20px;
         border-radius: 8px;
-        font-size: 14px;
+        font-size: 13px;
         max-width: 300px;
         z-index: 9998;
+        line-height: 1.6;
       }
+
+      .demo-info strong {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 14px;
+      }
+
+      .preset-btn {
+        display: inline-block;
+        margin: 4px 2px;
+        padding: 6px 12px;
+        background: #4a90e2;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 12px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: opacity 0.2s;
+      }
+
+      .preset-btn:hover {
+        opacity: 0.8;
+      }
+
+      .preset-btn.glass { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.5); }
+      .preset-btn.dark { background: #111; }
+      .preset-btn.white { background: #fff; color: #000; border: 1px solid #ccc; }
+      .preset-btn.semi { background: rgba(0,0,0,0.6); }
     </style>
   </head>
   <body>
@@ -98,6 +129,9 @@
         <p>
           <strong>Nova arquitetura:</strong> Recria o menu do zero (não depende de elementos
           nativos)
+        </p>
+        <p style="margin-top:20px; font-size:1em;">
+          Role para baixo para ver o menu subir ao topo →
         </p>
       </div>
     </section>
@@ -130,16 +164,23 @@
 
     <!-- Demo Info -->
     <div class="demo-info">
-      <strong>📖 v2.0.0 - Novo:</strong><br />
-      • Captura menu nativo<br />
-      • Cria header customizado<br />
-      • 100% compatível<br />
-      • Fade suave
+      <strong>📖 v2.0.0 — Testar Presets:</strong>
+      <a class="preset-btn glass" href="?bgColor=transparent&bgEffect=blur&fontColor=FFFFFF&showBorder=true&borderColor=FFFFFF&borderWidth=1">Glass Morphism</a>
+      <a class="preset-btn dark" href="?bgColor=000000&fontColor=FFFFFF&fontSize=18&fontFamily=Montserrat">Header Preto</a>
+      <a class="preset-btn white" href="?bgColor=FFFFFF&fontColor=000000&showBorder=true&borderPosition=both&borderColor=CCCCCC&borderWidth=1">Borda Dupla</a>
+      <a class="preset-btn semi" href="?bgColor=rgba(0,0,0,0.9)&fontColor=FFFFFF&showBorder=true&borderColor=FFFFFF&borderWidth=2">Semi-Transparente</a>
+      <br /><br />
+      <span>Parâmetros novos: fontFamily, bgEffect, showBorder, borderWidth, borderColor, borderPosition</span>
     </div>
 
     <!-- Plugin Script -->
     <script src="../animated-header.js"></script>
-    <!-- OU customizado: -->
-    <!-- <script src="../animated-header.js?bgColor=000000&fontColor=FFFFFF&fontSize=18"></script> -->
+    <!-- OU customizado (exemplos): -->
+    <!-- Glass morphism: -->
+    <!-- <script src="../animated-header.js?bgColor=transparent&bgEffect=blur&fontColor=FFFFFF&showBorder=true&borderColor=FFFFFF&borderWidth=1"></script> -->
+    <!-- Header preto sólido: -->
+    <!-- <script src="../animated-header.js?bgColor=000000&fontColor=FFFFFF&fontSize=18&fontFamily=Montserrat"></script> -->
+    <!-- Borda dupla: -->
+    <!-- <script src="../animated-header.js?bgColor=FFFFFF&fontColor=000000&showBorder=true&borderPosition=both&borderColor=CCCCCC"></script> -->
   </body>
 </html>

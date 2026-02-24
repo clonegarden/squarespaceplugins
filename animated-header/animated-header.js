@@ -34,6 +34,16 @@
     })();
 
   function getScriptParams() {
+    function fixHexColor(color) {
+      if (!color) return null;
+      color = decodeURIComponent(color);
+      if (color.toLowerCase() === 'transparent') return 'transparent';
+      if (color.startsWith('rgba(') || color.startsWith('rgb(')) return color;
+      if (/^[0-9A-Fa-f]{6}$/.test(color)) return '#' + color;
+      if (color.startsWith('#')) return color;
+      return color;
+    }
+
     try {
       const src = currentScript.src;
       const url = new URL(src, window.location.href);
@@ -42,23 +52,43 @@
       return {
         transitionDuration: parseInt(params.get('transitionDuration') || '400', 10),
         scrollDuration: parseInt(params.get('scrollDuration') || '800', 10),
-        bgColor: params.get('bgColor') || 'transparent',
-        fontColor: params.get('fontColor') || '#000',
+
+        // Typography
+        fontFamily: params.get('fontFamily') ? decodeURIComponent(params.get('fontFamily')) : null,
+        fontColor: fixHexColor(params.get('fontColor')) || '#000',
         fontSize: params.get('fontSize') || '16',
         fontWeight: params.get('fontWeight') || '500',
+
+        // Layout
         menuSpacing: params.get('menuSpacing') || '40px',
         hoverOpacity: params.get('hoverOpacity') || '0.7',
+
+        // Background
+        bgColor: fixHexColor(params.get('bgColor')) || 'transparent',
+        bgEffect: params.get('bgEffect') || null, // 'blur'
+
+        // Border
+        showBorder: params.get('showBorder') === 'true',
+        borderWidth: params.get('borderWidth') || '1',
+        borderColor: fixHexColor(params.get('borderColor')) || '#000000',
+        borderPosition: params.get('borderPosition') || 'bottom', // 'top', 'bottom', 'both'
       };
     } catch (_e) {
       return {
         transitionDuration: 400,
         scrollDuration: 800,
-        bgColor: 'transparent',
+        fontFamily: null,
         fontColor: '#000',
         fontSize: '16',
         fontWeight: '500',
         menuSpacing: '40px',
         hoverOpacity: '0.7',
+        bgColor: 'transparent',
+        bgEffect: null,
+        showBorder: false,
+        borderWidth: '1',
+        borderColor: '#000000',
+        borderPosition: 'bottom',
       };
     }
   }
@@ -189,6 +219,38 @@
   function injectStyles() {
     if (document.getElementById('anavo-sticky-header-styles')) return;
 
+    // Parse font family
+    const fontFamily = config.fontFamily
+      ? config.fontFamily
+      : 'var(--heading-font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif)';
+
+    // Parse background
+    let bgCSS = '';
+    if (config.bgColor === 'transparent') {
+      bgCSS = 'background: transparent;';
+      if (config.bgEffect === 'blur') {
+        bgCSS += ' backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);';
+      }
+    } else if (config.bgColor) {
+      bgCSS = `background: ${config.bgColor};`;
+    }
+
+    // Parse border
+    let borderCSS = '';
+    if (config.showBorder) {
+      const borderStyle = `${config.borderWidth}px solid ${config.borderColor}`;
+      switch (config.borderPosition) {
+        case 'top':
+          borderCSS = `border-top: ${borderStyle};`;
+          break;
+        case 'both':
+          borderCSS = `border-top: ${borderStyle}; border-bottom: ${borderStyle};`;
+          break;
+        default:
+          borderCSS = `border-bottom: ${borderStyle};`;
+      }
+    }
+
     const styles = document.createElement('style');
     styles.id = 'anavo-sticky-header-styles';
     styles.textContent = `
@@ -199,8 +261,8 @@
         width: 100%;
         z-index: 99999;
         transition: all ${config.transitionDuration}ms cubic-bezier(0.4, 0, 0.2, 1);
-        background: ${config.bgColor};
-        backdrop-filter: blur(10px);
+        ${bgCSS}
+        ${borderCSS}
       }
 
       /* BOTTOM POSITION (inicial) */
@@ -228,6 +290,7 @@
         padding: 20px;
         max-width: 1400px;
         margin: 0 auto;
+        font-family: ${fontFamily};
       }
 
       .anavo-sticky-item {
@@ -239,6 +302,7 @@
         text-decoration: none;
         font-size: ${config.fontSize}px;
         font-weight: ${config.fontWeight};
+        font-family: ${fontFamily};
         padding: 8px 16px;
         transition: opacity 0.2s;
         white-space: nowrap;
