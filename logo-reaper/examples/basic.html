@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Logo Reaper – Demo</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+    }
+
+    header {
+      padding: 40px 20px 20px;
+      text-align: center;
+    }
+
+    header h1 { font-size: 2.4rem; margin-bottom: 8px; }
+    header p  { font-size: 1.1rem; opacity: 0.7; }
+
+    /* The plugin will mount inside this div */
+    #logo-stage {
+      width: 100%;
+      margin: 24px 0;
+    }
+
+    .page-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      margin-top: 32px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.07);
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .card h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    .card p  { font-size: 0.9rem; opacity: 0.7; line-height: 1.5; }
+
+    .controls {
+      margin-top: 32px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 10px 22px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      background: #e94560;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover { background: #c73652; }
+    button.secondary { background: rgba(255,255,255,0.12); }
+    button.secondary:hover { background: rgba(255,255,255,0.2); }
+
+    .snippet {
+      margin-top: 32px;
+      background: rgba(0,0,0,0.4);
+      border-radius: 8px;
+      padding: 20px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.8rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      color: #a8ff78;
+    }
+
+    .snippet .comment { color: #888; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>💀 Logo Reaper</h1>
+  <p>Logos enter from the right, get stamped at center, and pile up on the left.</p>
+</header>
+
+<!-- ① Plugin mount point – the plugin appends itself here -->
+<div id="logo-stage"></div>
+
+<div class="page-content">
+
+  <div class="controls">
+    <button onclick="window.LogoReaper.pause()">⏸ Pause</button>
+    <button onclick="window.LogoReaper.resume()">▶️ Resume</button>
+    <button class="secondary" onclick="window.LogoReaper.destroy(); alert('Plugin destroyed. Reload page to restart.')">🗑 Destroy</button>
+  </div>
+
+  <div class="info-grid">
+    <div class="card">
+      <h3>🚀 Easy Install</h3>
+      <p>One &lt;script&gt; tag in your Squarespace footer or code block.</p>
+    </div>
+    <div class="card">
+      <h3>🎨 Fully Configurable</h3>
+      <p>Speed, size, words, colours – all set via URL query-string params.</p>
+    </div>
+    <div class="card">
+      <h3>♿ Accessible</h3>
+      <p>Respects <code>prefers-reduced-motion</code> and disables heavy animations.</p>
+    </div>
+    <div class="card">
+      <h3>🔐 Licensed</h3>
+      <p>Non-blocking license check – renders instantly, validates in background.</p>
+    </div>
+  </div>
+
+  <div class="snippet">
+    <span class="comment">&lt;!-- Squarespace Installation --&gt;</span><br>
+    &lt;script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/<br>
+    &nbsp;&nbsp;logo-reaper/logo-reaper.min.js<br>
+    &nbsp;&nbsp;?selector=%23logo-stage<br>
+    &nbsp;&nbsp;&amp;height=220<br>
+    &nbsp;&nbsp;&amp;logos=%5B%22https%3A%2F%2Fexample.com%2Flogo1.svg%22%5D<br>
+    &nbsp;&nbsp;&amp;speed=90<br>
+    &nbsp;&nbsp;&amp;bgColor=1a1a2e<br>
+    &nbsp;&nbsp;&amp;stampColor=e94560<br>
+    "&gt;&lt;/script&gt;
+  </div>
+
+</div>
+
+<!-- ② Load plugin dynamically with params (local source for demo) -->
+<script>
+  (function () {
+    // Simple coloured-rectangle SVG placeholders – work offline
+    var logos = [
+      "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='60'><rect width='120' height='60' rx='8' fill='%23e94560'/><text x='60' y='38' text-anchor='middle' fill='white' font-size='18' font-family='Arial' font-weight='bold'>ACME</text></svg>",
+      "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='60'><rect width='120' height='60' rx='8' fill='%233498db'/><text x='60' y='38' text-anchor='middle' fill='white' font-size='18' font-family='Arial' font-weight='bold'>NEXUS</text></svg>",
+      "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='60'><rect width='120' height='60' rx='8' fill='%232ecc71'/><text x='60' y='38' text-anchor='middle' fill='white' font-size='18' font-family='Arial' font-weight='bold'>VERDE</text></svg>",
+      "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='60'><rect width='120' height='60' rx='8' fill='%23f39c12'/><text x='60' y='38' text-anchor='middle' fill='white' font-size='18' font-family='Arial' font-weight='bold'>AURORA</text></svg>",
+      "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='60'><rect width='120' height='60' rx='8' fill='%239b59b6'/><text x='60' y='38' text-anchor='middle' fill='white' font-size='16' font-family='Arial' font-weight='bold'>SPECTRUM</text></svg>",
+      "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='60'><rect width='120' height='60' rx='8' fill='%23e74c3c'/><text x='60' y='38' text-anchor='middle' fill='white' font-size='18' font-family='Arial' font-weight='bold'>BLAZE</text></svg>"
+    ];
+
+    var params = new URLSearchParams({
+      selector: '#logo-stage',
+      height:   '220',
+      logoSize: '120',
+      speed:    '90',
+      spawnEvery: '1800',
+      maxLive:  '4',
+      pileMax:  '8',
+      bgColor:  '1a1a2e',
+      stampColor: 'e94560',
+      words:    'REJECTED,REKT,CRUSHED,BURIED,GONE,DEAD',
+      logos:    JSON.stringify(logos)
+    });
+
+    var s = document.createElement('script');
+    // For local demo use the parent directory source; in production use CDN URL below
+    s.src = '../logo-reaper.js?' + params.toString();
+    document.head.appendChild(s);
+  })();
+</script>
+
+<!--
+  PRODUCTION SNIPPET (replace with your real logo URLs):
+
+  <script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/logo-reaper/logo-reaper.min.js
+    ?selector=%23logo-stage
+    &height=220
+    &logos=%5B%22https%3A%2F%2Fyoursite.com%2Flogo1.svg%22%2C%22https%3A%2F%2Fyoursite.com%2Flogo2.svg%22%5D
+    &speed=90
+    &bgColor=1a1a2e
+    &stampColor=e94560
+  "></script>
+-->
+
+</body>
+</html>

@@ -59,6 +59,19 @@
         "no_watermark"
       ],
       "expires": null
+    },
+    "LogoReaper": {
+      "license_key": "lic_logo_reaper_demo",
+      "license_type": "trial",
+      "allowed_domains": [
+        "localhost",
+        "127.0.0.1"
+      ],
+      "features": [
+        "customization",
+        "no_watermark"
+      ],
+      "expires": null
     }
   }
 }
