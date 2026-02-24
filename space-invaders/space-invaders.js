@@ -907,6 +907,3 @@
   }
 
 })();
-
-
-de uma olhada aqui no codigo, e de uma olhada na nossa conversa e veja as alteracoes que tem de ser feitas
