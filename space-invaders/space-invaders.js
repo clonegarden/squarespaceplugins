@@ -2,14 +2,14 @@
  * =======================================
  * SPACE INVADERS GAME PLUGIN - Squarespace
  * =======================================
- * @version 1.1.0
+ * @version 1.0.0
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  * 
  * Interactive Space Invaders game overlay for Squarespace sites.
  * Perfect for tech portfolios, developer showcases, and gamified experiences.
  * 
- * BADGE SYSTEM: Every 5 invaders destroyed = 1 tech badge unlocked (20 total)
+ * BADGE SYSTEM: Every 10 invaders destroyed = 1 tech badge unlocked
  * 
  * USAGE:
  * <script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/space-invaders/space-invaders.min.js"></script>
@@ -22,7 +22,7 @@
 (function() {
   'use strict';
 
-  const PLUGIN_VERSION = '1.1.0';
+  const PLUGIN_VERSION = '1.0.0';
   console.log(`🎮 Space Invaders Plugin v${PLUGIN_VERSION} - Loading...`);
 
   // ========================================
@@ -61,29 +61,19 @@
   const config = getScriptParams();
 
   // ========================================
-  // ✅ 20 TECNOLOGIAS - A CADA 5 KILLS
+  // ✅ TECH STACK - 10 BADGES (A CADA 10 KILLS)
   // ========================================
   const defaultTechStack = [
-    { name: 'React', icon: '⚛️', pointsNeeded: 5 },
-    { name: 'Node.js', icon: '🟢', pointsNeeded: 10 },
-    { name: 'Python', icon: '🐍', pointsNeeded: 15 },
-    { name: 'Vue', icon: '💚', pointsNeeded: 20 },
-    { name: 'TypeScript', icon: '🔷', pointsNeeded: 25 },
-    { name: 'JavaScript', icon: '💛', pointsNeeded: 30 },
-    { name: 'PostgreSQL', icon: '🐘', pointsNeeded: 35 },
-    { name: 'MongoDB', icon: '🍃', pointsNeeded: 40 },
-    { name: 'AWS', icon: '☁️', pointsNeeded: 45 },
-    { name: 'Docker', icon: '🐳', pointsNeeded: 50 },
-    { name: 'Kubernetes', icon: '☸️', pointsNeeded: 55 },
-    { name: 'Redis', icon: '🔴', pointsNeeded: 60 },
-    { name: 'GraphQL', icon: '◐', pointsNeeded: 65 },
-    { name: 'Next.js', icon: '▲', pointsNeeded: 70 },
-    { name: 'Tailwind', icon: '🎨', pointsNeeded: 75 },
-    { name: 'Git', icon: '🌿', pointsNeeded: 80 },
-    { name: 'CI/CD', icon: '🔄', pointsNeeded: 85 },
-    { name: 'REST API', icon: '🔌', pointsNeeded: 90 },
-    { name: 'Serverless', icon: '⚡', pointsNeeded: 95 },
-    { name: 'WebSockets', icon: '🔗', pointsNeeded: 100 }
+    { name: 'React', icon: '⚛️', pointsNeeded: 10 },
+    { name: 'Node.js', icon: '🟢', pointsNeeded: 20 },
+    { name: 'Python', icon: '🐍', pointsNeeded: 30 },
+    { name: 'Vue', icon: '💚', pointsNeeded: 40 },
+    { name: 'TypeScript', icon: '🔷', pointsNeeded: 50 },
+    { name: 'AI/ML', icon: '🤖', pointsNeeded: 60 },
+    { name: 'PostgreSQL', icon: '🐘', pointsNeeded: 70 },
+    { name: 'AWS', icon: '☁️', pointsNeeded: 80 },
+    { name: 'Docker', icon: '🐳', pointsNeeded: 90 },
+    { name: 'Firebase', icon: '🔥', pointsNeeded: 100 }
   ];
 
   const techStack = config.customTechs || defaultTechStack;
@@ -720,7 +710,7 @@
     }
   }
 
-  // ✅ FUNÇÃO CORRIGIDA: Checa badges a cada 5 kills
+  // ✅ FUNÇÃO CORRIGIDA: Checa badges a cada 10 kills
   function checkBadgeUnlock() {
     techStack.forEach(tech => {
       if (score >= tech.pointsNeeded && !earnedBadges.has(tech.name)) {
@@ -917,3 +907,6 @@
   }
 
 })();
+
+
+de uma olhada aqui no codigo, e de uma olhada na nossa conversa e veja as alteracoes que tem de ser feitas
