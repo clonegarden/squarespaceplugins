@@ -2,91 +2,136 @@
  * =======================================
  * SPACE INVADERS GAME PLUGIN - Squarespace
  * =======================================
- * @version 1.1.0
+ * @version 1.2.0
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
- * 
+ *
  * Interactive Space Invaders game overlay for Squarespace sites.
- * Perfect for tech portfolios, developer showcases, and gamified experiences.
- * 
- * BADGE SYSTEM: Every 5 invaders destroyed = 1 tech badge unlocked (20 total)
- * 
+ * Gamified portfolio presentation for tech stacks, awards, products, etc.
+ *
+ * BADGE SYSTEM: Every 5 invaders destroyed = 1 item unlocked
+ *
  * USAGE:
  * <script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/space-invaders/space-invaders.min.js"></script>
- * 
+ *
  * CUSTOMIZATION:
  * Add URL parameters: ?autoStart=true&difficulty=hard&bgColor=000000
  * =======================================
  */
 
-(function() {
+(function () {
   'use strict';
 
-  const PLUGIN_VERSION = '1.1.0';
+  const PLUGIN_VERSION = '1.2.0';
   console.log(`🎮 Space Invaders Plugin v${PLUGIN_VERSION} - Loading...`);
 
   // ========================================
   // GET URL PARAMETERS
   // ========================================
-  const currentScript = document.currentScript || (function() {
-    const scripts = document.getElementsByTagName('script');
-    return scripts[scripts.length - 1];
-  })();
+  const currentScript =
+    document.currentScript ||
+    (function () {
+      const scripts = document.getElementsByTagName('script');
+      return scripts[scripts.length - 1];
+    })();
 
   function getScriptParams() {
-    const src = currentScript.src;
-    const url = new URL(src);
+    const src = currentScript?.src || '';
+    const url = new URL(src, window.location.href);
     const params = new URLSearchParams(url.search);
 
     function parseJSON(str, fallback) {
       try {
         return JSON.parse(decodeURIComponent(str));
-      } catch (e) {
+      } catch (_e) {
         return fallback;
       }
     }
 
+    function decodeParam(key, fallback) {
+      const val = params.get(key);
+      return val !== null ? decodeURIComponent(val) : fallback;
+    }
+
+    function parseColor(val, fallback) {
+      if (!val) return fallback;
+      const decoded = decodeURIComponent(val);
+      if (decoded.toLowerCase() === 'transparent') return 'transparent';
+      if (decoded.startsWith('rgba(') || decoded.startsWith('rgb(') || decoded.startsWith('#')) return decoded;
+      if (/^[0-9A-Fa-f]{6}$/.test(decoded)) return `#${decoded}`;
+      return decoded;
+    }
+
     return {
       autoStart: params.get('autoStart') === 'true',
-      shooterIcon: params.get('shooterIcon') || '▲',
-      invaderImage: params.get('invaderImage') || 'https://images.squarespace-cdn.com/content/v1/6931f12ce64c6418b6bc54b7/44374135-dee7-4a80-b72b-4c6810f225ee/Anavo+Tech%2C+Full+Stack+Developer%403x.png',
-      bgColor: params.get('bgColor') || 'transparent',
-      fontColor: params.get('fontColor') || 'white',
-      difficulty: params.get('difficulty') || 'medium',
+      shooterIcon: decodeParam('shooterIcon', '▲'),
+      invaderImage:
+        decodeParam(
+          'invaderImage',
+          'https://images.squarespace-cdn.com/content/v1/6931f12ce64c6418b6bc54b7/44374135-dee7-4a80-b72b-4c6810f225ee/Anavo+Tech%2C+Full+Stack+Developer%403x.png'
+        ),
+      bgColor: parseColor(params.get('bgColor'), 'transparent'),
+      fontColor: parseColor(params.get('fontColor'), '#ffffff'),
+      accentColor: parseColor(params.get('accentColor'), '#ffffff'),
+
+      difficulty: decodeParam('difficulty', 'medium'),
+
       showPrompt: params.get('showPrompt') !== 'false',
-      customTechs: parseJSON(params.get('customTechs'), null)
+      showHUD: params.get('showHUD') !== 'false',
+      showPortfolioPanel: params.get('showPortfolioPanel') !== 'false',
+      portfolioPanelPosition: decodeParam('portfolioPanelPosition', 'top'),
+
+      promptTitle: decodeParam('promptTitle', 'PLAY TO UNLOCK OUR PORTFOLIO'),
+      promptSubtitle: decodeParam('promptSubtitle', 'Shoot invaders • Unlock items • Explore our work'),
+      startButtonText: decodeParam('startButtonText', 'START GAME'),
+      skipButtonText: decodeParam('skipButtonText', 'SKIP'),
+
+      portfolioTitle: decodeParam('portfolioTitle', 'PORTFOLIO UNLOCKED'),
+      scoreLabel: decodeParam('scoreLabel', 'SCORE'),
+      itemLabel: decodeParam('itemLabel', 'ITEMS'),
+
+      endTitle: decodeParam('endTitle', 'PORTFOLIO SUMMARY'),
+      endSubtitle: decodeParam('endSubtitle', 'Unlocked items'),
+      ctaText: decodeParam('ctaText', 'VIEW PORTFOLIO'),
+      ctaLink: decodeParam('ctaLink', '/portfolio'),
+      ctaTarget: decodeParam('ctaTarget', '_self'),
+
+      mobileControls: params.get('mobileControls') !== 'false',
+      controlSpeed: parseFloat(decodeParam('controlSpeed', '8')),
+
+      items: parseJSON(params.get('items'), null),
     };
   }
 
   const config = getScriptParams();
 
   // ========================================
-  // ✅ 20 TECNOLOGIAS - A CADA 5 KILLS
+  // DEFAULT ITEMS (GENERIC PORTFOLIO)
   // ========================================
-  const defaultTechStack = [
-    { name: 'React', icon: '⚛️', pointsNeeded: 5 },
-    { name: 'Node.js', icon: '🟢', pointsNeeded: 10 },
-    { name: 'Python', icon: '🐍', pointsNeeded: 15 },
-    { name: 'Vue', icon: '💚', pointsNeeded: 20 },
-    { name: 'TypeScript', icon: '🔷', pointsNeeded: 25 },
-    { name: 'JavaScript', icon: '💛', pointsNeeded: 30 },
-    { name: 'PostgreSQL', icon: '🐘', pointsNeeded: 35 },
-    { name: 'MongoDB', icon: '🍃', pointsNeeded: 40 },
-    { name: 'AWS', icon: '☁️', pointsNeeded: 45 },
-    { name: 'Docker', icon: '🐳', pointsNeeded: 50 },
-    { name: 'Kubernetes', icon: '☸️', pointsNeeded: 55 },
-    { name: 'Redis', icon: '🔴', pointsNeeded: 60 },
-    { name: 'GraphQL', icon: '◐', pointsNeeded: 65 },
-    { name: 'Next.js', icon: '▲', pointsNeeded: 70 },
-    { name: 'Tailwind', icon: '🎨', pointsNeeded: 75 },
-    { name: 'Git', icon: '🌿', pointsNeeded: 80 },
-    { name: 'CI/CD', icon: '🔄', pointsNeeded: 85 },
-    { name: 'REST API', icon: '🔌', pointsNeeded: 90 },
-    { name: 'Serverless', icon: '⚡', pointsNeeded: 95 },
-    { name: 'WebSockets', icon: '🔗', pointsNeeded: 100 }
+  const defaultItems = [
+    { name: 'React', icon: '⚛️', pointsNeeded: 5, subtitle: 'UI Library' },
+    { name: 'Node.js', icon: '🟢', pointsNeeded: 10, subtitle: 'Backend Runtime' },
+    { name: 'Python', icon: '🐍', pointsNeeded: 15, subtitle: 'Data & Automation' },
+    { name: 'Vue', icon: '💚', pointsNeeded: 20, subtitle: 'Frontend Framework' },
+    { name: 'TypeScript', icon: '🔷', pointsNeeded: 25, subtitle: 'Typed JS' },
+    { name: 'JavaScript', icon: '💛', pointsNeeded: 30, subtitle: 'Core Language' },
+    { name: 'PostgreSQL', icon: '🐘', pointsNeeded: 35, subtitle: 'SQL Database' },
+    { name: 'MongoDB', icon: '🍃', pointsNeeded: 40, subtitle: 'NoSQL Database' },
+    { name: 'AWS', icon: '☁️', pointsNeeded: 45, subtitle: 'Cloud Infrastructure' },
+    { name: 'Docker', icon: '🐳', pointsNeeded: 50, subtitle: 'Containers' },
+    { name: 'Kubernetes', icon: '☸️', pointsNeeded: 55, subtitle: 'Orchestration' },
+    { name: 'Redis', icon: '🔴', pointsNeeded: 60, subtitle: 'Caching' },
+    { name: 'GraphQL', icon: '◐', pointsNeeded: 65, subtitle: 'API Layer' },
+    { name: 'Next.js', icon: '▲', pointsNeeded: 70, subtitle: 'Fullstack React' },
+    { name: 'Tailwind', icon: '🎨', pointsNeeded: 75, subtitle: 'Design System' },
+    { name: 'Git', icon: '🌿', pointsNeeded: 80, subtitle: 'Version Control' },
+    { name: 'CI/CD', icon: '🔄', pointsNeeded: 85, subtitle: 'Automation' },
+    { name: 'REST API', icon: '🔌', pointsNeeded: 90, subtitle: 'Integrations' },
+    { name: 'Serverless', icon: '⚡', pointsNeeded: 95, subtitle: 'Scalable Compute' },
+    { name: 'WebSockets', icon: '🔗', pointsNeeded: 100, subtitle: 'Real-time Apps' },
   ];
 
-  const techStack = config.customTechs || defaultTechStack;
+  const items = config.items || defaultItems;
 
   // ========================================
   // DIFFICULTY SETTINGS
@@ -94,7 +139,7 @@
   const difficultySettings = {
     easy: { speed: 0.3, spawnDelay: 80 },
     medium: { speed: 0.5, spawnDelay: 50 },
-    hard: { speed: 0.8, spawnDelay: 30 }
+    hard: { speed: 0.8, spawnDelay: 30 },
   };
 
   const difficulty = difficultySettings[config.difficulty] || difficultySettings.medium;
@@ -109,7 +154,7 @@
     styles.id = 'anavo-space-invaders-styles';
     styles.textContent = `
       /* ANAVO SPACE INVADERS v${PLUGIN_VERSION} */
-      
+
       #space-invaders-game {
         position: fixed !important;
         top: 0;
@@ -121,16 +166,16 @@
         pointer-events: none;
         background: ${config.bgColor};
       }
-      
+
       #space-invaders-game.active {
         display: block !important;
         pointer-events: auto !important;
       }
-      
+
       #space-invaders-game.playing {
         cursor: none !important;
       }
-      
+
       #shooter {
         position: fixed;
         bottom: 20px;
@@ -145,7 +190,7 @@
         display: none;
         color: ${config.fontColor};
       }
-      
+
       .bullet {
         position: fixed;
         width: 12px;
@@ -157,7 +202,7 @@
         pointer-events: none;
         z-index: 999992;
       }
-      
+
       .invader {
         position: fixed;
         width: 50px;
@@ -169,7 +214,7 @@
         image-rendering: pixelated;
         z-index: 999991;
       }
-      
+
       .fragment {
         position: fixed;
         width: 8px;
@@ -179,7 +224,7 @@
         pointer-events: none;
         z-index: 999993;
       }
-      
+
       .tech-badge-earned {
         position: fixed !important;
         top: 50% !important;
@@ -190,34 +235,79 @@
         padding: 20px 40px;
         border-radius: 0;
         border: 4px solid black;
-        font-size: 24px;
+        font-size: 22px;
         font-weight: bold;
         font-family: 'Syne Mono', monospace;
         z-index: 999998 !important;
         animation: badgeEarned 1s ease-out forwards;
         pointer-events: none;
         box-shadow: 0 0 0 2px white, 0 0 0 4px black;
+        text-align: center;
       }
-      
+
       @keyframes badgeEarned {
-        0% {
-          transform: translate(-50%, -50%) scale(0);
-          opacity: 0;
-        }
-        50% {
-          transform: translate(-50%, -50%) scale(1.2);
-          opacity: 1;
-        }
-        100% {
-          transform: translate(-50%, -50%) scale(1);
-          opacity: 0;
-        }
+        0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+        50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+        100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
       }
-      
-      /* ✅ HUD CORRIGIDO - VISUAL MELHORADO */
-      .game-hud {
+
+      .portfolio-panel {
         position: fixed !important;
         top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 999994;
+        font-family: 'Syne Mono', monospace;
+        color: ${config.fontColor};
+        text-shadow: 2px 2px 0 black;
+        background: rgba(0, 0, 0, 0.85);
+        padding: 16px 26px;
+        border: 3px solid ${config.fontColor};
+        width: min(740px, 92vw);
+        display: none;
+      }
+
+      .portfolio-panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+
+      .portfolio-items {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 8px 16px;
+        font-size: 14px;
+      }
+
+      .portfolio-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255,255,255,0.06);
+        padding: 6px 10px;
+        border: 1px solid rgba(255,255,255,0.15);
+      }
+
+      .portfolio-item .icon {
+        font-size: 18px;
+      }
+
+      .portfolio-item .name {
+        font-weight: bold;
+      }
+
+      .portfolio-item .subtitle {
+        font-size: 12px;
+        opacity: 0.8;
+      }
+
+      .game-hud {
+        position: fixed !important;
+        top: 140px;
         left: 50%;
         transform: translateX(-50%);
         z-index: 999994;
@@ -231,7 +321,11 @@
         min-width: 400px;
         text-align: center;
       }
-      
+
+      .game-hud.solo {
+        top: 20px;
+      }
+
       .game-hud-header {
         display: flex;
         justify-content: space-between;
@@ -240,7 +334,7 @@
         font-size: 18px;
         font-weight: bold;
       }
-      
+
       .game-hud-badges {
         display: flex;
         justify-content: center;
@@ -249,23 +343,17 @@
         flex-wrap: wrap;
         min-height: 30px;
       }
-      
+
       .badge-icon {
         font-size: 24px;
         animation: badgeSlideIn 0.3s ease-out;
       }
-      
+
       @keyframes badgeSlideIn {
-        from {
-          transform: scale(0) rotate(-180deg);
-          opacity: 0;
-        }
-        to {
-          transform: scale(1) rotate(0);
-          opacity: 1;
-        }
+        from { transform: scale(0) rotate(-180deg); opacity: 0; }
+        to { transform: scale(1) rotate(0); opacity: 1; }
       }
-      
+
       .game-prompt {
         position: fixed !important;
         top: 50% !important;
@@ -279,21 +367,21 @@
         pointer-events: auto !important;
         border: 6px solid black;
       }
-      
+
       .game-prompt.hidden {
         display: none !important;
       }
-      
+
       .game-prompt h2 {
         color: white;
         font-family: 'Syne Mono', monospace;
-        font-size: 32px;
+        font-size: 28px;
         margin: 0 0 20px 0;
         text-shadow: 3px 3px 0 black;
         letter-spacing: 2px;
         text-transform: uppercase;
       }
-      
+
       .game-prompt p {
         color: #ccc;
         font-family: 'Syne Mono', monospace;
@@ -301,7 +389,7 @@
         margin: 0 0 35px 0;
         text-shadow: 1px 1px 0 black;
       }
-      
+
       .game-prompt button {
         background: white;
         color: black;
@@ -316,17 +404,17 @@
         margin: 0 10px;
         text-transform: uppercase;
       }
-      
+
       .game-prompt button:hover {
         background: #f0f0f0;
       }
-      
+
       .game-prompt button.secondary {
         background: #333;
         color: white;
         border: 3px solid #666;
       }
-      
+
       .game-over {
         position: fixed !important;
         top: 50% !important;
@@ -341,20 +429,20 @@
         display: none;
         pointer-events: auto;
       }
-      
+
       .game-over.active {
         display: block !important;
       }
-      
+
       .game-over h2 {
         color: white;
         font-family: 'Syne Mono', monospace;
-        font-size: 36px;
+        font-size: 32px;
         margin: 0 0 20px 0;
         text-shadow: 3px 3px 0 black;
         letter-spacing: 2px;
       }
-      
+
       .game-over .final-stats {
         color: #ccc;
         font-family: 'Syne Mono', monospace;
@@ -362,15 +450,39 @@
         margin: 20px 0;
         text-shadow: 1px 1px 0 black;
       }
-      
+
       .game-over .badges-earned {
-        display: flex;
-        justify-content: center;
-        gap: 15px;
+        display: grid;
+        gap: 10px;
         margin: 30px 0;
-        font-size: 32px;
+        font-size: 16px;
       }
-      
+
+      .game-over .badge-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .game-over .badge-item .icon {
+        font-size: 22px;
+      }
+
+      .game-over a.game-cta {
+        display: inline-block;
+        margin-top: 12px;
+        background: white;
+        color: black;
+        border: 3px solid black;
+        padding: 12px 28px;
+        font-size: 16px;
+        font-weight: bold;
+        font-family: 'Syne Mono', monospace;
+        text-transform: uppercase;
+        text-decoration: none;
+      }
+
       .game-over button {
         background: white;
         color: black;
@@ -385,31 +497,81 @@
         margin: 10px;
         text-transform: uppercase;
       }
-      
+
       .game-over button:hover {
         background: #f0f0f0;
       }
-      
+
       .game-over button.secondary {
         background: #333;
         color: white;
         border: 3px solid #666;
       }
-      
+
+      .si-mobile-controls {
+        position: fixed;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 999996;
+        display: none;
+        gap: 14px;
+        pointer-events: auto;
+      }
+
+      .si-control-button {
+        width: 64px;
+        height: 64px;
+        border-radius: 0;
+        border: 3px solid ${config.fontColor};
+        background: rgba(0,0,0,0.85);
+        color: ${config.fontColor};
+        font-size: 24px;
+        font-family: 'Syne Mono', monospace;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .si-control-button.shoot {
+        width: 72px;
+        height: 72px;
+        font-size: 28px;
+      }
+
       @media (max-width: 768px) {
+        .portfolio-panel {
+          width: 92vw;
+          padding: 12px 18px;
+        }
+
+        .portfolio-panel-header {
+          flex-direction: column;
+          gap: 6px;
+          align-items: flex-start;
+        }
+
         .game-hud {
           min-width: 90%;
           padding: 12px 20px;
+          top: 160px;
         }
-        
+
+        .game-hud.solo {
+          top: 20px;
+        }
+
         .game-hud-header {
           font-size: 14px;
           flex-direction: column;
           gap: 5px;
         }
-        
+
         .badge-icon {
           font-size: 20px;
+        }
+
+        .si-mobile-controls {
+          display: flex;
         }
       }
     `;
@@ -427,33 +589,50 @@
     const html = `
       <div id="space-invaders-game">
         <div id="shooter">${config.shooterIcon}</div>
-        
+
         ${config.showPrompt ? `
         <div class="game-prompt" id="gamePrompt">
-          <h2>WANT TO PLAY A GAME?</h2>
-          <p>Shoot logo invaders • Collect tech badges • Have fun!</p>
-          <button onclick="window.SpaceInvadersGame.start()">START GAME</button>
-          <button class="secondary" onclick="window.SpaceInvadersGame.skip()">SKIP</button>
+          <h2>${config.promptTitle}</h2>
+          <p>${config.promptSubtitle}</p>
+          <button onclick="window.SpaceInvadersGame.start()">${config.startButtonText}</button>
+          <button class="secondary" onclick="window.SpaceInvadersGame.skip()">${config.skipButtonText}</button>
         </div>
         ` : ''}
-        
+
+        <div class="portfolio-panel" id="portfolioPanel">
+          <div class="portfolio-panel-header">
+            <span>${config.portfolioTitle}</span>
+            <span><span id="portfolioProgress">0</span> / ${items.length} ${config.itemLabel}</span>
+          </div>
+          <div class="portfolio-items" id="portfolioItems"></div>
+        </div>
+
         <div class="game-hud" style="display: none;" id="gameHUD">
           <div class="game-hud-header">
-            <span>SCORE: <span id="gameScore">0</span></span>
-            <span>TECHNOLOGIES CONQUERED: <span id="badgeCount">0</span></span>
+            <span>${config.scoreLabel}: <span id="gameScore">0</span></span>
+            <span>${config.itemLabel}: <span id="badgeCount">0</span></span>
           </div>
           <div class="game-hud-badges" id="badgesList"></div>
         </div>
-        
+
+        <div class="si-mobile-controls" id="mobileControls">
+          <button class="si-control-button" data-dir="-1" aria-label="Move left">◀</button>
+          <button class="si-control-button shoot" data-action="shoot" aria-label="Shoot">●</button>
+          <button class="si-control-button" data-dir="1" aria-label="Move right">▶</button>
+        </div>
+
         <div class="game-over" id="gameOver">
-          <h2>MISSION COMPLETE!</h2>
+          <h2>${config.endTitle}</h2>
           <div class="final-stats">
-            <div>Final Score: <span id="finalScore">0</span></div>
-            <div>Tech Badges Earned:</div>
+            <div>${config.scoreLabel}: <span id="finalScore">0</span></div>
+            <div>${config.endSubtitle}</div>
           </div>
           <div class="badges-earned" id="badgesEarned"></div>
-          <button onclick="window.SpaceInvadersGame.reset()">PLAY AGAIN</button>
-          <button class="secondary" onclick="window.SpaceInvadersGame.skip()">CONTINUE</button>
+          ${config.ctaText && config.ctaLink ? `<a class="game-cta" id="gameCta" href="${config.ctaLink}" target="${config.ctaTarget}">${config.ctaText}</a>` : ''}
+          <div>
+            <button onclick="window.SpaceInvadersGame.reset()">PLAY AGAIN</button>
+            <button class="secondary" onclick="window.SpaceInvadersGame.skip()">CONTINUE</button>
+          </div>
         </div>
       </div>
     `;
@@ -469,10 +648,17 @@
   let score = 0;
   let invaders = [];
   let bullets = [];
-  let earnedBadges = new Set();
+  let earnedItems = new Set();
   let gameContainer, gameHUD, gamePrompt, gameOver, shooter, badgesList, badgeCount;
+  let portfolioPanel, portfolioItems, portfolioProgress;
+  let mobileControls;
   let animationFrameId = null;
   let mouseX = window.innerWidth / 2;
+  let controlDirection = 0;
+
+  function isMobileViewport() {
+    return window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+  }
 
   function initGame() {
     gameContainer = document.getElementById('space-invaders-game');
@@ -483,22 +669,40 @@
     badgesList = document.getElementById('badgesList');
     badgeCount = document.getElementById('badgeCount');
 
+    portfolioPanel = document.getElementById('portfolioPanel');
+    portfolioItems = document.getElementById('portfolioItems');
+    portfolioProgress = document.getElementById('portfolioProgress');
+    mobileControls = document.getElementById('mobileControls');
+
     if (!gameContainer) return;
 
     gameContainer.classList.add('active');
 
-    document.addEventListener('mousemove', (e) => {
+    document.addEventListener('mousemove', e => {
       if (gameActive) {
         mouseX = e.clientX;
         shooter.style.left = mouseX + 'px';
       }
     });
 
-    document.addEventListener('click', (e) => {
+    document.addEventListener('click', e => {
       if (gameActive && (!gamePrompt || gamePrompt.classList.contains('hidden'))) {
         shootBullet(mouseX);
       }
     });
+
+    document.addEventListener(
+      'touchstart',
+      e => {
+        if (!gameActive) return;
+        if (e.target.closest('.si-control-button')) return;
+        if (!gamePrompt || gamePrompt.classList.contains('hidden')) {
+          e.preventDefault();
+          shootBullet(mouseX);
+        }
+      },
+      { passive: false }
+    );
 
     window.addEventListener('scroll', () => {
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
@@ -507,26 +711,90 @@
       }
     });
 
+    initMobileControls();
+
     if (config.autoStart) {
       startGame();
+    }
+  }
+
+  function initMobileControls() {
+    if (!mobileControls) return;
+
+    if (!config.mobileControls) {
+      mobileControls.style.display = 'none';
+      return;
+    }
+
+    const buttons = mobileControls.querySelectorAll('.si-control-button');
+    buttons.forEach(btn => {
+      const dir = parseInt(btn.getAttribute('data-dir'), 10);
+      const action = btn.getAttribute('data-action');
+
+      if (action === 'shoot') {
+        const shootHandler = e => {
+          e.preventDefault();
+          if (gameActive) shootBullet(mouseX);
+        };
+        btn.addEventListener('touchstart', shootHandler, { passive: false });
+        btn.addEventListener('click', shootHandler);
+      } else {
+        const startMove = e => {
+          e.preventDefault();
+          if (gameActive) controlDirection = dir;
+        };
+        const stopMove = () => {
+          controlDirection = 0;
+        };
+
+        btn.addEventListener('touchstart', startMove, { passive: false });
+        btn.addEventListener('mousedown', startMove);
+        btn.addEventListener('touchend', stopMove);
+        btn.addEventListener('touchcancel', stopMove);
+        btn.addEventListener('mouseup', stopMove);
+        btn.addEventListener('mouseleave', stopMove);
+      }
+    });
+  }
+
+  function updateControlsVisibility() {
+    if (!mobileControls) return;
+    if (!config.mobileControls) {
+      mobileControls.style.display = 'none';
+      return;
+    }
+
+    if (isMobileViewport() && gameActive) {
+      mobileControls.style.display = 'flex';
+    } else {
+      mobileControls.style.display = 'none';
     }
   }
 
   function startGame() {
     if (gamePrompt) gamePrompt.classList.add('hidden');
 
-    if (gameHUD) gameHUD.style.display = 'block';
+    if (gameHUD && config.showHUD) gameHUD.style.display = 'block';
     if (shooter) shooter.style.display = 'block';
+
+    if (portfolioPanel && config.showPortfolioPanel) {
+      portfolioPanel.style.display = 'block';
+      if (gameHUD) gameHUD.classList.remove('solo');
+    } else if (gameHUD) {
+      gameHUD.classList.add('solo');
+    }
 
     gameContainer.classList.add('playing');
 
     gameActive = true;
     score = 0;
-    earnedBadges.clear();
+    earnedItems.clear();
     bullets = [];
     invaders = [];
 
     updateHUD();
+    updatePortfolioPanel();
+    updateControlsVisibility();
 
     spawnWave();
     startGameLoop();
@@ -549,6 +817,10 @@
 
     gameActive = false;
     if (shooter) shooter.style.display = 'none';
+    if (portfolioPanel) portfolioPanel.style.display = 'none';
+    if (gameHUD) gameHUD.style.display = 'none';
+
+    updateControlsVisibility();
   }
 
   function cleanupGame() {
@@ -567,20 +839,22 @@
     bullets.forEach(b => b.element.remove());
     invaders = [];
     bullets = [];
+
+    updateControlsVisibility();
   }
 
   function spawnWave() {
     const rows = 3;
     const cols = 8;
     const spacing = 80;
-    const startX = (window.innerWidth - (cols * spacing)) / 2;
+    const startX = (window.innerWidth - cols * spacing) / 2;
     const startY = 100;
 
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
         setTimeout(() => {
           if (!gameActive) return;
-          createInvader(startX + (col * spacing), startY + (row * 60));
+          createInvader(startX + col * spacing, startY + row * 60);
         }, (row * cols + col) * difficulty.spawnDelay);
       }
     }
@@ -594,12 +868,12 @@
 
     const invaderData = {
       element: invader,
-      x: x,
-      y: y,
+      x,
+      y,
       width: 50,
       height: 50,
       direction: 1,
-      speed: difficulty.speed
+      speed: difficulty.speed,
     };
 
     document.body.appendChild(invader);
@@ -614,9 +888,9 @@
 
     const bulletData = {
       element: bullet,
-      x: x,
+      x,
       y: window.innerHeight - 70,
-      speed: 8
+      speed: 8,
     };
 
     document.body.appendChild(bullet);
@@ -625,13 +899,12 @@
 
   function checkCollisions() {
     bullets.forEach((bullet, bulletIndex) => {
-      invaders.forEach((invader) => {
-        const hit = (
+      invaders.forEach(invader => {
+        const hit =
           bullet.x > invader.x &&
           bullet.x < invader.x + invader.width &&
           bullet.y > invader.y &&
-          bullet.y < invader.y + invader.height
-        );
+          bullet.y < invader.y + invader.height;
 
         if (hit) {
           destroyInvader(invader);
@@ -649,7 +922,7 @@
 
     score++;
     updateHUD();
-    checkBadgeUnlock();
+    checkItemUnlock();
 
     if (invaders.length === 0) {
       endGame();
@@ -695,46 +968,99 @@
     }
   }
 
-  // ✅ FUNÇÃO CORRIGIDA: Atualiza HUD com badges
   function updateHUD() {
     if (document.getElementById('gameScore')) {
       document.getElementById('gameScore').textContent = score;
     }
-    
+
     if (badgeCount) {
-      badgeCount.textContent = earnedBadges.size;
+      badgeCount.textContent = earnedItems.size;
     }
-    
+
     if (badgesList) {
       badgesList.innerHTML = '';
-      earnedBadges.forEach(badgeName => {
-        const tech = techStack.find(t => t.name === badgeName);
-        if (tech) {
+      earnedItems.forEach(itemName => {
+        const item = items.find(t => t.name === itemName);
+        if (item) {
           const badgeIcon = document.createElement('span');
           badgeIcon.className = 'badge-icon';
-          badgeIcon.textContent = tech.icon;
-          badgeIcon.title = tech.name;
+          badgeIcon.textContent = item.icon;
+          badgeIcon.title = item.name;
           badgesList.appendChild(badgeIcon);
         }
       });
     }
   }
 
-  // ✅ FUNÇÃO CORRIGIDA: Checa badges a cada 5 kills
-  function checkBadgeUnlock() {
-    techStack.forEach(tech => {
-      if (score >= tech.pointsNeeded && !earnedBadges.has(tech.name)) {
-        earnedBadges.add(tech.name);
-        showBadgeEarned(tech);
-        updateHUD();
+  function updatePortfolioPanel() {
+    if (!portfolioPanel || !portfolioItems || !portfolioProgress) return;
+
+    portfolioProgress.textContent = earnedItems.size;
+
+    portfolioItems.innerHTML = '';
+    if (earnedItems.size === 0) {
+      const empty = document.createElement('div');
+      empty.textContent = 'No items unlocked yet.';
+      empty.style.opacity = '0.7';
+      portfolioItems.appendChild(empty);
+      return;
+    }
+
+    earnedItems.forEach(itemName => {
+      const item = items.find(t => t.name === itemName);
+      if (!item) return;
+
+      const row = document.createElement('div');
+      row.className = 'portfolio-item';
+
+      const icon = document.createElement('span');
+      icon.className = 'icon';
+      icon.textContent = item.icon;
+
+      const textWrap = document.createElement('div');
+      const name = document.createElement('div');
+      name.className = 'name';
+      name.textContent = item.name;
+
+      const subtitle = document.createElement('div');
+      subtitle.className = 'subtitle';
+      subtitle.textContent = item.subtitle || '';
+
+      textWrap.appendChild(name);
+      if (item.subtitle) textWrap.appendChild(subtitle);
+
+      row.appendChild(icon);
+      row.appendChild(textWrap);
+
+      if (item.link) {
+        const link = document.createElement('a');
+        link.href = item.link;
+        link.target = '_self';
+        link.style.color = 'inherit';
+        link.style.textDecoration = 'none';
+        link.appendChild(row);
+        portfolioItems.appendChild(link);
+      } else {
+        portfolioItems.appendChild(row);
       }
     });
   }
 
-  function showBadgeEarned(tech) {
+  function checkItemUnlock() {
+    items.forEach(item => {
+      if (score >= item.pointsNeeded && !earnedItems.has(item.name)) {
+        earnedItems.add(item.name);
+        showBadgeEarned(item);
+        updateHUD();
+        updatePortfolioPanel();
+      }
+    });
+  }
+
+  function showBadgeEarned(item) {
     const notification = document.createElement('div');
     notification.className = 'tech-badge-earned';
-    notification.innerHTML = `${tech.icon} ${tech.name} UNLOCKED!`;
+    notification.innerHTML = `${item.icon} ${item.name}${item.subtitle ? `<div style="font-size:14px;opacity:0.8;margin-top:4px;">${item.subtitle}</div>` : ''}`;
     document.body.appendChild(notification);
 
     setTimeout(() => notification.remove(), 1000);
@@ -751,6 +1077,7 @@
 
     if (gameHUD) gameHUD.style.display = 'none';
     if (shooter) shooter.style.display = 'none';
+    if (portfolioPanel) portfolioPanel.style.display = 'none';
 
     if (document.getElementById('finalScore')) {
       document.getElementById('finalScore').textContent = score;
@@ -760,25 +1087,33 @@
     if (badgesEarnedContainer) {
       badgesEarnedContainer.innerHTML = '';
 
-      if (earnedBadges.size === 0) {
+      if (earnedItems.size === 0) {
         badgesEarnedContainer.innerHTML = '<div style="color: #888;">None - Try again!</div>';
       } else {
-        earnedBadges.forEach(badgeName => {
-          const tech = techStack.find(t => t.name === badgeName);
-          const icon = document.createElement('span');
-          icon.textContent = tech.icon;
-          icon.title = tech.name;
-          badgesEarnedContainer.appendChild(icon);
+        earnedItems.forEach(itemName => {
+          const item = items.find(t => t.name === itemName);
+          if (!item) return;
+          const row = document.createElement('div');
+          row.className = 'badge-item';
+          row.innerHTML = `<span class="icon">${item.icon}</span><span>${item.name}${item.subtitle ? ` — ${item.subtitle}` : ''}</span>`;
+          badgesEarnedContainer.appendChild(row);
         });
       }
     }
 
     if (gameOver) gameOver.classList.add('active');
+    updateControlsVisibility();
   }
 
   function startGameLoop() {
     function gameLoop() {
       if (!gameActive) return;
+
+      if (controlDirection !== 0) {
+        mouseX += controlDirection * config.controlSpeed;
+        mouseX = Math.max(20, Math.min(window.innerWidth - 20, mouseX));
+        if (shooter) shooter.style.left = mouseX + 'px';
+      }
 
       let shouldMoveDown = false;
 
@@ -809,7 +1144,7 @@
 
       bullets.forEach((bullet, index) => {
         bullet.y -= bullet.speed;
-        bullet.element.style.bottom = (window.innerHeight - bullet.y) + 'px';
+        bullet.element.style.bottom = window.innerHeight - bullet.y + 'px';
 
         if (bullet.y < 0) {
           bullet.element.remove();
@@ -841,14 +1176,10 @@
         document.head.appendChild(script);
       });
 
-      const licenseManager = new window.AnavoLicenseManager(
-        'SpaceInvaders',
-        PLUGIN_VERSION,
-        {
-          licenseServer: 'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licenses.json',
-          showUI: false
-        }
-      );
+      const licenseManager = new window.AnavoLicenseManager('SpaceInvaders', PLUGIN_VERSION, {
+        licenseServer: 'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licenses.json',
+        showUI: false,
+      });
 
       await licenseManager.init();
 
@@ -857,7 +1188,6 @@
       }
 
       return licenseManager;
-
     } catch (error) {
       console.warn('⚠️ License check failed:', error.message);
       return null;
@@ -868,7 +1198,7 @@
     const watermark = document.createElement('div');
     watermark.className = 'anavo-watermark-game';
     watermark.innerHTML = `
-      ⚠️ Unlicensed Version • <a href="https://anavotech.com/plugins/space-invaders" target="_blank">Get License</a>
+      ⚠️ Unlicensed Version • <a href="https://anavotech.com/plugins/space-invaders">Get License</a>
     `;
     watermark.style.cssText = `
       position: fixed;
@@ -892,7 +1222,9 @@
     start: startGame,
     skip: skipGame,
     reset: resetGame,
-    cleanup: cleanupGame
+    cleanup: cleanupGame,
+    getScore: () => score,
+    getUnlockedItems: () => Array.from(earnedItems),
   };
 
   // ========================================
@@ -915,5 +1247,4 @@
   } else {
     init();
   }
-
 })();
