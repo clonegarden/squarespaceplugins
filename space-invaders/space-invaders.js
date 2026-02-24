@@ -2,7 +2,7 @@
  * =======================================
  * SPACE INVADERS GAME PLUGIN - Squarespace
  * =======================================
- * @version 2.1.0
+ * @version 1.1.0
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
