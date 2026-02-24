@@ -35,6 +35,7 @@
     "build:animated-header": "npm run minify animated-header/animated-header.js",
     "build:header-pro": "npm run minify header-pro/header-pro.js",
     "build:logo-reaper": "npm run minify logo-reaper/logo-reaper.js",
+    "build:testimonial-carousel-slider": "npm run minify testimonial-carousel-slider/testimonial-carousel-slider.js",
     "minify": "node scripts/minify.js",
     "watch": "node scripts/watch.js",
     "dev": "npm run watch",
