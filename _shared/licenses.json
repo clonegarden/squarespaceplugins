@@ -72,6 +72,19 @@
         "no_watermark"
       ],
       "expires": null
+    },
+    "TestimonialCarouselSlider": {
+      "license_key": "lic_testimonial_carousel_demo",
+      "license_type": "trial",
+      "allowed_domains": [
+        "localhost",
+        "127.0.0.1"
+      ],
+      "features": [
+        "customization",
+        "no_watermark"
+      ],
+      "expires": null
     }
   }
 }

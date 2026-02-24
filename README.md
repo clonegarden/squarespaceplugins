@@ -32,6 +32,18 @@ Squarekicker-inspired header enhancement — centered layout, sticky/auto-hide, 
 
 ---
 
+### Testimonial Carousel Slider
+Polished testimonial carousel with smooth transitions, keyboard navigation, star ratings, and responsive design. Auto-inserts into any section with a "Testimonials" heading.
+
+**Install (Settings → Advanced → Code Injection → Footer):**
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/testimonial-carousel-slider/testimonial-carousel-slider.min.js"></script>
+```
+
+[📖 Documentation](testimonial-carousel-slider/README.md) | [🎬 Live Demo](testimonial-carousel-slider/examples/basic.html) | [📋 Changelog](testimonial-carousel-slider/CHANGELOG.md)
+
+---
+
 ### ASCII Animation
 Animated rotating text circles with explosion and rain effects.
 
