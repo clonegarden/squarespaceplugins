@@ -2,7 +2,7 @@
  * =======================================
  * ASCII ANIMATION PLUGIN - Squarespace
  * =======================================
- * @version 1.0.0
+ * @version 1.1.0
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
@@ -24,13 +24,16 @@
  * ?enableExplosion=true         - Hover explosion effect (default: true)
  * ?pulseAmount=30               - Pulse intensity on hover (default: 30)
  * ?animationSpeed=1             - Animation speed multiplier (default: 1)
+ * ?colorWave=false              - Enable color wave effect (default: false)
+ * ?waveMode=rainbow             - Color wave mode: rainbow, gradient, pulse (default: rainbow)
+ * ?waveColors=ff0000,00ff00     - Custom colors for gradient/pulse (comma-separated hex, no #)
  * =======================================
  */
 
 (function () {
   'use strict';
 
-  const PLUGIN_VERSION = '1.0.0';
+  const PLUGIN_VERSION = '1.1.0';
   console.log(`🎨 ASCII Animation Plugin v${PLUGIN_VERSION} - Loading...`);
 
   // ========================================
@@ -64,6 +67,11 @@
       enableExplosion: params.get('enableExplosion') !== 'false',
       pulseAmount: params.get('pulseAmount') || '30',
       animationSpeed: params.get('animationSpeed') || '1',
+      colorWave: params.get('colorWave') === 'true',
+      waveMode: params.get('waveMode') || 'rainbow',
+      waveColors: params.get('waveColors') ?
+        decodeURIComponent(params.get('waveColors')).split(',').map(c => c.trim()) :
+        null,
     };
   }
 
@@ -191,6 +199,73 @@
         opacity: 0.25,
       },
     ];
+  }
+
+  // ========================================
+  // COLOR WAVE LOGIC
+  // ========================================
+
+  function getColorForCircle(circleIndex, totalCircles, time) {
+    if (!config.colorWave) {
+      return config.fontColor;
+    }
+
+    const t = time * 0.001; // Convert to seconds
+
+    switch (config.waveMode) {
+      case 'rainbow': {
+        const hue = ((circleIndex / totalCircles) * 360 + t * 30) % 360;
+        return `hsl(${hue}, 70%, 60%)`;
+      }
+
+      case 'gradient': {
+        const colors = config.waveColors || ['#ff0000', '#00ff00', '#0000ff'];
+        const position = circleIndex / (totalCircles - 1);
+        const scaledPos = position * (colors.length - 1);
+        const index = Math.floor(scaledPos);
+        const nextIndex = Math.min(index + 1, colors.length - 1);
+        const blend = scaledPos - index;
+
+        return blendHexColors(colors[index], colors[nextIndex], blend);
+      }
+
+      case 'pulse': {
+        const baseColor = config.waveColors ? config.waveColors[0] : '#3b82f6';
+        const intensity = 0.5 + Math.sin(t * 2) * 0.5; // 0.0 - 1.0
+
+        const rgb = hexToRgb(baseColor);
+        const r = Math.floor(rgb.r * intensity);
+        const g = Math.floor(rgb.g * intensity);
+        const b = Math.floor(rgb.b * intensity);
+
+        return `rgb(${r}, ${g}, ${b})`;
+      }
+
+      default:
+        return config.fontColor;
+    }
+  }
+
+  function blendHexColors(hex1, hex2, blend) {
+    const rgb1 = hexToRgb(hex1);
+    const rgb2 = hexToRgb(hex2);
+
+    const r = Math.floor(rgb1.r + (rgb2.r - rgb1.r) * blend);
+    const g = Math.floor(rgb1.g + (rgb2.g - rgb1.g) * blend);
+    const b = Math.floor(rgb1.b + (rgb2.b - rgb1.b) * blend);
+
+    return `rgb(${r}, ${g}, ${b})`;
+  }
+
+  function hexToRgb(hex) {
+    hex = hex.replace(/^#/, '');
+
+    const bigint = parseInt(hex, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+
+    return { r, g, b };
   }
 
   // ========================================
@@ -540,6 +615,11 @@
 
         allLetters.forEach(({ element, circleIndex, letterIndex, baseAngle, baseOpacity }) => {
           const circle = circles[circleIndex];
+
+          // Apply color wave
+          if (config.colorWave) {
+            element.style.color = getColorForCircle(circleIndex, circles.length, Date.now());
+          }
 
           if (explosionProgress > 0.3) {
             const explodeText = circle.explodeCharacters;

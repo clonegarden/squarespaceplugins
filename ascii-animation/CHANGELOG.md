@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0] - 2026-02-26
+
+### ✨ Added
+
+- **Color Wave System** — Animated color effects for circles
+  - `colorWave` parameter (boolean, default: false)
+  - `waveMode` parameter (rainbow | gradient | pulse, default: rainbow)
+  - `waveColors` parameter (comma-separated hex colors, default: null)
+- **Rainbow mode** — Automatic HSL rainbow across circles
+- **Gradient mode** — Smooth interpolation between custom colors
+- **Pulse mode** — Synchronized breathing effect
+
+### 📖 Examples
+
+```html
+<!-- Rainbow wave -->
+<script src="...?colorWave=true&waveMode=rainbow"></script>
+
+<!-- Custom gradient -->
+<script src="...?colorWave=true&waveMode=gradient&waveColors=ff0000,00ff00,0000ff"></script>
+
+<!-- Blue pulse -->
+<script src="...?colorWave=true&waveMode=pulse&waveColors=3b82f6"></script>
+```
+
+---
+
 ## [1.0.0] - 2026-02-19
 
 ### ✨ Initial Release
