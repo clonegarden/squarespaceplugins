@@ -36,6 +36,9 @@ Add parameters to the script URL:
 | `enableExplosion` | true | Hover explosion effect |
 | `pulseAmount` | 30 | Pulse intensity on hover |
 | `animationSpeed` | 1 | Animation speed multiplier |
+| `colorWave` | false | Enable animated color wave effect |
+| `waveMode` | rainbow | Color wave mode: `rainbow`, `gradient`, `pulse` |
+| `waveColors` | null | Custom colors (comma-separated hex, no #) |
 
 ## Examples
 
@@ -62,6 +65,26 @@ Add parameters to the script URL:
 ### Specific Position
 ```html
 ?targetId=my-custom-section
+```
+
+### Rainbow Wave
+```html
+?colorWave=true&amp;waveMode=rainbow
+```
+
+### Custom Gradient Wave
+```html
+?colorWave=true&amp;waveMode=gradient&amp;waveColors=ff0000,ffff00,00ff00
+```
+
+### Pulse Effect
+```html
+?colorWave=true&amp;waveMode=pulse&amp;waveColors=3b82f6
+```
+
+### Dark Mode + Rainbow
+```html
+?bgColor=000000&amp;colorWave=true&amp;waveMode=rainbow
 ```
 
 ## Features
