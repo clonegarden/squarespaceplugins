@@ -10,7 +10,7 @@
  * Gamified portfolio presentation for tech stacks, awards, products, etc.
  *
  * USAGE:
- * <script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/space-invaders/space-invaders.min.js"></script>
+ * 
  *
  * CUSTOMIZATION:
  * Add URL parameters: ?autoStart=true&difficulty=hard&bgColor=000000
@@ -83,6 +83,7 @@
       ctaText: decodeParam('ctaText', 'VIEW PORTFOLIO'),
       ctaLink: decodeParam('ctaLink', '/portfolio'),
       ctaTarget: decodeParam('ctaTarget', '_self'),
+      ctaItemsTitle: decodeParam('ctaItemsTitle', 'All Items'),
 
       // ✅ Mobile controls
       mobileControls: params.get('mobileControls') !== 'false',
@@ -97,6 +98,10 @@
       triggerScroll: parseFloat(decodeParam('triggerScroll', '40')), // %
       triggerKey: decodeParam('triggerKey', '+'),
       triggerButtonText: decodeParam('triggerButtonText', 'PLAY GAME'),
+
+      // ✅ Post-game button
+      postGameButton: params.get('postGameButton') === 'true',
+      postGameButtonText: decodeParam('postGameButtonText', 'Portifolio Game'),
     };
   }
 
@@ -156,6 +161,9 @@
 
   let triggerTimeReady = false;
   let triggerScrollReady = false;
+
+  let hasPlayedOnce = false;
+  let triggersDisabled = false;
 
   // UI refs
   let portfolioPanel, portfolioItems, portfolioProgress;
@@ -477,6 +485,64 @@
         box-shadow: 0 6px 16px rgba(0,0,0,0.2);
       }
 
+      /* ✅ Post-game button */
+      #anavo-si-postgame-btn {
+        position: fixed;
+        right: 20px;
+        bottom: 140px;
+        z-index: 999999;
+        padding: 12px 18px;
+        border: 2px solid #000;
+        background: ${config.fontColor};
+        color: #000;
+        font-family: 'Syne Mono', monospace;
+        font-size: 14px;
+        cursor: pointer;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+      }
+
+      /* ✅ Items overlay */
+      #anavo-si-items-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.8);
+        z-index: 999999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #anavo-si-items-overlay-inner {
+        background: #000;
+        color: ${config.fontColor};
+        border: 2px solid ${config.fontColor};
+        padding: 20px;
+        width: min(820px, 94vw);
+        max-height: 80vh;
+        overflow: auto;
+        position: relative;
+        font-family: 'Syne Mono', monospace;
+      }
+
+      #anavo-si-items-close {
+        position: absolute;
+        top: 10px;
+        right: 12px;
+        background: none;
+        border: 1px solid ${config.fontColor};
+        color: ${config.fontColor};
+        width: 32px;
+        height: 32px;
+        cursor: pointer;
+      }
+
+      #anavo-si-items-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 10px 12px;
+        margin-top: 14px;
+      }
+
       @media (max-width: 768px) {
         #anavo-si-mobile-controls { display: flex; }
       }
@@ -528,6 +594,58 @@
     return panel;
   }
 
+  function buildAllItemsOverlay() {
+    const overlay = document.createElement('div');
+    overlay.id = 'anavo-si-items-overlay';
+    overlay.innerHTML = `
+      <div id="anavo-si-items-overlay-inner">
+        <button id="anavo-si-items-close">✕</button>
+        <h2>${config.ctaItemsTitle}</h2>
+        <div id="anavo-si-items-grid">
+          ${items
+            .map(
+              item => `
+              <div class="anavo-si-portfolio-item">
+                <span class="icon">${item.icon}</span>
+                <div>
+                  <div class="name">${item.name}</div>
+                  ${item.subtitle ? `<div class="subtitle">${item.subtitle}</div>` : ''}
+                </div>
+              </div>`
+            )
+            .join('')}
+        </div>
+      </div>
+    `;
+
+    overlay.querySelector('#anavo-si-items-close').addEventListener('click', () => {
+      overlay.remove();
+    });
+
+    document.body.appendChild(overlay);
+  }
+
+  function maybeDisableTriggers() {
+    if (!config.postGameButton || triggersDisabled) return;
+    triggersDisabled = true;
+
+    const triggerBtn = document.getElementById('anavo-si-trigger-btn');
+    if (triggerBtn) triggerBtn.remove();
+  }
+
+  function insertPostGameButton() {
+    if (!config.postGameButton) return;
+    if (document.getElementById('anavo-si-postgame-btn')) return;
+
+    const btn = document.createElement('button');
+    btn.id = 'anavo-si-postgame-btn';
+    btn.textContent = config.postGameButtonText;
+    btn.addEventListener('click', () => {
+      showPromptScreen();
+    });
+    document.body.appendChild(btn);
+  }
+
   function showPromptScreen() {
     if (!overlayEl) createOverlay();
 
@@ -546,7 +664,14 @@
     const startBtn = document.createElement('button');
     startBtn.id = 'anavo-si-prompt-start';
     startBtn.textContent = '🚀 Play Now';
-    startBtn.addEventListener('click', startGame);
+    startBtn.addEventListener('click', () => {
+      if (!hasPlayedOnce) {
+        hasPlayedOnce = true;
+        maybeDisableTriggers();
+        insertPostGameButton();
+      }
+      startGame();
+    });
 
     const skipBtn = document.createElement('button');
     skipBtn.id = 'anavo-si-prompt-skip';
@@ -601,12 +726,19 @@
       container.appendChild(badgesDiv);
     }
 
-    if (config.ctaText && config.ctaLink) {
+    if (config.ctaText && (config.ctaLink || config.ctaTarget === 'items')) {
       const cta = document.createElement('a');
       cta.id = 'anavo-si-cta';
-      cta.href = config.ctaLink;
-      cta.target = config.ctaTarget;
       cta.textContent = config.ctaText;
+
+      if (config.ctaTarget === 'items') {
+        cta.href = 'javascript:void(0)';
+        cta.addEventListener('click', buildAllItemsOverlay);
+      } else {
+        cta.href = config.ctaLink;
+        cta.target = config.ctaTarget;
+      }
+
       container.appendChild(cta);
     }
 
@@ -1113,6 +1245,7 @@
   // TRIGGER SYSTEM
   // ========================================
   function triggerGame() {
+    if (triggersDisabled) return;
     if (config.showPrompt) {
       showPromptScreen();
     } else {
