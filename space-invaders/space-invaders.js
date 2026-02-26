@@ -20,7 +20,7 @@
 (function () {
   'use strict';
 
-  const PLUGIN_VERSION = '1.1.0';
+  const PLUGIN_VERSION = '2.4.0';
   console.log(`🎮 Space Invaders Plugin v${PLUGIN_VERSION} - Loading...`);
 
   // ========================================
