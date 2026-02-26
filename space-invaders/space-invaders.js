@@ -2,7 +2,7 @@
  * =======================================
  * SPACE INVADERS GAME PLUGIN - Squarespace
  * =======================================
- * @version 2.4.0
+ * @version 2.5.1
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
@@ -20,7 +20,7 @@
 (function () {
   'use strict';
 
-  const PLUGIN_VERSION = '2.4.0';
+  const PLUGIN_VERSION = '2.5.1';
   console.log(`🎮 Space Invaders Plugin v${PLUGIN_VERSION} - Loading...`);
 
   // ========================================
@@ -87,6 +87,16 @@
       // ✅ Mobile controls
       mobileControls: params.get('mobileControls') !== 'false',
       controlSpeed: parseFloat(decodeParam('controlSpeed', '8')),
+
+      // ✅ Global kills per unlock (used when item.pointsNeeded is missing)
+      killsPerItem: parseInt(decodeParam('killsPerItem', '5'), 10),
+
+      // ✅ Trigger system
+      trigger: decodeParam('trigger', 'prompt'), // prompt | time | scroll | time+scroll | key | button
+      triggerTime: parseFloat(decodeParam('triggerTime', '5')), // seconds
+      triggerScroll: parseFloat(decodeParam('triggerScroll', '40')), // %
+      triggerKey: decodeParam('triggerKey', '+'),
+      triggerButtonText: decodeParam('triggerButtonText', 'PLAY GAME'),
     };
   }
 
@@ -144,6 +154,9 @@
   let isShooting = false;
   let controlDirection = 0;
 
+  let triggerTimeReady = false;
+  let triggerScrollReady = false;
+
   // UI refs
   let portfolioPanel, portfolioItems, portfolioProgress;
   let mobileControls;
@@ -187,7 +200,7 @@
   function showWatermark() {
     const watermark = document.createElement('div');
     watermark.className = 'anavo-watermark-game';
-    watermark.innerHTML = `⚠️ Unlicensed Version • <a href="https://anavotech.com/plugins/space-invaders" target="_blank" rel="noopener noreferrer">Get License</a>`;
+    watermark.innerHTML = `⚠️ Unlicensed Version • <a href="https://anavotech.com/plugins/space-invaders">Get License</a>`;
     watermark.style.cssText = `
       position: fixed;
       bottom: 20px;
@@ -447,6 +460,22 @@
       }
 
       .anavo-si-control-btn.shoot { width: 72px; height: 72px; font-size: 26px; }
+
+      /* ✅ Trigger button */
+      #anavo-si-trigger-btn {
+        position: fixed;
+        right: 20px;
+        bottom: 80px;
+        z-index: 999999;
+        padding: 12px 18px;
+        border: 2px solid #000;
+        background: ${config.fontColor};
+        color: #000;
+        font-family: 'Syne Mono', monospace;
+        font-size: 14px;
+        cursor: pointer;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+      }
 
       @media (max-width: 768px) {
         #anavo-si-mobile-controls { display: flex; }
@@ -805,8 +834,13 @@
   }
 
   function checkItemUnlocks() {
-    items.forEach(item => {
-      if (!earnedItems.has(item.name) && score >= item.pointsNeeded) {
+    items.forEach((item, index) => {
+      const threshold =
+        typeof item.pointsNeeded === 'number'
+          ? item.pointsNeeded
+          : config.killsPerItem * (index + 1);
+
+      if (!earnedItems.has(item.name) && score >= threshold) {
         earnedItems.add(item.name);
         updatePortfolioPanel();
       }
@@ -1076,6 +1110,69 @@
   }
 
   // ========================================
+  // TRIGGER SYSTEM
+  // ========================================
+  function triggerGame() {
+    if (config.showPrompt) {
+      showPromptScreen();
+    } else {
+      startGame();
+    }
+  }
+
+  function insertTriggerButton() {
+    if (document.getElementById('anavo-si-trigger-btn')) return;
+    const btn = document.createElement('button');
+    btn.id = 'anavo-si-trigger-btn';
+    btn.textContent = config.triggerButtonText;
+    btn.addEventListener('click', triggerGame);
+    document.body.appendChild(btn);
+  }
+
+  function checkScrollTrigger() {
+    const doc = document.documentElement;
+    const scrollTop = window.pageYOffset || doc.scrollTop;
+    const scrollHeight = doc.scrollHeight - window.innerHeight;
+    const percent = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+    if (percent >= config.triggerScroll) {
+      triggerScrollReady = true;
+      if (config.trigger === 'scroll') triggerGame();
+      if (config.trigger === 'time+scroll' && triggerTimeReady) triggerGame();
+    }
+  }
+
+  function setupTriggers() {
+    if (config.trigger === 'time') {
+      setTimeout(() => {
+        triggerTimeReady = true;
+        triggerGame();
+      }, config.triggerTime * 1000);
+    }
+
+    if (config.trigger === 'scroll' || config.trigger === 'time+scroll') {
+      window.addEventListener('scroll', checkScrollTrigger, { passive: true });
+      checkScrollTrigger();
+    }
+
+    if (config.trigger === 'time+scroll') {
+      setTimeout(() => {
+        triggerTimeReady = true;
+        if (triggerScrollReady) triggerGame();
+      }, config.triggerTime * 1000);
+    }
+
+    if (config.trigger === 'key') {
+      document.addEventListener('keydown', e => {
+        if (e.key === config.triggerKey) triggerGame();
+      });
+    }
+
+    if (config.trigger === 'button') {
+      insertTriggerButton();
+    }
+  }
+
+  // ========================================
   // PUBLIC API
   // ========================================
   function startGame() {
@@ -1087,21 +1184,17 @@
       if (child.id !== 'anavo-si-close') overlayEl.removeChild(child);
     });
 
-    // HUD
     const hud = document.createElement('div');
     hud.id = 'anavo-si-hud';
     overlayEl.appendChild(hud);
 
-    // Portfolio panel
     portfolioPanel = buildPortfolioPanel();
     overlayEl.appendChild(portfolioPanel);
     portfolioPanel.style.display = 'block';
 
-    // Canvas
     const canvas = createCanvas();
     overlayEl.appendChild(canvas);
 
-    // Mobile controls
     mobileControls = document.createElement('div');
     mobileControls.id = 'anavo-si-mobile-controls';
     mobileControls.innerHTML = `
@@ -1167,8 +1260,6 @@
   // INIT
   // ========================================
   async function init() {
-    window.addEventListener('scroll', () => {}, { passive: true });
-
     loadLicensing().catch(() => {});
 
     if (config.autoStart) {
@@ -1177,7 +1268,15 @@
       } else {
         startGame();
       }
-    } else if (config.showPrompt) {
+      return;
+    }
+
+    if (config.trigger && config.trigger !== 'prompt') {
+      setupTriggers();
+      return;
+    }
+
+    if (config.showPrompt) {
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', showPromptScreen);
       } else {
