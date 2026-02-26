@@ -106,14 +106,14 @@
   // DEFAULT ITEMS
   // ========================================
   const defaultItems = [
-    { name: 'React', icon: '⚛️', pointsNeeded: 5, subtitle: 'UI Library' },
-    { name: 'Node.js', icon: '🟢', pointsNeeded: 10, subtitle: 'Backend Runtime' },
-    { name: 'Python', icon: '🐍', pointsNeeded: 15, subtitle: 'Data & Automation' },
-    { name: 'Vue', icon: '💚', pointsNeeded: 20, subtitle: 'Frontend Framework' },
-    { name: 'TypeScript', icon: '🔷', pointsNeeded: 25, subtitle: 'Typed JS' },
-    { name: 'AI/ML', icon: '🤖', pointsNeeded: 30, subtitle: 'Intelligent Systems' },
-    { name: 'PostgreSQL', icon: '🐘', pointsNeeded: 35, subtitle: 'SQL Database' },
-    { name: 'AWS', icon: '☁️', pointsNeeded: 40, subtitle: 'Cloud Infrastructure' },
+    { name: 'React', icon: '⚛️', pointsNeeded: 1, subtitle: 'UI Library' },
+    { name: 'Node.js', icon: '🟢', pointsNeeded: 2, subtitle: 'Backend Runtime' },
+    { name: 'Python', icon: '🐍', pointsNeeded: 3, subtitle: 'Data & Automation' },
+    { name: 'Vue', icon: '💚', pointsNeeded: 5, subtitle: 'Frontend Framework' },
+    { name: 'TypeScript', icon: '🔷', pointsNeeded: 8, subtitle: 'Typed JS' },
+    { name: 'AI/ML', icon: '🤖', pointsNeeded: 13, subtitle: 'Intelligent Systems' },
+    { name: 'PostgreSQL', icon: '🐘', pointsNeeded: 21, subtitle: 'SQL Database' },
+    { name: 'AWS', icon: '☁️', pointsNeeded: 34, subtitle: 'Cloud Infrastructure' },
   ];
 
   const items = config.items || defaultItems;
