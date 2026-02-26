@@ -20,7 +20,7 @@
 (function () {
   'use strict';
 
-  const PLUGIN_VERSION = '1.2.0';
+  const PLUGIN_VERSION = '2.5.0';
   console.log(`🎮 Space Invaders Plugin v${PLUGIN_VERSION} - Loading...`);
 
   // ========================================
@@ -87,6 +87,9 @@
       // ✅ Mobile controls
       mobileControls: params.get('mobileControls') !== 'false',
       controlSpeed: parseFloat(decodeParam('controlSpeed', '8')),
+
+      // ✅ Global kills per unlock (used when item.pointsNeeded is missing)
+      killsPerItem: parseInt(decodeParam('killsPerItem', '5'), 10),
 
       // ✅ Trigger system
       trigger: decodeParam('trigger', 'prompt'), // prompt | time | scroll | time+scroll | key | button
@@ -831,8 +834,13 @@
   }
 
   function checkItemUnlocks() {
-    items.forEach(item => {
-      if (!earnedItems.has(item.name) && score >= item.pointsNeeded) {
+    items.forEach((item, index) => {
+      const threshold =
+        typeof item.pointsNeeded === 'number'
+          ? item.pointsNeeded
+          : config.killsPerItem * (index + 1);
+
+      if (!earnedItems.has(item.name) && score >= threshold) {
         earnedItems.add(item.name);
         updatePortfolioPanel();
       }
