@@ -85,13 +85,15 @@
     }
 
     .snippet .comment { color: #888; }
+
+    h2 { margin-top: 48px; margin-bottom: 16px; font-size: 1.3rem; opacity: 0.9; }
   </style>
 </head>
 <body>
 
 <header>
   <h1>💀 Logo Reaper</h1>
-  <p>Logos enter from the right, get stamped at center, and pile up on the left.</p>
+  <p>Logos enter from the right, get stamped at the trigger point, and pile up on the left.</p>
 </header>
 
 <!-- ① Plugin mount point – the plugin appends itself here -->
@@ -112,7 +114,7 @@
     </div>
     <div class="card">
       <h3>🎨 Fully Configurable</h3>
-      <p>Speed, size, words, colours – all set via URL query-string params.</p>
+      <p>Speed, size, colours, stamp position/rotation – all set via URL query-string params.</p>
     </div>
     <div class="card">
       <h3>♿ Accessible</h3>
@@ -124,16 +126,59 @@
     </div>
   </div>
 
+  <h2>📋 New in v1.1 – Parameter Examples</h2>
+
   <div class="snippet">
-    <span class="comment">&lt;!-- Squarespace Installation --&gt;</span><br>
+    <span class="comment">&lt;!-- Dark background with custom logo height and stamp position --&gt;</span><br>
+    &lt;script src="…/logo-reaper.min.js<br>
+    &nbsp;&nbsp;?selector=%23logo-stage<br>
+    &nbsp;&nbsp;&amp;height=240<br>
+    &nbsp;&nbsp;&amp;logoH=80<br>
+    &nbsp;&nbsp;&amp;bgColor=1a1a2e<br>
+    &nbsp;&nbsp;&amp;stampColor=e94560<br>
+    &nbsp;&nbsp;&amp;stampX=50<br>
+    &nbsp;&nbsp;&amp;stampY=40<br>
+    &nbsp;&nbsp;&amp;stampRotate=-15<br>
+    &nbsp;&nbsp;&amp;stampScale=1.1<br>
+    "&gt;&lt;/script&gt;
+  </div>
+
+  <div class="snippet">
+    <span class="comment">&lt;!-- Transparent background, trigger shifted left, stamps disabled --&gt;</span><br>
+    &lt;script src="…/logo-reaper.min.js<br>
+    &nbsp;&nbsp;?selector=%23logo-stage<br>
+    &nbsp;&nbsp;&amp;height=180<br>
+    &nbsp;&nbsp;&amp;bgColor=transparent<br>
+    &nbsp;&nbsp;&amp;stampEnabled=false<br>
+    &nbsp;&nbsp;&amp;triggerX=40<br>
+    &nbsp;&nbsp;&amp;logos=…<br>
+    "&gt;&lt;/script&gt;
+  </div>
+
+  <div class="snippet">
+    <span class="comment">&lt;!-- Semi-transparent RGBA background --&gt;</span><br>
+    &lt;script src="…/logo-reaper.min.js<br>
+    &nbsp;&nbsp;?selector=%23logo-stage<br>
+    &nbsp;&nbsp;&amp;bgColor=rgba(0%2C0%2C0%2C0.5)<br>
+    &nbsp;&nbsp;&amp;logos=…<br>
+    "&gt;&lt;/script&gt;
+  </div>
+
+  <div class="snippet">
+    <span class="comment">&lt;!-- Squarespace Installation (basic) --&gt;</span><br>
     &lt;script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/<br>
     &nbsp;&nbsp;logo-reaper/logo-reaper.min.js<br>
     &nbsp;&nbsp;?selector=%23logo-stage<br>
     &nbsp;&nbsp;&amp;height=220<br>
+    &nbsp;&nbsp;&amp;logoH=80<br>
     &nbsp;&nbsp;&amp;logos=%5B%22https%3A%2F%2Fexample.com%2Flogo1.svg%22%5D<br>
     &nbsp;&nbsp;&amp;speed=90<br>
     &nbsp;&nbsp;&amp;bgColor=1a1a2e<br>
     &nbsp;&nbsp;&amp;stampColor=e94560<br>
+    &nbsp;&nbsp;&amp;stampX=50<br>
+    &nbsp;&nbsp;&amp;stampY=45<br>
+    &nbsp;&nbsp;&amp;stampRotate=-12<br>
+    &nbsp;&nbsp;&amp;triggerX=50<br>
     "&gt;&lt;/script&gt;
   </div>
 
@@ -153,17 +198,22 @@
     ];
 
     var params = new URLSearchParams({
-      selector: '#logo-stage',
-      height:   '220',
-      logoSize: '120',
-      speed:    '90',
+      selector:   '#logo-stage',
+      height:     '220',
+      logoH:      '60',        // logo height in px; width auto-scales
+      speed:      '90',
       spawnEvery: '1800',
-      maxLive:  '4',
-      pileMax:  '8',
-      bgColor:  '1a1a2e',
+      maxLive:    '4',
+      pileMax:    '8',
+      bgColor:    '1a1a2e',    // bare hex – no '#' needed
       stampColor: 'e94560',
-      words:    'REJECTED,REKT,CRUSHED,BURIED,GONE,DEAD',
-      logos:    JSON.stringify(logos)
+      stampX:     '50',        // percent of logo width
+      stampY:     '45',        // percent of logo height
+      stampRotate: '-12',      // degrees
+      stampScale:  '1',
+      triggerX:   '50',        // percent of stage width (50 = center)
+      words:      'REJECTED,REKT,CRUSHED,BURIED,GONE,DEAD',
+      logos:      JSON.stringify(logos)
     });
 
     var s = document.createElement('script');
@@ -179,10 +229,15 @@
   <script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/logo-reaper/logo-reaper.min.js
     ?selector=%23logo-stage
     &height=220
+    &logoH=80
     &logos=%5B%22https%3A%2F%2Fyoursite.com%2Flogo1.svg%22%2C%22https%3A%2F%2Fyoursite.com%2Flogo2.svg%22%5D
     &speed=90
     &bgColor=1a1a2e
     &stampColor=e94560
+    &stampX=50
+    &stampY=45
+    &stampRotate=-12
+    &triggerX=50
   "></script>
 -->
 

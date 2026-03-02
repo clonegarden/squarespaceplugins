@@ -2,12 +2,12 @@
  * =======================================
  * LOGO REAPER - Squarespace Plugin
  * =======================================
- * @version 1.0.0
+ * @version 1.1.0
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
  * Animates a continuous marquee of company logos entering from the right.
- * When a logo reaches the center it receives a random stamp + particle explosion,
+ * When a logo reaches the trigger position it receives a random stamp + particle explosion,
  * then falls into a dead-logo pile stacked in the left corner of the block.
  *
  * INSTALLATION:
@@ -18,7 +18,7 @@
 (function () {
   'use strict';
 
-  const PLUGIN_VERSION = '1.0.0';
+  const PLUGIN_VERSION = '1.1.0';
   const PLUGIN_NAME = 'LogoReaper';
 
   console.log(`💀 ${PLUGIN_NAME} v${PLUGIN_VERSION} - Loading...`);
@@ -40,6 +40,17 @@
       } catch (_e) {
         return fallback;
       }
+    }
+
+    function fixHexColor(color) {
+      if (!color) return null;
+      try {
+        color = decodeURIComponent(color);
+      } catch (_e) { /* use as-is */ }
+      if (color.toLowerCase() === 'transparent') return 'transparent';
+      if (/^[0-9A-Fa-f]{6}$/.test(color)) return '#' + color;
+      if (color.startsWith('#')) return color;
+      return color; // handles rgb(...), rgba(...)
     }
 
     try {
@@ -67,9 +78,19 @@
             'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/demo-logo-2.svg',
           ]
         ),
-        logoSize: parseInt(p.get('logoSize') || '64', 10),
-        bgColor: p.get('bgColor') ? '#' + p.get('bgColor').replace(/^#/, '') : '#f5f5f5',
+        // logoH controls logo height in pixels; width is set to auto so logos keep natural proportions.
+        // Accepts logoH or legacy logoSize for backward compatibility.
+        logoH: parseInt(p.get('logoH') || p.get('logoSize') || '64', 10),
+        bgColor: fixHexColor(p.get('bgColor')) || '#f5f5f5',
         stampColor: p.get('stampColor') ? '#' + p.get('stampColor').replace(/^#/, '') : '#cc0000',
+        // Stamp positioning controls (percent of logo dimensions)
+        stampEnabled: p.get('stampEnabled') !== 'false',
+        stampX: parseFloat(p.get('stampX') || '50'),
+        stampY: parseFloat(p.get('stampY') || '45'),
+        stampRotate: parseFloat(p.get('stampRotate') || '-12'),
+        stampScale: parseFloat(p.get('stampScale') || '1'),
+        // Trigger position (percent of stage width)
+        triggerX: parseFloat(p.get('triggerX') || '50'),
       };
     } catch (_e) {
       return {
@@ -84,9 +105,15 @@
         words: ['REJECTED', 'DEAD', 'GONE', 'REKT', 'GG', 'LOSER', 'CRUSHED', 'BURIED'],
         pauseOnHover: true,
         logos: [],
-        logoSize: 64,
+        logoH: 64,
         bgColor: '#f5f5f5',
         stampColor: '#cc0000',
+        stampEnabled: true,
+        stampX: 50,
+        stampY: 45,
+        stampRotate: -12,
+        stampScale: 1,
+        triggerX: 50,
       };
     }
   }
@@ -186,9 +213,8 @@
         will-change: transform;
       }
       .anavo-lr-logo img {
-        width: ${cfg.logoSize}px;
-        height: ${cfg.logoSize}px;
-        object-fit: contain;
+        height: ${cfg.logoH}px;
+        width: auto;
         display: block;
         pointer-events: none;
         user-select: none;
@@ -196,7 +222,7 @@
       .anavo-lr-stamp {
         position: absolute;
         top: 50%; left: 50%;
-        transform: translate(-50%, -50%) rotate(-18deg) scale(0);
+        transform: translate(-50%, -50%) rotate(${cfg.stampRotate}deg) scale(0);
         font-family: 'Impact', 'Arial Black', sans-serif;
         font-size: 18px;
         font-weight: 900;
@@ -215,9 +241,9 @@
         animation: anavo-lr-stamp-pop 0.35s ease-out forwards;
       }
       @keyframes anavo-lr-stamp-pop {
-        0%   { transform: translate(-50%, -50%) rotate(-18deg) scale(0.2); opacity: 0; }
-        60%  { transform: translate(-50%, -50%) rotate(-18deg) scale(1.15); opacity: 1; }
-        100% { transform: translate(-50%, -50%) rotate(-18deg) scale(1);   opacity: 1; }
+        0%   { transform: translate(-50%, -50%) rotate(${cfg.stampRotate}deg) scale(0.2); opacity: 0; }
+        60%  { transform: translate(-50%, -50%) rotate(${cfg.stampRotate}deg) scale(${cfg.stampScale * 1.15}); opacity: 1; }
+        100% { transform: translate(-50%, -50%) rotate(${cfg.stampRotate}deg) scale(${cfg.stampScale});   opacity: 1; }
       }
       .anavo-lr-particle {
         position: absolute;
@@ -229,8 +255,8 @@
         position: absolute;
         bottom: 0;
         left: 0;
-        width: ${cfg.logoSize * 2.2}px;
-        min-height: ${cfg.logoSize}px;
+        width: ${cfg.logoH * 2.2}px;
+        min-height: ${cfg.logoH}px;
         pointer-events: none;
         z-index: 3;
       }
@@ -241,9 +267,8 @@
         will-change: transform, opacity;
       }
       .anavo-lr-dead img {
-        width: ${cfg.logoSize * 0.7}px;
-        height: ${cfg.logoSize * 0.7}px;
-        object-fit: contain;
+        height: ${Math.round(cfg.logoH * 0.7)}px;
+        width: auto;
         display: block;
         pointer-events: none;
         user-select: none;
@@ -305,7 +330,7 @@
     }
 
     stageW = root.offsetWidth;
-    laneY = Math.floor((cfg.height - cfg.logoSize) / 2);
+    laneY = Math.floor((cfg.height - cfg.logoH) / 2);
 
     if (cfg.pauseOnHover) {
       root.addEventListener('mouseenter', () => { paused = true; });
@@ -351,7 +376,7 @@
     }
 
     // Move logos
-    const stageCenter = stageW / 2;
+    const stageTrigger = stageW * (cfg.triggerX / 100);
     const moveAmt = (ec.speed * dt) / 1000;
 
     for (let i = liveLogos.length - 1; i >= 0; i--) {
@@ -365,7 +390,7 @@
 
       // Check center trigger
       const logoCenter = logo.x + logo.width / 2;
-      if (!logo.triggered && Math.abs(logoCenter - stageCenter) < ec.centerZonePx) {
+      if (!logo.triggered && Math.abs(logoCenter - stageTrigger) < ec.centerZonePx) {
         logo.triggered = true;
         triggerDeath(logo, ec);
       }
@@ -391,8 +416,7 @@
     wrapper.className = 'anavo-lr-logo';
     wrapper.style.top = laneY + 'px';
     wrapper.style.left = stageW + 'px';
-    wrapper.style.width = cfg.logoSize + 'px';
-    wrapper.style.height = cfg.logoSize + 'px';
+    wrapper.style.height = cfg.logoH + 'px';
 
     const img = document.createElement('img');
     img.src = url;
@@ -400,10 +424,15 @@
     img.draggable = false;
     wrapper.appendChild(img);
 
-    // Stamp element
-    const stamp = document.createElement('div');
-    stamp.className = 'anavo-lr-stamp';
-    wrapper.appendChild(stamp);
+    // Stamp element – only created when stampEnabled
+    let stamp = null;
+    if (cfg.stampEnabled) {
+      stamp = document.createElement('div');
+      stamp.className = 'anavo-lr-stamp';
+      stamp.style.left = cfg.stampX + '%';
+      stamp.style.top = cfg.stampY + '%';
+      wrapper.appendChild(stamp);
+    }
 
     lane.appendChild(wrapper);
 
@@ -411,7 +440,7 @@
       el: wrapper,
       stamp: stamp,
       x: stageW,
-      width: cfg.logoSize,
+      width: wrapper.offsetWidth || cfg.logoH * 2,
       dead: false,
       triggered: false,
     };
@@ -423,21 +452,23 @@
   // DEATH SEQUENCE
   // ========================================
   function triggerDeath(logo, ec) {
-    // 1) Pick random stamp word
-    const word = ec.words[Math.floor(Math.random() * ec.words.length)];
-    logo.stamp.textContent = word;
+    // 1) Pick random stamp word and show stamp (if enabled)
+    if (logo.stamp) {
+      const word = ec.words[Math.floor(Math.random() * ec.words.length)];
+      logo.stamp.textContent = word;
 
-    if (!reducedMotion) {
-      logo.stamp.classList.add('visible');
-    } else {
-      logo.stamp.style.cssText +=
-        ';opacity:1;transform:translate(-50%,-50%) rotate(-18deg) scale(1);';
+      if (!reducedMotion) {
+        logo.stamp.classList.add('visible');
+      } else {
+        logo.stamp.style.cssText +=
+          `;opacity:1;transform:translate(-50%,-50%) rotate(${cfg.stampRotate}deg) scale(${cfg.stampScale});`;
+      }
     }
 
     // 2) Particle explosion
     if (!reducedMotion && ec.particles > 0) {
       const cx = logo.x + logo.width / 2;
-      const cy = laneY + cfg.logoSize / 2;
+      const cy = laneY + cfg.logoH / 2;
       spawnParticles(cx, cy, ec.particles);
     }
 
@@ -524,7 +555,7 @@
     dead.appendChild(img);
 
     // Compute stacking position
-    const deadSize = Math.round(cfg.logoSize * 0.7);
+    const deadSize = Math.round(cfg.logoH * 0.7);
     const stackIndex = deadLogos.length;
     const col = stackIndex % 2;
     const row = Math.floor(stackIndex / 2);
