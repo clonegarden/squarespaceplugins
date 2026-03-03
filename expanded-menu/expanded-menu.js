@@ -114,7 +114,242 @@
     console.log('✅ Forced header hiding via inline styles (Subtle Approach)');
   }
 
-  // ... [funções waitForSquarespaceNav, extractMenuItems, buildCustomMenu, hideSquarespaceNav - IGUAIS]
+  async function waitForSquarespaceNav(maxTries) {
+    maxTries = maxTries || 20;
+    const selectors = [
+      '.header-nav-list',
+      '.header-menu-nav-list',
+      '[data-folder="root"]',
+      '.header-menu-nav-wrapper nav',
+      '.header-nav',
+      'nav.header-nav',
+    ];
+
+    for (let i = 0; i < maxTries; i++) {
+      for (let s = 0; s < selectors.length; s++) {
+        const nav = document.querySelector(selectors[s]);
+        if (nav) {
+          console.log(`✅ Found nav: ${selectors[s]}`);
+          return nav;
+        }
+      }
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+
+    console.error('❌ Could not find Squarespace navigation');
+    return null;
+  }
+
+  function extractMenuItems(navList) {
+    const items = [];
+
+    const navItems = navList.querySelectorAll(
+      'li.header-nav-item, li.header-menu-nav-item, li[class*="nav-item"]'
+    );
+
+    if (navItems.length > 0) {
+      navItems.forEach(li => {
+        const isFolder =
+          li.classList.contains('header-nav-item--folder') ||
+          li.classList.contains('header-menu-nav-item--folder') ||
+          li.querySelector('.header-nav-folder-content, .header-nav-folder') !== null;
+
+        if (isFolder) {
+          const folderLink = li.querySelector('a, button');
+          const folderText = folderLink ? folderLink.textContent.trim() : '';
+          const children = [];
+          const childLinks = li.querySelectorAll(
+            '.header-nav-folder-content a, .header-nav-folder a, ul a'
+          );
+          childLinks.forEach(a => {
+            children.push({
+              text: a.textContent.trim(),
+              url: a.href,
+              isActive:
+                a.classList.contains('active') || a.getAttribute('aria-current') === 'page',
+            });
+          });
+          if (folderText && children.length > 0) {
+            items.push({ text: folderText, isFolder: true, children });
+          }
+        } else {
+          const link = li.querySelector('a');
+          if (link) {
+            const text = link.textContent.trim();
+            const url = link.href;
+            const isActive =
+              link.classList.contains('active') ||
+              link.getAttribute('aria-current') === 'page' ||
+              li.classList.contains('header-nav-item--active') ||
+              li.classList.contains('active');
+            const isHome =
+              link.classList.contains('header-nav-item--homepage') ||
+              link.classList.contains('header-menu-nav-item--homepage') ||
+              li.classList.contains('header-nav-item--homepage') ||
+              li.classList.contains('header-menu-nav-item--homepage');
+            if (text) {
+              items.push({ text, url, isActive, isHome, isFolder: false });
+            }
+          }
+        }
+      });
+    }
+
+    if (items.length === 0) {
+      const links = navList.querySelectorAll('a');
+      links.forEach(link => {
+        const text = link.textContent.trim();
+        const url = link.href;
+        const isActive =
+          link.classList.contains('active') || link.getAttribute('aria-current') === 'page';
+        const isHome =
+          link.classList.contains('header-nav-item--homepage') ||
+          link.classList.contains('header-menu-nav-item--homepage');
+        if (text) {
+          items.push({ text, url, isActive, isHome, isFolder: false });
+        }
+      });
+    }
+
+    console.log(`✅ Extracted ${items.length} menu items`);
+    return items;
+  }
+
+  function buildCustomMenu(menuItems) {
+    const bgStyle = config.bgColor ? `background: ${config.bgColor};` : '';
+    const sectionBorderColor = config.sectionBorderColor || 'var(--lightAccentColor, #e8e8e8)';
+    const sectionBorderCSS = config.showSectionBorder
+      ? `border-bottom: ${config.sectionBorderWidth}px solid ${sectionBorderColor};`
+      : '';
+
+    const itemsHTML = menuItems
+      .map(item => {
+        if (item.isFolder) {
+          const childrenHTML = item.children
+            .map(
+              child =>
+                `<a href="${child.url}" class="anavo-menu-dropdown-item${child.isActive ? ' anavo-menu-dropdown-item--active' : ''}">${child.text}</a>`
+            )
+            .join('');
+          return `<div class="anavo-menu-item anavo-menu-folder">
+            <div class="anavo-menu-folder-toggle">
+              <span class="anavo-menu-link">${item.text}</span>
+              <span class="anavo-menu-arrow">▾</span>
+            </div>
+            <div class="anavo-menu-dropdown">${childrenHTML}</div>
+          </div>`;
+        } else {
+          return `<div class="anavo-menu-item${item.isActive ? ' anavo-menu-item--active' : ''}">
+            <a href="${item.url}" class="anavo-menu-link"${item.isActive ? ' aria-current="page"' : ''}>${item.text}</a>
+          </div>`;
+        }
+      })
+      .join('');
+
+    return `<div class="anavo-menu-wrapper" style="${bgStyle}${sectionBorderCSS}">
+    <nav class="anavo-custom-menu" role="navigation" aria-label="Main navigation">
+      ${itemsHTML}
+    </nav>
+  </div>`;
+  }
+
+  function hideSquarespaceNav() {
+    const navSelectors = [
+      '.header-nav',
+      '.header-menu-nav-wrapper',
+      '.header-nav-wrapper',
+      '[data-nc-element="navigation"]',
+    ];
+    navSelectors.forEach(sel => {
+      const el = document.querySelector(sel);
+      if (el) {
+        el.style.cssText = 'display: none !important; visibility: hidden !important;';
+      }
+    });
+    console.log('✅ Squarespace nav hidden');
+  }
+
+  function insertCustomMenu(menuHTML) {
+    const existing = document.querySelector('.anavo-menu-wrapper');
+    if (existing) existing.remove();
+    document.body.insertAdjacentHTML('afterbegin', menuHTML);
+    console.log('✅ Custom menu inserted');
+  }
+
+  function enableBurgerMode() {
+    const wrapper = document.querySelector('.anavo-menu-wrapper');
+    if (!wrapper) return;
+
+    const burgerStyles = document.createElement('style');
+    burgerStyles.id = 'anavo-burger-styles';
+    burgerStyles.textContent = `
+      @media (max-width: 479px) {
+        .anavo-burger-btn {
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          background: none !important;
+          border: none !important;
+          cursor: pointer !important;
+          padding: 10px !important;
+          z-index: 100001 !important;
+        }
+        .anavo-burger-icon {
+          display: flex !important;
+          flex-direction: column !important;
+          gap: 5px !important;
+        }
+        .anavo-burger-icon span {
+          display: block !important;
+          width: 24px !important;
+          height: 2px !important;
+          background: ${config.fontColor || '#000'} !important;
+          transition: transform 0.2s, opacity 0.2s !important;
+        }
+        html body nav.anavo-custom-menu {
+          display: none !important;
+          flex-direction: column !important;
+          position: absolute !important;
+          top: 100% !important;
+          left: 0 !important;
+          right: 0 !important;
+          padding: 10px 0 !important;
+          background: ${config.bgColor || '#fff'} !important;
+        }
+        html body nav.anavo-custom-menu.anavo-menu-open {
+          display: flex !important;
+        }
+        .anavo-menu-wrapper {
+          display: flex !important;
+          align-items: center !important;
+          justify-content: flex-end !important;
+          padding: 0 15px !important;
+        }
+      }
+      @media (min-width: 480px) {
+        .anavo-burger-btn {
+          display: none !important;
+        }
+      }
+    `;
+    document.head.appendChild(burgerStyles);
+
+    const burgerBtn = document.createElement('button');
+    burgerBtn.className = 'anavo-burger-btn';
+    burgerBtn.setAttribute('aria-label', 'Toggle menu');
+    burgerBtn.setAttribute('aria-expanded', 'false');
+    burgerBtn.innerHTML = `<span class="anavo-burger-icon"><span></span><span></span><span></span></span>`;
+
+    const nav = wrapper.querySelector('nav.anavo-custom-menu');
+    wrapper.insertBefore(burgerBtn, nav);
+
+    burgerBtn.addEventListener('click', function() {
+      const isOpen = nav.classList.toggle('anavo-menu-open');
+      burgerBtn.setAttribute('aria-expanded', String(isOpen));
+    });
+
+    console.log('✅ Burger mode enabled');
+  }
 
   function injectStyles() {
     if (document.getElementById('anavo-expanded-menu-styles')) {
@@ -371,8 +606,6 @@
     document.head.appendChild(styles);
     console.log('✅ Injected custom styles');
   }
-
-  // ... [resto das funções - IGUAIS]
 
   async function loadLicensing() {
     try {
