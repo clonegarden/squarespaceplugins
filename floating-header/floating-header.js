@@ -421,7 +421,7 @@
       if (window.AnavoLicenseManager) return null;
 
       const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licensing.min.js';
+      script.src = 'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@25ad37a8b5f6d9865e11a0ee63089f4eb4912ca2/_shared/licensing.min.js';
       
       await new Promise((resolve, reject) => {
         script.onload = resolve;
@@ -433,7 +433,7 @@
         PLUGIN_NAME,
         PLUGIN_VERSION,
         {
-          licenseServer: 'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licenses.json',
+          licenseServer: 'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@25ad37a8b5f6d9865e11a0ee63089f4eb4912ca2/_shared/licenses.json',
           showUI: true
         }
       );
