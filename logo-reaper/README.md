@@ -1,8 +1,8 @@
 # Logo Reaper Plugin
 
-Animated marquee of company logos that enter from the right. When a logo reaches the center of the block it receives a random **stamp word** + a **particle explosion**, then falls into a dead-logo pile stacked in the left corner of the block. Loops infinitely.
+Animated marquee of company logos that enter from the right. When a logo reaches the trigger position it receives a random **stamp word** + a **particle explosion**, then falls into a dead-logo pile stacked in the left corner of the block. Loops infinitely.
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Version](https://img.shields.io/badge/version-1.1.0-blue)
 ![License](https://img.shields.io/badge/license-Commercial-red)
 
 ---
@@ -10,7 +10,7 @@ Animated marquee of company logos that enter from the right. When a logo reaches
 ## ✨ Features
 
 - 🎬 **Continuous logo marquee** – logos scroll right-to-left, infinitely
-- 💀 **Death sequence** – stamp overlay + particle burst at center, then falls into pile
+- 💀 **Death sequence** – stamp overlay + particle burst at trigger position, then falls into pile
 - 📦 **Dead-logo pile** – logos stack in the bottom-left corner of the block
 - 🖼️ **SVG + raster logos** – use any `<img src="…">` compatible URL
 - ⏸️ **Pause on hover** – optional; respects `prefers-reduced-motion`
@@ -40,17 +40,23 @@ All parameters are passed as query-string values on the `<script>` `src` URL.
 | `selector` | string | `body` | CSS selector of the element to mount the plugin into. Use `body` to prepend to `<body>`, or pass a specific selector like `#logos`. |
 | `height` | number | `220` | Height of the plugin block in pixels. |
 | `logos` | JSON (URL-encoded) | `[]` | Array of logo image URLs. Supports SVG, PNG, WebP, etc. |
-| `logoSize` | number | `64` | Width and height of each logo image in pixels. |
+| `logoH` | number | `64` | Height of each logo image in pixels. Width is set to `auto` so logos keep their natural proportions. Also accepts legacy `logoSize` for backward compatibility. |
 | `speed` | number | `80` | Lane scroll speed in px/s. |
 | `spawnEvery` | number | `2000` | Milliseconds between logo spawns. |
 | `maxLive` | number | `5` | Maximum number of logos alive in the lane simultaneously. |
-| `centerZonePx` | number | `60` | Pixel tolerance around the stage center that triggers the death sequence. |
+| `centerZonePx` | number | `60` | Pixel tolerance around the trigger point that activates the death sequence. |
+| `triggerX` | number | `50` | Horizontal trigger position as a **percent of stage width** (default `50` = center). The death sequence fires when a logo's center crosses this point. |
 | `words` | string | `REJECTED,DEAD,GONE,REKT,GG,LOSER,CRUSHED,BURIED` | Comma-separated list of stamp words chosen at random on death. |
 | `particles` | number | `20` | Number of explosion particles per death. |
 | `pileMax` | number | `8` | Maximum dead logos kept in the pile; oldest are removed when cap is reached. |
 | `pauseOnHover` | boolean | `true` | Pause the marquee when the mouse is over the plugin block. |
-| `bgColor` | hex | `f5f5f5` | Background colour of the plugin block (hex without `#`). |
+| `bgColor` | color | `f5f5f5` | Background colour of the plugin block. Accepts: bare 6-digit hex (e.g. `1a1a2e`), hex with `#` (e.g. `%231a1a2e`), `transparent`, `rgb(…)`, or `rgba(…)`. |
 | `stampColor` | hex | `cc0000` | Colour of the stamp text and border (hex without `#`). |
+| `stampEnabled` | boolean | `true` | Show the stamp overlay on death. Set to `false` to disable stamps entirely. |
+| `stampX` | number | `50` | Horizontal position of the stamp as a **percent of logo width** (default `50` = center). |
+| `stampY` | number | `45` | Vertical position of the stamp as a **percent of logo height** (default `45` = near center). |
+| `stampRotate` | number | `-12` | Rotation of the stamp in degrees (negative = counter-clockwise). |
+| `stampScale` | number | `1` | Final scale of the stamp after its pop animation. |
 
 ### Encoding the `logos` array
 
@@ -65,7 +71,9 @@ const param = encodeURIComponent(JSON.stringify(logos));
 
 ---
 
-## 🧩 Example
+## 🧩 Examples
+
+### Basic install
 
 ```html
 <script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/logo-reaper/logo-reaper.min.js
@@ -80,6 +88,47 @@ const param = encodeURIComponent(JSON.stringify(logos));
 ```
 
 Add `<div id="partner-logos"></div>` wherever you want the block to appear in your Squarespace page.
+
+### Dark background with custom stamp position
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/logo-reaper/logo-reaper.min.js
+  ?selector=%23partner-logos
+  &height=240
+  &logoH=80
+  &bgColor=1a1a2e
+  &stampColor=e94560
+  &stampX=50
+  &stampY=40
+  &stampRotate=-15
+  &stampScale=1.1
+  &logos=%5B%22https%3A%2F%2Fexample.com%2Flogo1.svg%22%5D
+"></script>
+```
+
+### Transparent background, trigger shifted left, stamps disabled
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/logo-reaper/logo-reaper.min.js
+  ?selector=%23partner-logos
+  &height=180
+  &bgColor=transparent
+  &stampEnabled=false
+  &triggerX=40
+  &logos=%5B%22https%3A%2F%2Fexample.com%2Flogo1.svg%22%5D
+"></script>
+```
+
+### RGBA semi-transparent background
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/logo-reaper/logo-reaper.min.js
+  ?selector=%23partner-logos
+  &height=220
+  &bgColor=rgba(0%2C0%2C0%2C0.5)
+  &logos=%5B%22https%3A%2F%2Fexample.com%2Flogo1.svg%22%5D
+"></script>
+```
 
 ---
 
@@ -96,7 +145,7 @@ window.LogoReaper.resume();
 window.LogoReaper.destroy();
 
 // Get plugin version
-window.LogoReaper.getVersion(); // '1.0.0'
+window.LogoReaper.getVersion(); // '1.1.0'
 ```
 
 ---
@@ -175,6 +224,15 @@ The plugin respects the `prefers-reduced-motion` media query:
 ---
 
 ## 📝 Changelog
+
+### v1.1.0 (2026-03-02)
+- ✨ `logoH` parameter – controls logo height in pixels; width auto-scales to natural aspect ratio (accepts legacy `logoSize` for backward compatibility)
+- ✨ `bgColor` – now accepts `transparent`, bare 6-digit hex, `#`-prefixed hex, `rgb(…)`, and `rgba(…)` (matches other plugins in the repo)
+- ✨ `stampEnabled` – disable stamp overlay entirely
+- ✨ `stampX` / `stampY` – position stamp as percent of logo dimensions
+- ✨ `stampRotate` / `stampScale` – control stamp rotation (degrees) and final scale
+- ✨ `triggerX` – move the death-trigger point horizontally as percent of stage width
+- ♿ Stamp reduced-motion path uses `stampRotate` / `stampScale` values
 
 ### v1.0.0 (2026-02-24)
 - ✨ Initial release
