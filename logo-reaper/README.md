@@ -2,7 +2,7 @@
 
 Animated marquee of company logos that enter from the right. When a logo reaches the trigger position it receives a random **stamp word** + a **particle explosion**, then falls into a dead-logo pile stacked in the left corner of the block. Loops infinitely.
 
-![Version](https://img.shields.io/badge/version-1.1.0-blue)
+![Version](https://img.shields.io/badge/version-1.2.0-blue)
 ![License](https://img.shields.io/badge/license-Commercial-red)
 
 ---
@@ -57,6 +57,7 @@ All parameters are passed as query-string values on the `<script>` `src` URL.
 | `stampY` | number | `45` | Vertical position of the stamp as a **percent of logo height** (default `45` = near center). |
 | `stampRotate` | number | `-12` | Rotation of the stamp in degrees (negative = counter-clockwise). |
 | `stampScale` | number | `1` | Final scale of the stamp after its pop animation. |
+| `debug` | boolean | `false` | Enable debug mode. When `true`: prints `[LogoReaper]` prefixed logs (config, triggerX in px, spawn/death events) and shows a visible red vertical guide line at the `triggerX` position inside the stage. Stays aligned on resize via `ResizeObserver` (with graceful fallback). Has no effect and no overhead when `false`. |
 
 ### Encoding the `logos` array
 
@@ -224,6 +225,13 @@ The plugin respects the `prefers-reduced-motion` media query:
 ---
 
 ## 📝 Changelog
+
+### v1.2.0 (2026-03-04)
+- ✨ `debug` parameter – enable debug mode via `?debug=true`
+  - Prints `[LogoReaper]`-prefixed console logs: parsed config at init, `triggerX` in px, spawn events, and kill/death events
+  - Renders a 1px red vertical guide line at the exact `triggerX` pixel position inside the stage
+  - Guide line stays aligned on window resize and on container width changes via `ResizeObserver` (graceful fallback if unavailable)
+  - No visual or logging overhead when `debug=false` (default)
 
 ### v1.1.0 (2026-03-02)
 - ✨ `logoH` parameter – controls logo height in pixels; width auto-scales to natural aspect ratio (accepts legacy `logoSize` for backward compatibility)

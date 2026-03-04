@@ -126,6 +126,54 @@
     </div>
   </div>
 
+  <h2>🐛 New in v1.2 – Debug Mode</h2>
+
+  <p style="font-size:0.9rem;opacity:0.7;line-height:1.6;margin-bottom:16px;">
+    Add <code>debug=true</code> to your script URL to enable: a visible red trigger guide line + <code>[LogoReaper]</code>-prefixed console logs (config, triggerX in px, spawn &amp; death events).
+    The line stays aligned on resize via <code>ResizeObserver</code>.
+  </p>
+
+  <div class="snippet">
+    <span class="comment">&lt;!-- Debug mode: trigger guide line visible at 42% + console logs --&gt;</span><br>
+    &lt;script src="…/logo-reaper.min.js<br>
+    &nbsp;&nbsp;?selector=%23logo-stage<br>
+    &nbsp;&nbsp;&amp;triggerX=42<br>
+    &nbsp;&nbsp;&amp;debug=true<br>
+    &nbsp;&nbsp;&amp;logos=…<br>
+    "&gt;&lt;/script&gt;
+  </div>
+
+  <!-- ③ Debug example: second instance with debug=true and triggerX=42 -->
+  <h2>🔴 Live Debug Demo (triggerX=42, debug=true)</h2>
+  <div id="logo-stage-debug" style="width:100%;margin:16px 0;"></div>
+  <script>
+    (function () {
+      var logos = [
+        "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='60'><rect width='120' height='60' rx='8' fill='%23e94560'/><text x='60' y='38' text-anchor='middle' fill='white' font-size='18' font-family='Arial' font-weight='bold'>ACME</text></svg>",
+        "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='60'><rect width='120' height='60' rx='8' fill='%233498db'/><text x='60' y='38' text-anchor='middle' fill='white' font-size='18' font-family='Arial' font-weight='bold'>NEXUS</text></svg>",
+        "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='60'><rect width='120' height='60' rx='8' fill='%232ecc71'/><text x='60' y='38' text-anchor='middle' fill='white' font-size='18' font-family='Arial' font-weight='bold'>VERDE</text></svg>"
+      ];
+
+      var params = new URLSearchParams({
+        selector:   '#logo-stage-debug',
+        height:     '180',
+        logoH:      '55',
+        speed:      '70',
+        spawnEvery: '2000',
+        maxLive:    '3',
+        bgColor:    '111827',
+        stampColor: 'ff3300',
+        triggerX:   '42',
+        debug:      'true',
+        logos:      JSON.stringify(logos)
+      });
+
+      var s = document.createElement('script');
+      s.src = '../logo-reaper.js?' + params.toString();
+      document.head.appendChild(s);
+    })();
+  </script>
+
   <h2>📋 New in v1.1 – Parameter Examples</h2>
 
   <div class="snippet">

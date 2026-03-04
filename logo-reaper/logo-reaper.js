@@ -2,7 +2,7 @@
  * =======================================
  * LOGO REAPER - Squarespace Plugin
  * =======================================
- * @version 1.1.0
+ * @version 1.2.0
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
@@ -18,7 +18,7 @@
 (function () {
   'use strict';
 
-  const PLUGIN_VERSION = '1.1.0';
+  const PLUGIN_VERSION = '1.2.0';
   const PLUGIN_NAME = 'LogoReaper';
 
   console.log(`💀 ${PLUGIN_NAME} v${PLUGIN_VERSION} - Loading...`);
@@ -91,6 +91,8 @@
         stampScale: parseFloat(p.get('stampScale') || '1'),
         // Trigger position (percent of stage width)
         triggerX: parseFloat(p.get('triggerX') || '50'),
+        // Debug mode – shows visual guide line and extra console logs
+        debug: p.get('debug') === 'true',
       };
     } catch (_e) {
       return {
@@ -114,6 +116,7 @@
         stampRotate: -12,
         stampScale: 1,
         triggerX: 50,
+        debug: false,
       };
     }
   }
@@ -283,6 +286,7 @@
   let root = null;
   let lane = null;
   let pile = null;
+  let debugLine = null;
   let stageW = 0;
   let laneY = 0;
   let paused = false;
@@ -339,6 +343,34 @@
 
     window.addEventListener('resize', onResize);
 
+    // Debug: visual trigger guide line
+    if (cfg.debug) {
+      debugLine = document.createElement('div');
+      debugLine.className = 'anavo-lr-debug-line';
+      debugLine.style.cssText =
+        'position:absolute;top:0;bottom:0;width:1px;' +
+        'background:rgba(255,0,0,0.7);pointer-events:none;z-index:20;' +
+        'left:' + cfg.triggerX + '%;';
+      const label = document.createElement('span');
+      label.style.cssText =
+        'position:absolute;top:2px;left:3px;font-size:10px;font-family:monospace;' +
+        'color:#ff4444;white-space:nowrap;line-height:1;';
+      label.textContent = 'triggerX';
+      debugLine.appendChild(label);
+      root.appendChild(debugLine);
+
+      // Update line position using absolute px so it's always accurate
+      updateDebugLine();
+
+      // ResizeObserver keeps line in sync with container width changes
+      if (typeof ResizeObserver !== 'undefined') {
+        const ro = new ResizeObserver(updateDebugLine);
+        ro.observe(root);
+        // Store for cleanup
+        root._lrResizeObserver = ro;
+      }
+    }
+
     // Start async licensing check without blocking
     loadLicensing(root);
 
@@ -348,6 +380,14 @@
 
   function onResize() {
     if (root) stageW = root.offsetWidth;
+    if (cfg.debug) updateDebugLine();
+  }
+
+  function updateDebugLine() {
+    if (!debugLine || !root) return;
+    stageW = root.offsetWidth;
+    const px = stageW * (cfg.triggerX / 100);
+    debugLine.style.left = px + 'px';
   }
 
   // ========================================
@@ -377,6 +417,10 @@
 
     // Move logos
     const stageTrigger = stageW * (cfg.triggerX / 100);
+    if (cfg.debug && !loop._triggerLogged) {
+      console.log(`[LogoReaper] triggerX = ${cfg.triggerX}% → ${stageTrigger.toFixed(1)}px (stageW=${stageW}px)`);
+      loop._triggerLogged = true;
+    }
     const moveAmt = (ec.speed * dt) / 1000;
 
     for (let i = liveLogos.length - 1; i >= 0; i--) {
@@ -446,12 +490,20 @@
     };
 
     liveLogos.push(logoData);
+
+    if (cfg.debug) {
+      console.log(`[LogoReaper] Spawn: logo #${logoIndex} → ${url}`);
+    }
   }
 
   // ========================================
   // DEATH SEQUENCE
   // ========================================
   function triggerDeath(logo, ec) {
+    if (cfg.debug) {
+      console.log(`[LogoReaper] Death triggered: logo at x=${logo.x.toFixed(1)}px, center=${(logo.x + logo.width / 2).toFixed(1)}px`);
+    }
+
     // 1) Pick random stamp word and show stamp (if enabled)
     if (logo.stamp) {
       const word = ec.words[Math.floor(Math.random() * ec.words.length)];
@@ -477,7 +529,11 @@
     setTimeout(() => {
       logo.dead = true;
       logo.el.remove();
-      addToPile(logo.el.querySelector('img').src, ec);
+      const src = logo.el.querySelector('img').src;
+      if (cfg.debug) {
+        console.log(`[LogoReaper] Moved to pile: ${src}`);
+      }
+      addToPile(src, ec);
 
       // Remove from liveLogos
       const idx = liveLogos.indexOf(logo);
@@ -589,6 +645,9 @@
   // ========================================
   function init() {
     console.log(`🔧 ${PLUGIN_NAME}: Initializing...`);
+    if (cfg.debug) {
+      console.log('[LogoReaper] Debug mode ON. Parsed config:', cfg);
+    }
     injectStyles();
     mount();
     console.log(`✅ ${PLUGIN_NAME} v${PLUGIN_VERSION} active`);
@@ -609,7 +668,13 @@
     destroy: () => {
       if (rafId) cancelAnimationFrame(rafId);
       window.removeEventListener('resize', onResize);
-      if (root && root.parentNode) root.remove();
+      if (root) {
+        if (root._lrResizeObserver) {
+          root._lrResizeObserver.disconnect();
+          root._lrResizeObserver = null;
+        }
+        if (root.parentNode) root.remove();
+      }
       liveLogos = [];
       deadLogos = [];
     },
