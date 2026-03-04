@@ -7,6 +7,18 @@
     "*.squarespace.com"
   ],
   "licenses": {
+    "AnimatedHeader": {
+      "license_key": "lic_animated_header_001",
+      "license_type": "standard",
+      "allowed_domains": [
+        "caper-dragonfly-2dch.squarespace.com"
+      ],
+      "features": [
+        "customization",
+        "no_watermark"
+      ],
+      "expires": null
+    },
     "ExpandedMenu": {
       "license_key": "lic_expanded_menu_001",
       "license_type": "standard",
