@@ -58,6 +58,8 @@ Add to **Settings → Advanced → Code Injection → Footer**:
 | `stickyTop` | `0` | Top offset when sticky (px) | `?stickyTop=20` |
 | `startAtBottom` | `true` | Start at bottom vs top | `?startAtBottom=false` |
 | `teleport` | `true` | Enable teleport animation mode | `?teleport=false` |
+| `fade` | `false` | Replace slide with fade-out/fade-in | `?fade=true` |
+| `noTransition` | `false` | Disable all transitions (overrides fade) | `?noTransition=true` |
 | `zIndex` | `9999` | Z-index value | `?zIndex=10000` |
 | `debug` | `false` | Enable console logging | `?debug=true` |
 
@@ -103,6 +105,23 @@ Add to **Settings → Advanced → Code Injection → Footer**:
 
 The header starts at the bottom of the first section and scrolls naturally with the page.
 When it reaches the top of the viewport, it sticks there — no disappearing or teleport animation.
+
+### Example 7: Fade Animation
+
+```html
+<script src="...?fade=true"></script>
+```
+
+Instead of sliding between positions, the header fades out, switches position instantly, then fades back in.
+
+### Example 8: No Transition (Instant Switch)
+
+```html
+<script src="...?noTransition=true"></script>
+```
+
+All CSS transitions are disabled. The header switches positions instantly with no animation.
+If both `fade` and `noTransition` are set, `noTransition` wins.
 
 ---
 
