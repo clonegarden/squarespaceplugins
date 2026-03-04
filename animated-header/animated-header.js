@@ -72,6 +72,9 @@
         borderWidth: params.get('borderWidth') || '1',
         borderColor: fixHexColor(params.get('borderColor')) || '#000000',
         borderPosition: params.get('borderPosition') || 'bottom', // 'top', 'bottom', 'both'
+
+        // Behavior
+        teleport: params.get('teleport') !== 'false', // default true
       };
     } catch (_e) {
       return {
@@ -89,6 +92,7 @@
         borderWidth: '1',
         borderColor: '#000000',
         borderPosition: 'bottom',
+        teleport: true,
       };
     }
   }
@@ -168,8 +172,10 @@
       )
       .join('');
 
+    const positionAttr = config.teleport ? ' data-position="bottom"' : '';
+
     return `
-      <div class="anavo-sticky-wrapper" data-position="bottom">
+      <div class="anavo-sticky-wrapper"${positionAttr}>
         <nav class="anavo-sticky-nav">
           ${itemsHTML}
         </nav>
@@ -253,18 +259,9 @@
 
     const styles = document.createElement('style');
     styles.id = 'anavo-sticky-header-styles';
-    styles.textContent = `
-      /* ANAVO STICKY HEADER v${PLUGIN_VERSION} */
 
-      .anavo-sticky-wrapper {
-        position: fixed;
-        width: 100%;
-        z-index: 99999;
-        transition: all ${config.transitionDuration}ms cubic-bezier(0.4, 0, 0.2, 1);
-        ${bgCSS}
-        ${borderCSS}
-      }
-
+    const positionCSS = config.teleport
+      ? `
       /* BOTTOM POSITION (inicial) */
       .anavo-sticky-wrapper[data-position="bottom"] {
         bottom: 0;
@@ -280,7 +277,30 @@
       /* FADE durante transição */
       .anavo-sticky-wrapper.transitioning {
         opacity: 0;
+      }`
+      : `
+      /* STICKY MODE (teleport=false) */
+      .anavo-sticky-wrapper {
+        top: 0;
+      }`;
+
+    const wrapperPositionCSS = config.teleport ? 'position: fixed;' : 'position: sticky;';
+    const wrapperTransitionCSS = config.teleport
+      ? `transition: all ${config.transitionDuration}ms cubic-bezier(0.4, 0, 0.2, 1);`
+      : '';
+
+    styles.textContent = `
+      /* ANAVO STICKY HEADER v${PLUGIN_VERSION} */
+
+      .anavo-sticky-wrapper {
+        ${wrapperPositionCSS}
+        width: 100%;
+        z-index: 99999;
+        ${wrapperTransitionCSS}
+        ${bgCSS}
+        ${borderCSS}
       }
+      ${positionCSS}
 
       nav.anavo-sticky-nav {
         display: flex;
@@ -558,7 +578,9 @@
 
       insertCustomHeader(headerHTML);
 
-      initStickyAnimation();
+      if (config.teleport) {
+        initStickyAnimation();
+      }
 
       initDynamicHomeButton();
 

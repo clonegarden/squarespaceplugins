@@ -34,6 +34,7 @@ Menu sticky que **inicia no footer** e **sobe suavemente para o topo** ao rolar.
 | **`borderWidth`** | number | `1` | Largura da borda (px) |
 | **`borderColor`** | string | `#000` | Cor da borda |
 | **`borderPosition`** | string | `bottom` | Posição (`top`, `bottom`, `both`) |
+| **`teleport`** | boolean | `true` | `true`: animated teleport (starts at bottom, moves to top on scroll). `false`: normal sticky (no animation, sticks to top naturally). |
 
 ## 💡 Exemplos
 
