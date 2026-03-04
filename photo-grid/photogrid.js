@@ -22,6 +22,8 @@
   const PLUGIN_VERSION = '1.0.0';
   const PLUGIN_NAME = 'PhotoGrid';
   const STYLE_ID = 'anavo-photogrid-styles';
+  const DEFAULT_IMG_WIDTH = 400;
+  const DEFAULT_IMG_HEIGHT = 300;
 
   console.log('\uD83D\uDDBC\uFE0F ' + PLUGIN_NAME + ' v' + PLUGIN_VERSION + ' - Loading...');
 
@@ -312,7 +314,7 @@
     const ah = parseInt(img.getAttribute('height') || '0', 10);
     if (aw > 0 && ah > 0) return { width: aw, height: ah };
 
-    return { width: 400, height: 300 }; // fallback 4:3
+    return { width: DEFAULT_IMG_WIDTH, height: DEFAULT_IMG_HEIGHT }; // fallback 4:3
   }
 
   /**
@@ -418,6 +420,82 @@
         });
       }
     });
+
+    // FALLBACK: If no items found via block-type selectors,
+    // try finding any images in the section (handles Squarespace 7.1 lazy-loading)
+    if (items.length === 0) {
+      dbg('Block-type selectors found nothing, trying fallback image detection...');
+
+      // Try Squarespace fluid image wrappers
+      var fluidImages = section.querySelectorAll(
+        '[data-src], .sqs-image img, .intrinsic img, img[data-src]'
+      );
+      fluidImages.forEach(function (el) {
+        var img = el.tagName === 'IMG' ? el : el.querySelector('img');
+        var src = '';
+
+        if (img) {
+          src = getBestImageSrc(img);
+        }
+        if (!src && el.dataset && el.dataset.src) {
+          src = el.dataset.src;
+        }
+        if (!src) return;
+
+        var dims = img ? getImageDimensions(img) : { width: DEFAULT_IMG_WIDTH, height: DEFAULT_IMG_HEIGHT };
+
+        // Also try to get dimensions from parent wrapper
+        if (dims.width === DEFAULT_IMG_WIDTH && dims.height === DEFAULT_IMG_HEIGHT) {
+          var wrapper = el.closest('[data-image-dimensions]');
+          if (wrapper && wrapper.dataset.imageDimensions) {
+            var parts = wrapper.dataset.imageDimensions.split('x');
+            if (parts.length === 2) {
+              dims = {
+                width: parseInt(parts[0], 10) || DEFAULT_IMG_WIDTH,
+                height: parseInt(parts[1], 10) || DEFAULT_IMG_HEIGHT,
+              };
+            }
+          }
+        }
+
+        var blockEl =
+          el.closest('.sqs-block, .sqs-image, [class*="block"]') || el.parentElement;
+        if (seenBlocks.has(blockEl)) return;
+        seenBlocks.add(blockEl);
+
+        items.push({
+          type: 'image',
+          src: src,
+          width: dims.width,
+          height: dims.height,
+          alt: (img && img.alt) || '',
+          blockEl: blockEl,
+        });
+      });
+
+      // Last resort: find any <img> in the section
+      if (items.length === 0) {
+        var allImgs = section.querySelectorAll('img');
+        allImgs.forEach(function (img) {
+          var src = getBestImageSrc(img);
+          if (!src) return;
+          var dims = getImageDimensions(img);
+          var blockEl = img.closest('.sqs-block, [class*="block"]') || img.parentElement;
+          if (seenBlocks.has(blockEl)) return;
+          seenBlocks.add(blockEl);
+          items.push({
+            type: 'image',
+            src: src,
+            width: dims.width,
+            height: dims.height,
+            alt: img.alt || '',
+            blockEl: blockEl,
+          });
+        });
+      }
+
+      dbg('Fallback detection found', items.length, 'items');
+    }
 
     dbg('Collected', items.length, 'media items');
     return items;
@@ -869,16 +947,34 @@
 
       dbg('Target section:', section);
 
-      // Collect media from supported block types
-      const rawItems = collectMedia(section);
+      // Collect media from supported block types, with polling for lazy-loaded images
+      let rawItems = [];
+      let attempts = 0;
+      const maxAttempts = 50; // 50 × 100ms = 5 seconds
+
+      while (rawItems.length === 0 && attempts < maxAttempts) {
+        rawItems = collectMedia(section);
+        if (rawItems.length > 0) break;
+        if (attempts === 0) {
+          dbg('No media found on first try, waiting for Squarespace to render images...');
+        }
+        attempts++;
+        await new Promise(function (r) {
+          setTimeout(r, 100);
+        });
+      }
+
       if (rawItems.length === 0) {
         console.warn(
           '[' +
             PLUGIN_NAME +
-            '] No supported media blocks found. Add Image, Gallery, or Video blocks to the target section.'
+            '] No supported media blocks found after ' +
+            maxAttempts +
+            ' attempts. Add Image, Gallery, or Video blocks to the target section.'
         );
         return;
       }
+      dbg('Found', rawItems.length, 'items after', attempts, 'attempts');
 
       // Apply custom order
       _orderedItems = applyOrder(rawItems, cfg.order);
