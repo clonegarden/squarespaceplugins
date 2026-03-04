@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Photo Grid — Demo</title>
+    <style>
+      /* ---- Reset & base ---- */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+        background: #f4f4f4;
+        color: #111;
+      }
+
+      /* ---- Simulated Squarespace page header ---- */
+      .demo-header {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: #fff;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        padding: 14px 32px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .demo-header .brand {
+        font-size: 18px;
+        font-weight: 700;
+        color: #111;
+        text-decoration: none;
+      }
+
+      .demo-header nav a {
+        font-size: 14px;
+        color: #555;
+        text-decoration: none;
+        margin-left: 24px;
+      }
+
+      /* ---- Hero ---- */
+      .demo-hero {
+        background: linear-gradient(135deg, #1e3a5f 0%, #2d6a9f 100%);
+        color: #fff;
+        text-align: center;
+        padding: 80px 24px 64px;
+      }
+
+      .demo-hero h1 {
+        font-size: clamp(2rem, 5vw, 3.5rem);
+        font-weight: 800;
+        margin-bottom: 14px;
+      }
+
+      .demo-hero p {
+        font-size: 1.1rem;
+        opacity: 0.8;
+        max-width: 520px;
+        margin: 0 auto;
+      }
+
+      /* ---- Section wrapper ---- */
+      .demo-section {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 48px 24px;
+      }
+
+      .demo-section h2 {
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+
+      .demo-section .subtitle {
+        font-size: 0.95rem;
+        color: #666;
+        margin-bottom: 32px;
+      }
+
+      /* ---- "Photo Album" section (target for the plugin) ---- */
+      /*
+        In a real Squarespace page this would be a standard page section.
+        We simulate it here with a plain <section> element containing image blocks.
+      */
+      #photo-album-section {
+        background: #fff;
+        padding: 48px 24px 64px;
+      }
+
+      /* Heading that the plugin searches for */
+      #photo-album-section h2.photo-album-heading {
+        font-size: 1.6rem;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 32px;
+        color: #111;
+      }
+
+      /* ---- Simulated Squarespace image blocks ---- */
+      /*
+        The plugin looks for elements matching:
+          .sqs-block-image, [data-block-type="5"], .image-block
+        Here we use .sqs-block-image to simulate a real Squarespace image block.
+      */
+      .sqs-block-image {
+        display: inline-block;
+        margin: 4px;
+        vertical-align: top;
+      }
+
+      .sqs-block-image img {
+        display: block;
+        max-width: 100%;
+        height: auto;
+      }
+
+      /* ---- Preset switcher ---- */
+      .preset-bar {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(10, 10, 10, 0.88);
+        border-radius: 999px;
+        padding: 10px 20px;
+        display: flex;
+        gap: 8px;
+        z-index: 99998;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .preset-bar span {
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 12px;
+        line-height: 30px;
+        padding: 0 4px;
+      }
+
+      .preset-bar button {
+        border: none;
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+        padding: 6px 16px;
+        border-radius: 999px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: background 0.2s;
+      }
+
+      .preset-bar button:hover,
+      .preset-bar button.active {
+        background: #3b82f6;
+      }
+
+      /* ---- Footer ---- */
+      .demo-footer {
+        text-align: center;
+        padding: 40px 24px;
+        font-size: 13px;
+        color: #999;
+      }
+
+      .demo-footer a {
+        color: #3b82f6;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ===== Simulated Squarespace Header ===== -->
+    <header class="demo-header">
+      <a class="brand" href="#">MySite</a>
+      <nav>
+        <a href="#">Home</a>
+        <a href="#">Gallery</a>
+        <a href="#">Contact</a>
+      </nav>
+    </header>
+
+    <!-- ===== Hero ===== -->
+    <section class="demo-hero">
+      <h1>Photo Grid Demo</h1>
+      <p>
+        Justified collage grid built automatically from simulated Squarespace image blocks.
+        Use the preset switcher at the bottom to try different layouts.
+      </p>
+    </section>
+
+    <!-- ===== Photo Album section (targeted by the plugin) ===== -->
+    <!--
+      This <section> simulates a Squarespace page section.
+      The plugin finds it because it contains a heading with the text "Photo Album".
+      Inside it we add .sqs-block-image elements to simulate Squarespace image blocks.
+    -->
+    <section id="photo-album-section" data-section-id="demo-section">
+      <!-- This heading triggers plugin detection -->
+      <h2 class="photo-album-heading">Photo Album</h2>
+
+      <!-- Simulated Squarespace Image blocks -->
+      <!-- data-image-width / data-image-height tell the plugin the native aspect ratio -->
+
+      <div class="sqs-block-image" data-block-type="5">
+        <img
+          src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80"
+          data-image-width="1200"
+          data-image-height="800"
+          alt="Mountain landscape"
+          loading="lazy"
+        />
+      </div>
+
+      <div class="sqs-block-image" data-block-type="5">
+        <img
+          src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1200&q=80"
+          data-image-width="1200"
+          data-image-height="900"
+          alt="Forest path"
+          loading="lazy"
+        />
+      </div>
+
+      <div class="sqs-block-image" data-block-type="5">
+        <img
+          src="https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=800&q=80"
+          data-image-width="800"
+          data-image-height="1200"
+          alt="Tall forest (portrait)"
+          loading="lazy"
+        />
+      </div>
+
+      <div class="sqs-block-image" data-block-type="5">
+        <img
+          src="https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=1200&q=80"
+          data-image-width="1200"
+          data-image-height="800"
+          alt="Ocean waves"
+          loading="lazy"
+        />
+      </div>
+
+      <div class="sqs-block-image" data-block-type="5">
+        <img
+          src="https://images.unsplash.com/photo-1504701954957-2010ec3bcec1?w=1200&q=80"
+          data-image-width="1200"
+          data-image-height="675"
+          alt="Desert dunes"
+          loading="lazy"
+        />
+      </div>
+
+      <div class="sqs-block-image" data-block-type="5">
+        <img
+          src="https://images.unsplash.com/photo-1516912481808-3406841bd33c?w=900&q=80"
+          data-image-width="900"
+          data-image-height="1200"
+          alt="Waterfall (portrait)"
+          loading="lazy"
+        />
+      </div>
+
+      <div class="sqs-block-image" data-block-type="5">
+        <img
+          src="https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=1200&q=80"
+          data-image-width="1200"
+          data-image-height="800"
+          alt="Wildflowers"
+          loading="lazy"
+        />
+      </div>
+
+      <div class="sqs-block-image" data-block-type="5">
+        <img
+          src="https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?w=1200&q=80"
+          data-image-width="1200"
+          data-image-height="900"
+          alt="Snow mountains"
+          loading="lazy"
+        />
+      </div>
+
+      <div class="sqs-block-image" data-block-type="5">
+        <img
+          src="https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=800&q=80"
+          data-image-width="800"
+          data-image-height="1200"
+          alt="Waterfall close-up (portrait)"
+          loading="lazy"
+        />
+      </div>
+
+      <div class="sqs-block-image" data-block-type="5">
+        <img
+          src="https://images.unsplash.com/photo-1501854140801-50d01698950b?w=1200&q=80"
+          data-image-width="1200"
+          data-image-height="800"
+          alt="Aerial mountains"
+          loading="lazy"
+        />
+      </div>
+
+      <div class="sqs-block-image" data-block-type="5">
+        <img
+          src="https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=1600&q=80"
+          data-image-width="1600"
+          data-image-height="900"
+          alt="Wide panorama"
+          loading="lazy"
+        />
+      </div>
+
+      <div class="sqs-block-image" data-block-type="5">
+        <img
+          src="https://images.unsplash.com/photo-1520962880247-cfaf541c8724?w=900&q=80"
+          data-image-width="900"
+          data-image-height="1200"
+          alt="Cliff face (portrait)"
+          loading="lazy"
+        />
+      </div>
+    </section>
+
+    <!-- ===== Other page content ===== -->
+    <section class="demo-section">
+      <h2>About This Demo</h2>
+      <p class="subtitle">Simulating a Squarespace 7.1 page with Image blocks</p>
+      <p style="color:#555; line-height:1.7; max-width:640px">
+        The Photo Grid plugin detects the section above by searching for a heading with the text
+        <strong>"Photo Album"</strong>. It collects every
+        <code>.sqs-block-image</code> element, reads the native image dimensions from
+        <code>data-image-width</code> / <code>data-image-height</code>, then removes the original
+        blocks and replaces them with a fully responsive justified collage grid.
+      </p>
+    </section>
+
+    <!-- ===== Preset Switcher ===== -->
+    <div class="preset-bar" id="presetBar">
+      <span>Layout:</span>
+      <button onclick="loadPreset(1)" id="btn-1">Classic</button>
+      <button onclick="loadPreset(2)" id="btn-2">Compact</button>
+      <button onclick="loadPreset(3)" id="btn-3">Wide</button>
+      <button onclick="loadPreset(4)" id="btn-4">Masonry</button>
+      <button onclick="loadPreset(5)" id="btn-5">Tight</button>
+    </div>
+
+    <!-- ===== Footer ===== -->
+    <footer class="demo-footer">
+      <p>
+        Photo Grid v1.0.0 &mdash; by
+        <a href="https://anavo.tech/plugins" target="_blank" rel="noopener">Anavo Tech</a>
+      </p>
+    </footer>
+
+    <!-- ===== Photo Grid Plugin ===== -->
+    <!--
+      In production, replace the src with the CDN URL:
+      https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/photo-grid/photogrid.min.js
+
+      Here we load the unminified source for development.
+    -->
+    <script
+      id="photogrid-script"
+      src="../photogrid.js?premadegrid=1&debug=true"
+    ></script>
+
+    <script>
+      // Simple preset switcher — reloads the page with a different premadegrid param
+      function loadPreset(n) {
+        const params = new URLSearchParams(window.location.search);
+        params.set('demo-preset', n);
+        window.location.search = params.toString();
+      }
+
+      // Highlight the active preset button and apply it to the script src
+      (function () {
+        const params = new URLSearchParams(window.location.search);
+        const active = parseInt(params.get('demo-preset') || '1', 10);
+
+        const btn = document.getElementById('btn-' + active);
+        if (btn) btn.classList.add('active');
+
+        // Swap premadegrid param on the script element so the plugin loads with the chosen preset
+        const scriptEl = document.getElementById('photogrid-script');
+        if (scriptEl && params.get('demo-preset')) {
+          scriptEl.src = '../photogrid.js?premadegrid=' + active + '&debug=true';
+        }
+      })();
+    </script>
+  </body>
+</html>
