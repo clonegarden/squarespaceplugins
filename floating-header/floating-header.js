@@ -2,9 +2,15 @@
  * =======================================
  * FLOATING HEADER - Squarespace Plugin
  * =======================================
- * @version 1.0.7
+ * @version 1.0.8
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
+ *
+ * ADDED v1.0.8:
+ * - NEW: fade parameter (default false)
+ *   - fade=true: replace slide animation with fade-out/fade-in during position switch
+ * - NEW: noTransition parameter (default false)
+ *   - noTransition=true: disable all transitions (overrides fade); instant switch
  *
  * ADDED v1.0.7:
  * - NEW: teleport parameter (default true)
@@ -26,7 +32,7 @@
 (function() {
   'use strict';
 
-  const PLUGIN_VERSION = '1.0.7';
+  const PLUGIN_VERSION = '1.0.8';
   const PLUGIN_NAME = 'FloatingHeader';
   
   console.log(`🎈 ${PLUGIN_NAME} v${PLUGIN_VERSION} - Loading...`);
@@ -98,6 +104,8 @@
       adjustSectionHeight: params.get('adjustSectionHeight') !== 'false',
       sectionMinHeight: params.get('sectionMinHeight') || '90vh',
       teleport: params.get('teleport') !== 'false',
+      fade: params.get('fade') === 'true',
+      noTransition: params.get('noTransition') === 'true',
       
       // Advanced
       zIndex: params.get('zIndex') || '9999',
@@ -248,6 +256,18 @@
     const fontFamilyCSS = config.fontFamily ? `font-family: ${config.fontFamily} !important;` : '';
     const fontWeightCSS = config.fontWeight ? `font-weight: ${config.fontWeight} !important;` : '';
 
+    // Build transition CSS based on mode (noTransition wins over fade)
+    let wrapperTransitionCSS = '';
+    let headerTransitionCSS = '';
+    if (!config.noTransition) {
+      if (config.fade) {
+        wrapperTransitionCSS = `transition: opacity ${config.transitionSpeed}ms cubic-bezier(0.4, 0, 0.2, 1) !important;`;
+      } else {
+        wrapperTransitionCSS = `transition: all ${config.transitionSpeed}ms cubic-bezier(0.4, 0, 0.2, 1) !important;`;
+        headerTransitionCSS = `transition: all ${config.transitionSpeed}ms cubic-bezier(0.4, 0, 0.2, 1) !important;`;
+      }
+    }
+
     const styles = document.createElement('style');
     styles.id = 'anavo-floating-header-styles';
     styles.textContent = `
@@ -271,7 +291,7 @@
         display: block !important;
         visibility: visible !important;
         opacity: 1 !important;
-        transition: all ${config.transitionSpeed}ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+        ${wrapperTransitionCSS}
       }
 
       /* Header overrides */
@@ -280,7 +300,7 @@
       .anavo-floating-header-wrapper .header {
         ${bgColorCSS}
         ${fontColorCSS}
-        transition: all ${config.transitionSpeed}ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+        ${headerTransitionCSS}
         position: static !important;
         margin: 0 !important;
       }
@@ -323,6 +343,9 @@
       this.firstSection = firstSection;
       this.wrapper = null;
       this.isSticky = false;
+      this._fadingInProgress = false;
+      this._fadeTimer = null;
+      this._fadeDoneTimer = null;
 
       this.sectionBottom = 0;
       this.headerHeight = 0;
@@ -436,6 +459,7 @@
 
     handleScroll() {
       if (!config.teleport) return;
+      if (this._fadingInProgress) return;
 
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
@@ -447,11 +471,35 @@
       // ✅ CRÍTICO: Sem threshold (transição exata)
       if (scrollTop >= this.triggerPoint && !this.isSticky) {
         if (config.debug) console.log('→ Transition to STICKY');
-        this.positionAtTop();
+        if (config.fade) {
+          this._fadeSwitch(() => this.positionAtTop());
+        } else {
+          this.positionAtTop();
+        }
       } else if (scrollTop < this.triggerPoint && this.isSticky) {
         if (config.debug) console.log('→ Transition to BOTTOM');
-        this.positionAtBottom();
+        if (config.fade) {
+          this._fadeSwitch(() => this.positionAtBottom());
+        } else {
+          this.positionAtBottom();
+        }
       }
+    }
+
+    _fadeSwitch(positionFn) {
+      this._fadingInProgress = true;
+      this.wrapper.style.opacity = '0';
+      this._fadeTimer = setTimeout(() => {
+        positionFn();
+        // Use requestAnimationFrame to ensure the position change is rendered
+        // before starting the fade-in, avoiding an invisible opacity jump
+        requestAnimationFrame(() => {
+          if (this.wrapper) this.wrapper.style.opacity = '1';
+        });
+        this._fadeDoneTimer = setTimeout(() => {
+          this._fadingInProgress = false;
+        }, config.transitionSpeed);
+      }, config.transitionSpeed);
     }
   }
 
@@ -553,6 +601,7 @@
       console.log('   Mode:', config.teleport ? 'Teleport (absolute → fixed)' : 'Natural Sticky');
       console.log('   Start Position:', config.startAtBottom ? 'Bottom of Section 1' : 'Top (Sticky)');
       console.log('   Section Height:', config.adjustSectionHeight ? config.sectionMinHeight : 'Not adjusted');
+      console.log('   Transition:', config.noTransition ? 'None (instant)' : config.fade ? 'Fade' : 'Slide');
 
       // Licensing em background
       setTimeout(() => loadLicensing(), 1000);
