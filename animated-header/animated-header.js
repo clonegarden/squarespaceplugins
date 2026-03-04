@@ -530,7 +530,7 @@
 
       const licenseManager = new window.AnavoLicenseManager(PLUGIN_NAME, PLUGIN_VERSION, {
         licenseServer:
-          'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licenses.json',
+          'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licenses.json?v=20251',
         showUI: true,
       });
 
