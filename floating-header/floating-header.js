@@ -2,9 +2,14 @@
  * =======================================
  * FLOATING HEADER - Squarespace Plugin
  * =======================================
- * @version 1.0.6
+ * @version 1.0.7
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
+ *
+ * ADDED v1.0.7:
+ * - NEW: teleport parameter (default true)
+ *   - teleport=true: existing behavior (absolute → fixed on scroll)
+ *   - teleport=false: natural sticky mode (scrolls with page, sticks at top)
  *
  * FIXED v1.0.6:
  * - CRITICAL: Wrapper hidden until positioned (no flash)
@@ -21,7 +26,7 @@
 (function() {
   'use strict';
 
-  const PLUGIN_VERSION = '1.0.6';
+  const PLUGIN_VERSION = '1.0.7';
   const PLUGIN_NAME = 'FloatingHeader';
   
   console.log(`🎈 ${PLUGIN_NAME} v${PLUGIN_VERSION} - Loading...`);
@@ -92,6 +97,7 @@
       startAtBottom: params.get('startAtBottom') !== 'false',
       adjustSectionHeight: params.get('adjustSectionHeight') !== 'false',
       sectionMinHeight: params.get('sectionMinHeight') || '90vh',
+      teleport: params.get('teleport') !== 'false',
       
       // Advanced
       zIndex: params.get('zIndex') || '9999',
@@ -199,6 +205,18 @@
   // ========================================
 
   function adjustFirstSectionHeight(section) {
+    if (!config.teleport) {
+      // Non-teleport mode: always set flex column layout so margin-top: auto works
+      if (config.adjustSectionHeight) {
+        section.style.minHeight = config.sectionMinHeight;
+        section.style.boxSizing = 'border-box';
+      }
+      section.style.display = 'flex';
+      section.style.flexDirection = 'column';
+      if (config.debug) console.log('📐 Section flex column for sticky (non-teleport) mode');
+      return;
+    }
+
     if (!config.adjustSectionHeight) {
       if (config.debug) console.log('⏭️ Section height adjustment disabled');
       return;
@@ -315,21 +333,32 @@
       // Criar wrapper
       this.wrapper = document.createElement('div');
       this.wrapper.className = 'anavo-floating-header-wrapper';
-      
-      // Inserir wrapper ANTES do header original
-      this.originalHeader.parentNode.insertBefore(this.wrapper, this.originalHeader);
-      
+
+      if (config.teleport) {
+        // Teleport mode: insert wrapper before original header in the DOM
+        this.originalHeader.parentNode.insertBefore(this.wrapper, this.originalHeader);
+      } else {
+        // Non-teleport (sticky) mode: insert wrapper inside first section
+        this.firstSection.appendChild(this.wrapper);
+      }
+
       // Mover header para dentro do wrapper
       this.wrapper.appendChild(this.originalHeader);
 
       // ✅ CRÍTICO: Calcular ANTES de mostrar
-      this.updateDimensions();
+      if (config.teleport) {
+        this.updateDimensions();
+      }
 
       // ✅ CRÍTICO: Posicionar ANTES de mostrar
-      if (config.startAtBottom) {
-        this.positionAtBottom();
+      if (config.teleport) {
+        if (config.startAtBottom) {
+          this.positionAtBottom();
+        } else {
+          this.positionAtTop();
+        }
       } else {
-        this.positionAtTop();
+        this.positionSticky();
       }
 
       // ✅ CRÍTICO: Mostrar wrapper APENAS AGORA
@@ -338,19 +367,21 @@
         if (config.debug) console.log('✅ Wrapper revealed (no flash)');
       });
 
-      // ✅ MELHORADO: Scroll direto (sem debounce)
-      window.addEventListener('scroll', () => this.handleScroll(), { passive: true });
-      
-      // Resize recalcula
-      window.addEventListener('resize', () => {
-        this.updateDimensions();
-        // Reposiciona imediatamente
-        if (this.isSticky) {
-          this.positionAtTop();
-        } else {
-          this.positionAtBottom();
-        }
-      });
+      if (config.teleport) {
+        // ✅ MELHORADO: Scroll direto (sem debounce)
+        window.addEventListener('scroll', () => this.handleScroll(), { passive: true });
+
+        // Resize recalcula
+        window.addEventListener('resize', () => {
+          this.updateDimensions();
+          // Reposiciona imediatamente
+          if (this.isSticky) {
+            this.positionAtTop();
+          } else {
+            this.positionAtBottom();
+          }
+        });
+      }
 
       if (config.debug) console.log('✅ Controller initialized');
     }
@@ -393,7 +424,19 @@
       if (config.debug) console.log('📍 TOP (sticky)');
     }
 
+    positionSticky() {
+      this.wrapper.style.position = 'sticky';
+      this.wrapper.style.top = '0px';
+      this.wrapper.style.marginTop = 'auto';
+
+      this.isSticky = true;
+
+      if (config.debug) console.log('📍 STICKY (natural scroll mode)');
+    }
+
     handleScroll() {
+      if (!config.teleport) return;
+
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
       // ✅ MELHORADO: Log detalhado
@@ -507,6 +550,7 @@
       controller.init();
 
       console.log(`✅ ${PLUGIN_NAME} v${PLUGIN_VERSION} Active!`);
+      console.log('   Mode:', config.teleport ? 'Teleport (absolute → fixed)' : 'Natural Sticky');
       console.log('   Start Position:', config.startAtBottom ? 'Bottom of Section 1' : 'Top (Sticky)');
       console.log('   Section Height:', config.adjustSectionHeight ? config.sectionMinHeight : 'Not adjusted');
 

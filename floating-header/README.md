@@ -57,6 +57,7 @@ Add to **Settings → Advanced → Code Injection → Footer**:
 | `transitionSpeed` | `600` | Animation speed (ms) | `?transitionSpeed=800` |
 | `stickyTop` | `0` | Top offset when sticky (px) | `?stickyTop=20` |
 | `startAtBottom` | `true` | Start at bottom vs top | `?startAtBottom=false` |
+| `teleport` | `true` | Enable teleport animation mode | `?teleport=false` |
 | `zIndex` | `9999` | Z-index value | `?zIndex=10000` |
 | `debug` | `false` | Enable console logging | `?debug=true` |
 
@@ -94,6 +95,15 @@ Add to **Settings → Advanced → Code Injection → Footer**:
 <script src="...?startAtBottom=false"></script>
 ```
 
+### Example 6: Natural Sticky Mode (No Teleport)
+
+```html
+<script src="...?teleport=false"></script>
+```
+
+The header starts at the bottom of the first section and scrolls naturally with the page.
+When it reaches the top of the viewport, it sticks there — no disappearing or teleport animation.
+
 ---
 
 ## 🎯 How It Works
@@ -122,12 +132,23 @@ PAGE LOAD
 
 ### Technical Details
 
+#### Teleport Mode (`teleport=true`, default)
+
 1. **Detects** first section automatically (no IDs needed)
 2. **Wraps** existing Squarespace header
 3. **Positions** at bottom of section 1 (absolute positioning)
 4. **Monitors** scroll position
 5. **Animates** to sticky top when user scrolls past section 1
 6. **Reverses** animation when scrolling back up
+
+#### Natural Sticky Mode (`teleport=false`)
+
+1. **Detects** first section automatically (no IDs needed)
+2. **Wraps** existing Squarespace header
+3. **Inserts** wrapper inside the first section (at the bottom via flex layout)
+4. **Uses** CSS `position: sticky` — header scrolls naturally with the page
+5. **Sticks** to top when the header reaches the top of the viewport
+6. No scroll JavaScript needed — browser handles sticking natively
 
 ---
 
