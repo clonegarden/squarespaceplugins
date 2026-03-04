@@ -111,6 +111,18 @@
         "no_watermark"
       ],
       "expires": null
+    },
+    "PhotoGrid": {
+      "license_key": "lic_photo_grid_001",
+      "license_type": "standard",
+      "allowed_domains": [
+        "purple-plantain.squarespace.com"
+      ],
+      "features": [
+        "customization",
+        "no_watermark"
+      ],
+      "expires": null
     }
   }
 }
