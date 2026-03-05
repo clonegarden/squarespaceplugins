@@ -256,7 +256,17 @@
     // Priority 2: element with configured targetId (default: "photogrid")
     const byId = document.getElementById(cfg.targetId);
     if (byId) {
-      dbg('Found target via ID "' + cfg.targetId + '":', byId);
+      // Walk up to the nearest Squarespace section — the images are siblings
+      // of the code block, not children of the #photogrid div
+      const parentSection = byId.closest(
+        'section, [data-section-id], .page-section, article, [class*="Section"]'
+      );
+      if (parentSection) {
+        dbg('Found target via ID "' + cfg.targetId + '", resolved to parent section:', parentSection);
+        return parentSection;
+      }
+      // Fallback: use the element itself (for non-Squarespace contexts)
+      dbg('Found target via ID "' + cfg.targetId + '" (no parent section found, using element directly):', byId);
       return byId;
     }
 
@@ -264,8 +274,17 @@
     const els = document.getElementsByTagName(cfg.targetTag);
     const idx = cfg.targetIndex - 1;
     if (els.length > idx) {
+      const el = els[idx];
+      // Walk up to the nearest Squarespace section if the matched element is not already one
+      const parentSection = el.closest(
+        'section, [data-section-id], .page-section, article, [class*="Section"]'
+      );
+      if (parentSection) {
+        dbg('Found target via tag "' + cfg.targetTag + '" index ' + cfg.targetIndex + ', resolved to parent section:', parentSection);
+        return parentSection;
+      }
       dbg('Found target via tag "' + cfg.targetTag + '" index ' + cfg.targetIndex);
-      return els[idx];
+      return el;
     }
 
     return null;
