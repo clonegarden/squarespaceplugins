@@ -92,6 +92,8 @@
         targetIndex: parseInt(p.get('targetIndex') || '1', 10),
         premadegrid: premadegridIndex || null,
         order,
+        gridWidth: p.get('gridWidth') || '100%',
+        gridMaxWidth: p.get('gridMaxWidth') || 'none',
         debug: p.get('debug') === 'true',
       };
     } catch (_e) {
@@ -108,6 +110,8 @@
         targetIndex: 1,
         premadegrid: null,
         order: null,
+        gridWidth: '100%',
+        gridMaxWidth: 'none',
         debug: false,
       };
     }
@@ -780,6 +784,18 @@
     const params = [];
     if (premadegridNum) params.push('premadegrid=' + premadegridNum);
     if (orderArr && orderArr.length) params.push('order=' + orderArr.join(','));
+    if (cfg.targetTag && cfg.targetTag !== 'div') params.push('targetTag=' + encodeURIComponent(cfg.targetTag));
+    if (cfg.targetIndex && cfg.targetIndex !== 1) params.push('targetIndex=' + encodeURIComponent(cfg.targetIndex));
+    if (cfg.targetId && cfg.targetId !== 'photogrid') params.push('targetId=' + encodeURIComponent(cfg.targetId));
+    if (!premadegridNum) {
+      // Only include layout/sizing params when not using a premade preset
+      if (cfg.layout && cfg.layout !== 'justified') params.push('layout=' + cfg.layout);
+      if (cfg.rowHeight && cfg.rowHeight !== 300) params.push('rowHeight=' + cfg.rowHeight);
+      if (cfg.gutter && cfg.gutter !== 4) params.push('gutter=' + cfg.gutter);
+      if (cfg.columns && cfg.columns !== 3) params.push('columns=' + cfg.columns);
+    }
+    if (cfg.gridWidth && cfg.gridWidth !== '100%') params.push('gridWidth=' + encodeURIComponent(cfg.gridWidth));
+    if (cfg.gridMaxWidth && cfg.gridMaxWidth !== 'none') params.push('gridMaxWidth=' + encodeURIComponent(cfg.gridMaxWidth));
     return base + (params.length ? '?' + params.join('&') : '');
   }
 
@@ -998,50 +1014,17 @@
       // Apply custom order
       _orderedItems = applyOrder(rawItems, cfg.order);
 
-      // Determine insertion point: before the first block element
-      const blockEls = rawItems
-        .map(function (item) {
-          return item.blockEl;
-        })
-        .filter(Boolean);
+      // Clear section and build fresh grid container
+      section.innerHTML = '';
 
-      // De-duplicate (gallery can have multiple items pointing to same blockEl)
-      const uniqueBlocks = [];
-      const seenBlockEls = new Set();
-      blockEls.forEach(function (el) {
-        if (!seenBlockEls.has(el)) {
-          seenBlockEls.add(el);
-          uniqueBlocks.push(el);
-        }
-      });
-
-      // Build grid container
       _container = document.createElement('div');
       _container.className = 'anavo-pg-container';
-
-      // Insert before first block (or append to section if no blocks found in DOM)
-      let firstBlock = null;
-      for (let i = 0; i < uniqueBlocks.length; i++) {
-        const el = uniqueBlocks[i];
-        if (!firstBlock) {
-          firstBlock = el;
-        } else if (
-          el.compareDocumentPosition(firstBlock) & Node.DOCUMENT_POSITION_FOLLOWING
-        ) {
-          firstBlock = el;
-        }
+      _container.style.width = cfg.gridWidth;
+      if (cfg.gridMaxWidth && cfg.gridMaxWidth !== 'none') {
+        _container.style.maxWidth = cfg.gridMaxWidth;
+        _container.style.margin = '0 auto';
       }
-
-      if (firstBlock && firstBlock.parentNode) {
-        firstBlock.parentNode.insertBefore(_container, firstBlock);
-      } else {
-        section.appendChild(_container);
-      }
-
-      // Remove original blocks
-      uniqueBlocks.forEach(function (block) {
-        if (block.parentNode) block.parentNode.removeChild(block);
-      });
+      section.appendChild(_container);
 
       // Initial render
       renderGrid(_container, _orderedItems);
