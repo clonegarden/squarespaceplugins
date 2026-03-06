@@ -393,9 +393,9 @@
       });
     });
 
-    // ---- Video blocks (data-block-type="32") ----
+    // ---- Video blocks (data-block-type="32", "51", "13") ----
     const videoBlocks = section.querySelectorAll(
-      '.sqs-block-video, [data-block-type="32"], .video-block'
+      '.sqs-block-video, [data-block-type="32"], [data-block-type="51"], [data-block-type="13"], .video-block, .sqs-native-video'
     );
     videoBlocks.forEach(function (block) {
       if (seenBlocks.has(block)) return;
@@ -404,12 +404,17 @@
       // Native HTML5 video element
       const vid = block.querySelector('video');
       if (vid) {
-        const src = vid.src || (vid.querySelector('source') ? vid.querySelector('source').src : '');
-        const w = parseInt(vid.getAttribute('width') || '0', 10) || 1280;
-        const h = parseInt(vid.getAttribute('height') || '0', 10) || 720;
+        const src =
+          vid.src ||
+          (vid.dataset && vid.dataset.src) ||
+          (vid.querySelector('source') ? vid.querySelector('source').src : '');
+        const w = parseInt(vid.getAttribute('width') || '0', 10) || vid.videoWidth || 1280;
+        const h = parseInt(vid.getAttribute('height') || '0', 10) || vid.videoHeight || 720;
+        const poster = vid.getAttribute('poster') || '';
         items.push({
           type: 'video',
           src: src,
+          poster: poster,
           width: w,
           height: h,
           blockEl: block,
@@ -516,6 +521,50 @@
           });
         });
       }
+
+      // Fallback: find any <video> elements in the section
+      var allVideos = section.querySelectorAll('video');
+      allVideos.forEach(function (vid) {
+        var src =
+          vid.src ||
+          (vid.dataset && vid.dataset.src) ||
+          (vid.querySelector('source') ? vid.querySelector('source').src : '');
+        if (!src) return;
+        var w = parseInt(vid.getAttribute('width') || '0', 10) || vid.videoWidth || 1280;
+        var h = parseInt(vid.getAttribute('height') || '0', 10) || vid.videoHeight || 720;
+        var poster = vid.getAttribute('poster') || '';
+        var blockEl =
+          vid.closest('.sqs-block, .sqs-native-video, [class*="block"]') || vid.parentElement;
+        if (seenBlocks.has(blockEl)) return;
+        seenBlocks.add(blockEl);
+        items.push({
+          type: 'video',
+          src: src,
+          poster: poster,
+          width: w,
+          height: h,
+          blockEl: blockEl,
+        });
+      });
+
+      // Fallback: find any <iframe> elements (YouTube/Vimeo embeds)
+      var allIframes = section.querySelectorAll(
+        'iframe[src*="youtube"], iframe[src*="vimeo"], iframe[data-src*="youtube"], iframe[data-src*="vimeo"]'
+      );
+      allIframes.forEach(function (iframe) {
+        var src = iframe.src || (iframe.dataset && iframe.dataset.src) || '';
+        if (!src) return;
+        var blockEl = iframe.closest('.sqs-block, [class*="block"]') || iframe.parentElement;
+        if (seenBlocks.has(blockEl)) return;
+        seenBlocks.add(blockEl);
+        items.push({
+          type: 'iframe',
+          src: src,
+          width: 1280,
+          height: 720,
+          blockEl: blockEl,
+        });
+      });
 
       dbg('Fallback detection found', items.length, 'items');
     }
