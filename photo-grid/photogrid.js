@@ -395,7 +395,7 @@
 
     // ---- Video blocks (data-block-type="32", "51", "13") ----
     const videoBlocks = section.querySelectorAll(
-      '.sqs-block-video, [data-block-type="32"], [data-block-type="51"], , [data-block-type="52"], [data-block-type="13"], .video-block, .sqs-native-video'
+      '.sqs-block-video, [data-block-type="32"], [data-block-type="51"], [data-block-type="52"], [data-block-type="13"], .video-block, .sqs-native-video'
     );
     videoBlocks.forEach(function (block) {
       if (seenBlocks.has(block)) return;
