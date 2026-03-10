@@ -2,7 +2,7 @@
  * =======================================
  * PHOTO GRID - Squarespace Plugin
  * =======================================
- * @version 1.2.0
+ * @version 1.2.1
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
@@ -19,7 +19,7 @@
 (function () {
   'use strict';
 
-  const PLUGIN_VERSION = '1.2.0';
+  const PLUGIN_VERSION = '1.2.1';
   const PLUGIN_NAME = 'PhotoGrid';
   const STYLE_ID = 'anavo-photogrid-styles';
   const DEFAULT_IMG_WIDTH = 400;
@@ -341,6 +341,34 @@
   }
 
   /**
+   * Normalize any element to the outermost block ancestor so all detection
+   * passes resolve to the same DOM node for seenBlocks deduplication.
+   */
+  function getCanonicalBlock(el) {
+    return (
+      el.closest('[data-block-type]') ||
+      el.closest('.sqs-block') ||
+      el.closest('.sqs-native-video, .sqs-video-wrapper, [class*="block"]') ||
+      el
+    );
+  }
+
+  /**
+   * Check whether a video/iframe src has already been collected, normalising
+   * away trailing /playlist.m3u8 and trailing slashes so two references to the
+   * same Squarespace CDN video are treated as identical.
+   */
+  function isDuplicateVideoSrc(items, src) {
+    if (!src) return false;
+    var normalizedSrc = src.replace(/\/playlist\.m3u8$/, '').replace(/\/$/, '');
+    return items.some(function (existing) {
+      if (existing.type !== 'video' && existing.type !== 'iframe') return false;
+      var existingNorm = (existing.src || '').replace(/\/playlist\.m3u8$/, '').replace(/\/$/, '');
+      return existingNorm === normalizedSrc;
+    });
+  }
+
+  /**
    * Collect all images and videos from supported Squarespace block types
    * (Image block, Gallery block, Video block) within the target section.
    */
@@ -353,8 +381,9 @@
       '.sqs-block-image, [data-block-type="5"], .image-block'
     );
     imageBlocks.forEach(function (block) {
-      if (seenBlocks.has(block)) return;
-      seenBlocks.add(block);
+      var blockEl = getCanonicalBlock(block);
+      if (seenBlocks.has(blockEl)) return;
+      seenBlocks.add(blockEl);
       const img = block.querySelector('img');
       if (!img) return;
       const src = getBestImageSrc(img);
@@ -366,7 +395,7 @@
         width: dims.width,
         height: dims.height,
         alt: img.alt || '',
-        blockEl: block,
+        blockEl: blockEl,
       });
     });
 
@@ -375,8 +404,9 @@
       '.sqs-block-gallery, [data-block-type="25"], .gallery-block'
     );
     galleryBlocks.forEach(function (block) {
-      if (seenBlocks.has(block)) return;
-      seenBlocks.add(block);
+      var blockEl = getCanonicalBlock(block);
+      if (seenBlocks.has(blockEl)) return;
+      seenBlocks.add(blockEl);
       const imgs = block.querySelectorAll('img');
       imgs.forEach(function (img) {
         const src = getBestImageSrc(img);
@@ -388,7 +418,7 @@
           width: dims.width,
           height: dims.height,
           alt: img.alt || '',
-          blockEl: block,
+          blockEl: blockEl,
         });
       });
     });
@@ -398,8 +428,9 @@
       '.sqs-block-video, [data-block-type="32"], [data-block-type="51"], [data-block-type="52"], [data-block-type="13"], [data-block-type="54"], [data-block-type="55"], .video-block, .sqs-native-video, .sqs-block-video-native, .sqs-video-wrapper'
     );
     videoBlocks.forEach(function (block) {
-      if (seenBlocks.has(block)) return;
-      seenBlocks.add(block);
+      var blockEl = getCanonicalBlock(block);
+      if (seenBlocks.has(blockEl)) return;
+      seenBlocks.add(blockEl);
 
       // Native HTML5 video element
       const vid = block.querySelector('video');
@@ -411,27 +442,32 @@
         const w = parseInt(vid.getAttribute('width') || '0', 10) || vid.videoWidth || 1280;
         const h = parseInt(vid.getAttribute('height') || '0', 10) || vid.videoHeight || 720;
         const poster = vid.getAttribute('poster') || '';
-        items.push({
-          type: 'video',
-          src: src,
-          poster: poster,
-          width: w,
-          height: h,
-          blockEl: block,
-        });
+        if (!isDuplicateVideoSrc(items, src)) {
+          items.push({
+            type: 'video',
+            src: src,
+            poster: poster,
+            width: w,
+            height: h,
+            blockEl: blockEl,
+          });
+        }
         return;
       }
 
       // Iframe embed (YouTube / Vimeo)
       const iframe = block.querySelector('iframe');
       if (iframe) {
-        items.push({
-          type: 'iframe',
-          src: iframe.src || (iframe.dataset && iframe.dataset.src) || '',
-          width: 1280,
-          height: 720,
-          blockEl: block,
-        });
+        var iframeSrc = iframe.src || (iframe.dataset && iframe.dataset.src) || '';
+        if (!isDuplicateVideoSrc(items, iframeSrc)) {
+          items.push({
+            type: 'iframe',
+            src: iframeSrc,
+            width: 1280,
+            height: 720,
+            blockEl: blockEl,
+          });
+        }
         return;
       }
 
@@ -439,19 +475,24 @@
       const videoWrapper = block.querySelector('[data-type="video"]');
       if (videoWrapper) {
         const videoSrc = (videoWrapper.dataset && videoWrapper.dataset.src) || '';
-        items.push({
-          type: 'video',
-          src: videoSrc,
-          width: 1280,
-          height: 720,
-          blockEl: block,
-        });
+        if (!isDuplicateVideoSrc(items, videoSrc)) {
+          items.push({
+            type: 'video',
+            src: videoSrc,
+            width: 1280,
+            height: 720,
+            blockEl: blockEl,
+          });
+        }
         return;
       }
 
       // Squarespace Native Video via data-config-video JSON attribute
       // SQS 7.1 stores the video URL inside a JSON blob on .sqs-native-video elements
       var nativeVideoEl = block.querySelector('.sqs-native-video[data-config-video]');
+      if (!nativeVideoEl && block.matches && block.matches('.sqs-native-video[data-config-video]')) {
+        nativeVideoEl = block;
+      }
       if (nativeVideoEl) {
         try {
           var videoConfig = JSON.parse(nativeVideoEl.getAttribute('data-config-video'));
@@ -490,15 +531,17 @@
                 if (posterImg) posterSrc = getBestImageSrc(posterImg);
               }
 
-              items.push({
-                type: 'video',
-                src: hlsUrl,
-                poster: posterSrc,
-                width: videoWidth,
-                height: videoHeight,
-                isHLS: true,
-                blockEl: block,
-              });
+              if (!isDuplicateVideoSrc(items, hlsUrl)) {
+                items.push({
+                  type: 'video',
+                  src: hlsUrl,
+                  poster: posterSrc,
+                  width: videoWidth,
+                  height: videoHeight,
+                  isHLS: true,
+                  blockEl: blockEl,
+                });
+              }
             }
           }
         } catch (_jsonErr) {
@@ -548,8 +591,7 @@
           }
         }
 
-        var blockEl =
-          el.closest('.sqs-block, .sqs-image, [class*="block"]') || el.parentElement;
+        var blockEl = getCanonicalBlock(el);
         if (seenBlocks.has(blockEl)) return;
         seenBlocks.add(blockEl);
 
@@ -570,7 +612,7 @@
           var src = getBestImageSrc(img);
           if (!src) return;
           var dims = getImageDimensions(img);
-          var blockEl = img.closest('.sqs-block, [class*="block"]') || img.parentElement;
+          var blockEl = getCanonicalBlock(img);
           if (seenBlocks.has(blockEl)) return;
           seenBlocks.add(blockEl);
           items.push({
@@ -593,7 +635,7 @@
       '[data-src*="video.squarespace-cdn"], [data-video-url*="video.squarespace-cdn"], .sqs-native-video[data-config-video], .sqs-video-wrapper'
     );
     nativeVideoWrappers.forEach(function (wrapper) {
-      var blockEl = wrapper.closest('.sqs-block, [class*="block"]') || wrapper;
+      var blockEl = getCanonicalBlock(wrapper);
       if (seenBlocks.has(blockEl)) return;
       seenBlocks.add(blockEl);
 
@@ -670,7 +712,7 @@
       var w = 1280;
       var h = Math.round(w * hlsItemAspectRatio);
 
-      if (videoBaseUrl || posterSrc) {
+      if ((videoBaseUrl || posterSrc) && !isDuplicateVideoSrc(items, videoBaseUrl)) {
         items.push({
           type: 'video',
           src: videoBaseUrl,
@@ -697,18 +739,19 @@
       if (!src && !poster) return;
       var w = parseInt(vid.getAttribute('width') || '0', 10) || vid.videoWidth || 1280;
       var h = parseInt(vid.getAttribute('height') || '0', 10) || vid.videoHeight || 720;
-      var blockEl =
-        vid.closest('.sqs-block, .sqs-native-video, [class*="block"]') || vid.parentElement;
+      var blockEl = getCanonicalBlock(vid);
       if (seenBlocks.has(blockEl)) return;
       seenBlocks.add(blockEl);
-      items.push({
-        type: 'video',
-        src: src,
-        poster: poster,
-        width: w,
-        height: h,
-        blockEl: blockEl,
-      });
+      if (!isDuplicateVideoSrc(items, src)) {
+        items.push({
+          type: 'video',
+          src: src,
+          poster: poster,
+          width: w,
+          height: h,
+          blockEl: blockEl,
+        });
+      }
     });
 
     // Always scan for bare <iframe> embeds (YouTube/Vimeo) — same reasoning as above.
@@ -718,16 +761,18 @@
     allIframes.forEach(function (iframe) {
       var src = iframe.src || (iframe.dataset && iframe.dataset.src) || '';
       if (!src) return;
-      var blockEl = iframe.closest('.sqs-block, [class*="block"]') || iframe.parentElement;
+      var blockEl = getCanonicalBlock(iframe);
       if (seenBlocks.has(blockEl)) return;
       seenBlocks.add(blockEl);
-      items.push({
-        type: 'iframe',
-        src: src,
-        width: 1280,
-        height: 720,
-        blockEl: blockEl,
-      });
+      if (!isDuplicateVideoSrc(items, src)) {
+        items.push({
+          type: 'iframe',
+          src: src,
+          width: 1280,
+          height: 720,
+          blockEl: blockEl,
+        });
+      }
     });
 
     dbg('Collected', items.length, 'media items');
