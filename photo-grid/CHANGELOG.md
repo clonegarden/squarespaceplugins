@@ -1,5 +1,15 @@
 # Changelog — Photo Grid
 
+## [1.3.0] - 2026-03-10
+
+### ✨ Added
+
+- **Minimize button** — the edit panel header now contains a ▬ button that collapses the panel into a small 🖼️ floating icon fixed near the Squarespace desktop/mobile view toggle area (`top: 48px; right: 60px`). Clicking the icon restores the full panel.
+- **Toggle Plugin Off button** — a full-width button at the bottom of the edit panel. When clicked while the plugin is ON, the grid container is hidden and the original Squarespace section HTML is restored so editors can freely add or remove images and videos using the native Squarespace editor. When clicked again (Turn Plugin On), any changes the editor made are picked up by re-running `collectMedia()` on the section, the grid is re-rendered with the updated items, and all panel controls are re-enabled.
+- **Module-level state** — added `_section`, `_originalSectionHTML`, `_pluginDisabled`, and `_rawItems` variables at module scope to support the toggle and minimize features.
+
+---
+
 ## [1.2.1] - 2026-03-10
 
 ### Fixed
@@ -61,6 +71,7 @@
 
 ---
 
+[1.3.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/photo-grid-v1.3.0
 [1.2.1]: https://github.com/clonegarden/squarespaceplugins/releases/tag/photo-grid-v1.2.1
 [1.2.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/photo-grid-v1.2.0
 [1.1.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/photo-grid-v1.1.0

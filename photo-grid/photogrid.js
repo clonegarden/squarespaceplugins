@@ -2,7 +2,7 @@
  * =======================================
  * PHOTO GRID - Squarespace Plugin
  * =======================================
- * @version 1.2.1
+ * @version 1.3.0
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
@@ -19,7 +19,7 @@
 (function () {
   'use strict';
 
-  const PLUGIN_VERSION = '1.2.1';
+  const PLUGIN_VERSION = '1.3.0';
   const PLUGIN_NAME = 'PhotoGrid';
   const STYLE_ID = 'anavo-photogrid-styles';
   const DEFAULT_IMG_WIDTH = 400;
@@ -233,7 +233,9 @@
       'font-size:12px;cursor:pointer;width:100%;margin-top:6px;' +
       (reducedMotion ? '' : 'transition:opacity 0.15s;') +
       '}' +
-      '.anavo-pg-copy-btn:hover{opacity:0.82;}';
+      '.anavo-pg-copy-btn:hover{opacity:0.82;}' +
+      '.anavo-pg-mini-btn{position:fixed;top:48px;right:60px;width:36px;height:36px;border-radius:8px;background:rgba(18,18,18,0.93);color:#fff;border:1px solid rgba(255,255,255,0.15);font-size:18px;cursor:pointer;z-index:99999;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.3);}' +
+      '.anavo-pg-mini-btn:hover{opacity:0.85;}';
     document.head.appendChild(style);
   }
 
@@ -1101,9 +1103,40 @@
     panel.setAttribute('role', 'toolbar');
     panel.setAttribute('aria-label', 'Photo Grid Editor');
 
+    // ---- Header row with title and minimize button ----
+    const headerRow = document.createElement('div');
+    headerRow.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;';
+
     const title = document.createElement('h4');
     title.textContent = '\uD83D\uDDBC\uFE0F Photo Grid';
-    panel.appendChild(title);
+    title.style.margin = '0';
+    headerRow.appendChild(title);
+
+    const minimizeBtn = document.createElement('button');
+    minimizeBtn.className = 'anavo-pg-btn';
+    minimizeBtn.type = 'button';
+    minimizeBtn.textContent = '\u25AC';
+    minimizeBtn.title = 'Minimize panel';
+    minimizeBtn.style.cssText = 'padding:2px 8px;font-size:10px;line-height:1;';
+    minimizeBtn.addEventListener('click', function () {
+      panel.style.display = 'none';
+      miniBtn.style.display = 'flex';
+    });
+    headerRow.appendChild(minimizeBtn);
+    panel.appendChild(headerRow);
+
+    // ---- Mini floating restore button ----
+    const miniBtn = document.createElement('button');
+    miniBtn.className = 'anavo-pg-mini-btn';
+    miniBtn.type = 'button';
+    miniBtn.textContent = '\uD83D\uDDBC\uFE0F';
+    miniBtn.title = 'Open Photo Grid editor';
+    miniBtn.style.display = 'none';
+    miniBtn.addEventListener('click', function () {
+      miniBtn.style.display = 'none';
+      panel.style.display = '';
+    });
+    document.body.appendChild(miniBtn);
 
     // ---- Preset buttons ----
     const presetsRow = document.createElement('div');
@@ -1221,6 +1254,93 @@
     });
     panel.appendChild(copyBtn);
 
+    // ---- Toggle Plugin Off button ----
+    const toggleRow = document.createElement('div');
+    toggleRow.className = 'anavo-pg-panel-row';
+    toggleRow.style.marginTop = '4px';
+
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = 'anavo-pg-btn anavo-pg-toggle-btn';
+    toggleBtn.type = 'button';
+    toggleBtn.textContent = '\uD83D\uDD0C Toggle Plugin Off';
+    toggleBtn.style.cssText = 'width:100%;background:rgba(239,68,68,0.2);border-color:rgba(239,68,68,0.4);';
+
+    toggleBtn.addEventListener('click', function () {
+      if (!_pluginDisabled) {
+        // === TURN OFF ===
+        _container.style.display = 'none';
+
+        // Restore original SQS blocks before the hidden container
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = _originalSectionHTML;
+        while (tempDiv.firstChild) {
+          _section.insertBefore(tempDiv.firstChild, _container);
+        }
+
+        _pluginDisabled = true;
+        toggleBtn.textContent = '\u26A1 Turn Plugin On';
+        toggleBtn.style.background = 'rgba(34,197,94,0.2)';
+        toggleBtn.style.borderColor = 'rgba(34,197,94,0.4)';
+
+        // Disable other controls
+        panel.querySelectorAll('.anavo-pg-btn').forEach(function (b) {
+          if (b !== toggleBtn && b !== minimizeBtn) {
+            b.disabled = true;
+            b.style.opacity = '0.35';
+            b.style.pointerEvents = 'none';
+          }
+        });
+        if (urlBox) urlBox.style.opacity = '0.35';
+        if (copyBtn) { copyBtn.disabled = true; copyBtn.style.opacity = '0.35'; }
+
+        console.log('[PhotoGrid] Plugin toggled OFF \u2014 original SQS content restored');
+
+      } else {
+        // === TURN ON ===
+        // Remove hidden container first so its HTML is not captured in _originalSectionHTML;
+        // the reference remains valid after removal and is re-appended below.
+        _container.remove();
+        _originalSectionHTML = _section.innerHTML;
+
+        // Re-collect media from the (possibly updated) section
+        var newItems = collectMedia(_section);
+        if (newItems.length > 0) {
+          _rawItems = newItems;
+          _orderedItems = applyOrder(newItems, null);
+          originalItems = newItems;
+          currentOrder = _orderedItems.map(function (_, i) { return i; });
+        }
+
+        // Clear section and re-insert the grid
+        _section.innerHTML = '';
+        _container.style.display = '';
+        _section.appendChild(_container);
+
+        // Re-render
+        renderGrid(_container, _orderedItems);
+        updateUrlBox();
+
+        _pluginDisabled = false;
+        toggleBtn.textContent = '\uD83D\uDD0C Toggle Plugin Off';
+        toggleBtn.style.background = 'rgba(239,68,68,0.2)';
+        toggleBtn.style.borderColor = 'rgba(239,68,68,0.4)';
+
+        // Re-enable other controls
+        panel.querySelectorAll('.anavo-pg-btn').forEach(function (b) {
+          b.disabled = false;
+          b.style.opacity = '';
+          b.style.pointerEvents = '';
+        });
+        if (urlBox) urlBox.style.opacity = '';
+        if (copyBtn) { copyBtn.disabled = false; copyBtn.style.opacity = ''; }
+
+        console.log('[PhotoGrid] Plugin toggled ON \u2014 grid re-rendered with', _orderedItems.length, 'items');
+      }
+    });
+
+    toggleRow.appendChild(toggleBtn);
+    panel.appendChild(toggleRow);
+
     function updateUrlBox() {
       const isDefault = currentOrder.every(function (v, i) {
         return v === i;
@@ -1245,6 +1365,10 @@
   // Module-level state accessible to public API and resize handler
   let _container = null;
   let _orderedItems = [];
+  let _section = null;
+  let _originalSectionHTML = '';
+  let _pluginDisabled = false;
+  let _rawItems = [];
 
   async function init() {
     try {
@@ -1295,9 +1419,12 @@
       dbg('Found', rawItems.length, 'items after', attempts, 'attempts');
 
       // Apply custom order
+      _rawItems = rawItems;
       _orderedItems = applyOrder(rawItems, cfg.order);
 
       // Clear section and build fresh grid container
+      _section = section;
+      _originalSectionHTML = section.innerHTML;
       section.innerHTML = '';
 
       _container = document.createElement('div');
