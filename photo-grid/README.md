@@ -1,4 +1,4 @@
-# Photo Grid v1.2.0
+# Photo Grid v1.3.0
 
 A Squarespace plugin that builds an **auto-calculated justified collage grid** from all Image, Gallery, and Video blocks inside a target section. Features edit-mode UI controls, masonry layout, custom ordering, and responsive design.
 
@@ -100,11 +100,30 @@ All parameters are appended as URL query strings to the script `src`.
 3. **DOM cleanup** — The original blocks are removed from the DOM and replaced with the Photo Grid container.
 4. **Grid rendering** — Items are arranged in justified rows (fixed height, variable widths) or masonry columns. Images are cropped with `object-fit: cover` — never upscaled.
 5. **Responsive** — The grid re-renders on window resize.
-6. **Edit mode** — A floating UI panel appears in Squarespace edit mode, letting you shuffle items, cycle presets, and copy a ready-to-paste script URL that reproduces your chosen layout.
+6. **Edit mode** — A floating UI panel appears in Squarespace edit mode with preset buttons, shuffle/reset controls, and a copyable script URL. The panel also includes:
+   - **▬ Minimize** — collapses the panel into a small 🖼️ floating icon near the Squarespace desktop/mobile view toggle buttons. Click the icon to restore the full panel.
+   - **🔌 Toggle Plugin Off** — hides the grid and restores the original Squarespace blocks so you can add or remove images and videos using the native editor. Click **⚡ Turn Plugin On** to re-collect media (picking up any changes you made) and re-render the grid.
 
 ---
 
-## 💡 Examples
+## 🛠️ Edit-Mode Features
+
+When viewed inside the Squarespace editor, a floating **Photo Grid** panel appears in the bottom-right corner.
+
+### ▬ Minimize
+Click the minimize button (▬) in the panel header to collapse the panel into a small 🖼️ icon fixed near the Squarespace desktop/mobile view toggle buttons (top-right area). Click the icon at any time to restore the full panel. This keeps your workspace uncluttered while still letting you quickly reopen the editor.
+
+### 🔌 Toggle Plugin Off / ⚡ Turn Plugin On
+Use this button to temporarily disable the Photo Grid plugin while staying in Squarespace edit mode:
+
+1. **Click "🔌 Toggle Plugin Off"** — the grid is hidden and the original Squarespace blocks are restored in their native form. You can now use the Squarespace editor normally to add, remove, or rearrange images and videos in the section. All other panel controls are disabled while the plugin is off.
+2. **Click "⚡ Turn Plugin On"** — the plugin re-scans the section for media (picking up any blocks you added or removed), rebuilds the grid with the updated items, and re-enables all panel controls.
+
+> **Note:** When you toggle the plugin back on, the new set of images/videos is used to re-render the grid. Use the Preset buttons, Shuffle, Reset, and Copy Script URL to finalize your layout.
+
+---
+
+
 
 ### Full-width collage, 6 px gutter, taller rows
 ```html
@@ -151,7 +170,7 @@ Licensing is **fully async and non-blocking** — the grid renders immediately; 
 ## 🆘 Troubleshooting
 
 **Q: The grid doesn't appear.**  
-A: Enable debug mode (`?debug=true`) and check the browser console. Ensure your section has a heading with the exact text "Photo Album" (or use `targetId`). The plugin should print `✅ Photo Grid v1.1.0 Active!`.
+A: Enable debug mode (`?debug=true`) and check the browser console. Ensure your section has a heading with the exact text "Photo Album" (or use `targetId`). The plugin should print `✅ Photo Grid v1.3.0 Active!`.
 
 **Q: Images appear stretched or cropped unexpectedly.**  
 A: The plugin uses `object-fit: cover` to fill each cell. The `rowHeight` / `maxRowHeight` params control how tall rows are — adjust them to your preference.
