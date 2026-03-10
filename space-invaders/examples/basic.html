@@ -116,10 +116,12 @@
     <p>Interactive game overlay for Squarespace sites</p>
 
     <div class="controls">
-      <button onclick="window.SpaceInvadersGame.start()">🚀 Start Game</button>
-      <button onclick="window.SpaceInvadersGame.skip()">⏭️ Skip</button>
-      <button onclick="window.SpaceInvadersGame.reset()">🔄 Reset</button>
-      <button onclick="alert('Score: ' + window.SpaceInvadersGame.getScore())">📊 Get Score</button>
+      <button id="btn-start">🚀 Start Game</button>
+      <button id="btn-skip">⏭️ Skip</button>
+      <button id="btn-reset">🔄 Reset</button>
+      <button id="btn-score">📊 Get Score</button>
+      <button id="btn-badges">🏆 Get Badges</button>
+      <button id="btn-state">🔍 Get State</button>
     </div>
 
     <div class="features">
@@ -133,7 +135,7 @@
       </div>
       <div class="feature">
         <h3>📱 Mobile Responsive</h3>
-        <p>Works perfectly on desktop, tablet, and mobile</p>
+        <p>Mouse + click on desktop; touch + on-screen controls on mobile</p>
       </div>
       <div class="feature">
         <h3>⚡ Lightweight</h3>
@@ -151,5 +153,34 @@
 
   <!-- OR use CDN (Production) -->
   <!-- <script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/space-invaders/space-invaders.min.js"></script> -->
+
+  <script>
+    document.getElementById('btn-start').addEventListener('click', function () {
+      window.SpaceInvadersGame.start();
+    });
+    document.getElementById('btn-skip').addEventListener('click', function () {
+      window.SpaceInvadersGame.skip();
+    });
+    document.getElementById('btn-reset').addEventListener('click', function () {
+      window.SpaceInvadersGame.reset();
+    });
+    document.getElementById('btn-score').addEventListener('click', function () {
+      alert('Score: ' + window.SpaceInvadersGame.getScore());
+    });
+    document.getElementById('btn-badges').addEventListener('click', function () {
+      var names = window.SpaceInvadersGame.getBadges().map(function (i) { return i.name; });
+      alert('Earned badges (' + names.length + '):\n' + (names.join(', ') || 'None yet'));
+    });
+    document.getElementById('btn-state').addEventListener('click', function () {
+      var s = window.SpaceInvadersGame.getState();
+      alert(
+        'Game State\n' +
+        '  Score:   ' + s.score + '\n' +
+        '  Wave:    ' + s.wave + '\n' +
+        '  Running: ' + s.running + '\n' +
+        '  Items:   ' + s.earnedItems.length
+      );
+    });
+  </script>
 </body>
 </html>
