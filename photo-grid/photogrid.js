@@ -2,7 +2,7 @@
  * =======================================
  * PHOTO GRID - Squarespace Plugin
  * =======================================
- * @version 1.0.0
+ * @version 1.2.0
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
