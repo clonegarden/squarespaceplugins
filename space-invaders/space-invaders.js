@@ -164,6 +164,7 @@
 
   let hasPlayedOnce = false;
   let triggersDisabled = false;
+  let _keyTriggerHandler = null;
 
   // UI refs
   let portfolioPanel, portfolioItems, portfolioProgress;
@@ -547,6 +548,64 @@
         #anavo-si-mobile-controls { display: flex; }
       }
 
+      /* ✅ Wave-clear interstitial */
+      #anavo-si-wave-clear {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0,0,0,0.75);
+        z-index: 10;
+        text-align: center;
+        animation: anavo-si-fadein 0.3s ease;
+      }
+
+      #anavo-si-wave-clear-inner {
+        padding: 32px 40px;
+        border: 2px solid ${config.fontColor};
+        background: rgba(0,0,0,0.92);
+        color: ${config.fontColor};
+        font-family: 'Syne Mono', 'Courier New', monospace;
+      }
+
+      #anavo-si-wave-clear-inner h2 {
+        font-size: clamp(22px, 4vw, 34px);
+        margin-bottom: 12px;
+        font-family: 'Syne Mono', monospace;
+        color: ${config.fontColor};
+      }
+
+      #anavo-si-wave-clear-inner p {
+        font-size: 16px;
+        opacity: 0.85;
+        margin-bottom: 8px;
+        color: ${config.fontColor};
+      }
+
+      #anavo-si-wave-clear-btns {
+        margin-top: 20px;
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      #anavo-si-wave-clear-btns button {
+        padding: 12px 28px;
+        font-size: 15px;
+        font-family: 'Syne Mono', monospace;
+        cursor: pointer;
+        transition: transform 0.15s;
+      }
+
+      #anavo-si-wave-clear-btns button:hover { transform: scale(1.05); }
+
+      @media (prefers-reduced-motion: reduce) {
+        #anavo-si-wave-clear { animation: none; }
+        #anavo-si-gameover { animation: none; }
+      }
+
       @keyframes anavo-si-fadein {
         from { opacity: 0; transform: translateY(20px); }
         to { opacity: 1; transform: translateY(0); }
@@ -626,11 +685,7 @@
   }
 
   function maybeDisableTriggers() {
-    if (!config.postGameButton || triggersDisabled) return;
-    triggersDisabled = true;
-
-    const triggerBtn = document.getElementById('anavo-si-trigger-btn');
-    if (triggerBtn) triggerBtn.remove();
+    disableTriggers();
   }
 
   function insertPostGameButton() {
@@ -819,6 +874,7 @@
     invaderBullets = [];
     explosions = [];
     frameCount = 0;
+    wave = 0;
     gameOverFlag = false;
     isShooting = false;
     mouseX = (canvasEl ? canvasEl.width : size.w) / 2;
@@ -1060,8 +1116,7 @@
     const aliveInvaders = invaders.filter(inv => inv.alive);
 
     if (aliveInvaders.length === 0) {
-      gameOverFlag = false;
-      showGameOverScreen();
+      showWaveClearInterstitial();
       return;
     }
 
@@ -1139,6 +1194,111 @@
       cancelAnimationFrame(animationId);
       animationId = null;
     }
+  }
+
+  // ========================================
+  // WAVE-CLEAR INTERSTITIAL
+  // ========================================
+  function showWaveClearInterstitial() {
+    stopGameLoop();
+
+    if (!overlayEl) return;
+
+    const old = document.getElementById('anavo-si-wave-clear');
+    if (old) old.remove();
+
+    const panel = document.createElement('div');
+    panel.id = 'anavo-si-wave-clear';
+    panel.setAttribute('role', 'dialog');
+    panel.setAttribute('aria-label', `Wave ${wave} complete`);
+    panel.setAttribute('aria-modal', 'true');
+
+    const inner = document.createElement('div');
+    inner.id = 'anavo-si-wave-clear-inner';
+
+    const title = document.createElement('h2');
+    title.textContent = `🎉 Wave ${wave} Clear!`;
+    inner.appendChild(title);
+
+    const scoreP = document.createElement('p');
+    scoreP.textContent = `${config.scoreLabel}: ${score}`;
+    inner.appendChild(scoreP);
+
+    const itemsP = document.createElement('p');
+    itemsP.textContent = `${earnedItems.size} / ${items.length} ${config.itemLabel} unlocked`;
+    inner.appendChild(itemsP);
+
+    const btnRow = document.createElement('div');
+    btnRow.id = 'anavo-si-wave-clear-btns';
+
+    const continueBtn = document.createElement('button');
+    continueBtn.className = 'anavo-si-btn-primary';
+    continueBtn.textContent = '▶ Keep Playing?';
+    continueBtn.setAttribute('aria-label', 'Continue to next wave');
+    continueBtn.addEventListener('click', () => {
+      panel.remove();
+      startNextWave();
+    });
+
+    const endBtn = document.createElement('button');
+    endBtn.className = 'anavo-si-btn-secondary';
+    endBtn.textContent = 'End Game';
+    endBtn.setAttribute('aria-label', 'End game and see results');
+    endBtn.addEventListener('click', () => {
+      panel.remove();
+      gameOverFlag = false;
+      showGameOverScreen();
+    });
+
+    btnRow.appendChild(continueBtn);
+    btnRow.appendChild(endBtn);
+    inner.appendChild(btnRow);
+    panel.appendChild(inner);
+    overlayEl.appendChild(panel);
+
+    continueBtn.focus();
+  }
+
+  function startNextWave() {
+    bullets = [];
+    invaderBullets = [];
+    explosions = [];
+    invaderDir = 1;
+    spawnWave();
+
+    gameRunning = true;
+    gameLoop();
+  }
+
+  // ========================================
+  // TRIGGER MANAGEMENT
+  // ========================================
+  function disableTriggers() {
+    if (triggersDisabled) return;
+    triggersDisabled = true;
+    window.removeEventListener('scroll', checkScrollTrigger);
+    if (_keyTriggerHandler) {
+      document.removeEventListener('keydown', _keyTriggerHandler);
+      _keyTriggerHandler = null;
+    }
+    const triggerBtn = document.getElementById('anavo-si-trigger-btn');
+    if (triggerBtn && triggerBtn.parentNode) triggerBtn.parentNode.removeChild(triggerBtn);
+  }
+
+  function insertFloatingTriggerButton() {
+    if (document.getElementById('anavo-si-postgame-btn')) return;
+    const btn = document.createElement('button');
+    btn.id = 'anavo-si-postgame-btn';
+    btn.setAttribute('aria-label', 'Open Space Invaders game');
+    btn.textContent = config.postGameButtonText;
+    btn.addEventListener('click', () => {
+      if (config.showPrompt) {
+        showPromptScreen();
+      } else {
+        startGame();
+      }
+    });
+    document.body.appendChild(btn);
   }
 
   // ========================================
@@ -1295,9 +1455,10 @@
     }
 
     if (config.trigger === 'key') {
-      document.addEventListener('keydown', e => {
+      _keyTriggerHandler = e => {
         if (e.key === config.triggerKey) triggerGame();
-      });
+      };
+      document.addEventListener('keydown', _keyTriggerHandler);
     }
 
     if (config.trigger === 'button') {
@@ -1357,7 +1518,9 @@
   function skipGame() {
     stopGameLoop();
     detachInputListeners();
+    disableTriggers();
     if (overlayEl) overlayEl.style.display = 'none';
+    insertFloatingTriggerButton();
   }
 
   function resetGame() {
@@ -1369,24 +1532,62 @@
   function cleanupGame() {
     stopGameLoop();
     detachInputListeners();
+    disableTriggers();
+
     if (overlayEl && overlayEl.parentNode) {
       overlayEl.parentNode.removeChild(overlayEl);
       overlayEl = null;
     }
+
     const styles = document.getElementById('anavo-space-invaders-styles');
     if (styles && styles.parentNode) styles.parentNode.removeChild(styles);
+
+    const watermark = document.querySelector('.anavo-watermark-game');
+    if (watermark && watermark.parentNode) watermark.parentNode.removeChild(watermark);
+
+    const postGameBtn = document.getElementById('anavo-si-postgame-btn');
+    if (postGameBtn && postGameBtn.parentNode) postGameBtn.parentNode.removeChild(postGameBtn);
+
+    const itemsOverlay = document.getElementById('anavo-si-items-overlay');
+    if (itemsOverlay && itemsOverlay.parentNode) itemsOverlay.parentNode.removeChild(itemsOverlay);
+
     canvasEl = null;
     ctx = null;
+    portfolioPanel = null;
+    mobileControls = null;
   }
 
   // ========================================
   // GLOBAL API
   // ========================================
+  function getScore() {
+    return score;
+  }
+
+  function getItems() {
+    return Array.from(earnedItems)
+      .map(name => items.find(t => t.name === name))
+      .filter(Boolean);
+  }
+
+  function getState() {
+    return {
+      score,
+      wave,
+      earnedItems: getItems(),
+      running: gameRunning,
+    };
+  }
+
   window.SpaceInvadersGame = {
     start: startGame,
     skip: skipGame,
     reset: resetGame,
     cleanup: cleanupGame,
+    getScore,
+    getItems,
+    getBadges: getItems,
+    getState,
   };
 
   // ========================================
