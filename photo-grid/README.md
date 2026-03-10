@@ -1,4 +1,4 @@
-# Photo Grid v1.0.0
+# Photo Grid v1.1.0
 
 A Squarespace plugin that builds an **auto-calculated justified collage grid** from all Image, Gallery, and Video blocks inside a target section. Features edit-mode UI controls, masonry layout, custom ordering, and responsive design.
 
@@ -151,7 +151,7 @@ Licensing is **fully async and non-blocking** — the grid renders immediately; 
 ## 🆘 Troubleshooting
 
 **Q: The grid doesn't appear.**  
-A: Enable debug mode (`?debug=true`) and check the browser console. Ensure your section has a heading with the exact text "Photo Album" (or use `targetId`). The plugin should print `✅ Photo Grid v1.0.0 Active!`.
+A: Enable debug mode (`?debug=true`) and check the browser console. Ensure your section has a heading with the exact text "Photo Album" (or use `targetId`). The plugin should print `✅ Photo Grid v1.1.0 Active!`.
 
 **Q: Images appear stretched or cropped unexpectedly.**  
 A: The plugin uses `object-fit: cover` to fill each cell. The `rowHeight` / `maxRowHeight` params control how tall rows are — adjust them to your preference.

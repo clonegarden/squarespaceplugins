@@ -1,5 +1,16 @@
 # Changelog — Photo Grid
 
+## [1.1.0] - 2026-03-10
+
+### 🐛 Fixed
+
+- **Video capture in mixed sections** — bare `<video>` and `<iframe>` fallback scanning now always runs after the primary block-type detection pass, regardless of whether images were already found. Previously, the fallback was gated behind `items.length === 0`, so videos were silently dropped in sections that also contained images.
+- **Newer Squarespace video block selectors** — added `[data-block-type="54"]`, `[data-block-type="55"]`, `.sqs-block-video-native`, and `.sqs-video-wrapper` to the primary video block selector to cover newer Squarespace native video markup.
+- **Native video with empty `src`** — Squarespace native videos (`sqs-native-video`) often have no `src` at collection time (the source is injected later via intersection observer). The plugin now collects these items using the `poster` attribute as a visual placeholder instead of silently discarding them.
+- **`poster` attribute on rendered videos** — the collected `poster` value is now applied to the `<video>` element in `buildItemElement()`, so users see a thumbnail before the video loads or begins playing.
+
+---
+
 ## [1.0.0] - 2026-03-04
 
 ### ✨ Added
@@ -27,4 +38,5 @@
 
 ---
 
+[1.1.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/photo-grid-v1.1.0
 [1.0.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/photo-grid-v1.0.0

@@ -19,7 +19,7 @@
 (function () {
   'use strict';
 
-  const PLUGIN_VERSION = '1.0.0';
+  const PLUGIN_VERSION = '1.1.0';
   const PLUGIN_NAME = 'PhotoGrid';
   const STYLE_ID = 'anavo-photogrid-styles';
   const DEFAULT_IMG_WIDTH = 400;
@@ -393,9 +393,9 @@
       });
     });
 
-    // ---- Video blocks (data-block-type="32", "51", "13") ----
+    // ---- Video blocks (data-block-type="32", "51", "13", "54", "55") ----
     const videoBlocks = section.querySelectorAll(
-      '.sqs-block-video, [data-block-type="32"], [data-block-type="51"], [data-block-type="52"], [data-block-type="13"], .video-block, .sqs-native-video'
+      '.sqs-block-video, [data-block-type="32"], [data-block-type="51"], [data-block-type="52"], [data-block-type="13"], [data-block-type="54"], [data-block-type="55"], .video-block, .sqs-native-video, .sqs-block-video-native, .sqs-video-wrapper'
     );
     videoBlocks.forEach(function (block) {
       if (seenBlocks.has(block)) return;
@@ -522,52 +522,55 @@
         });
       }
 
-      // Fallback: find any <video> elements in the section
-      var allVideos = section.querySelectorAll('video');
-      allVideos.forEach(function (vid) {
-        var src =
-          vid.src ||
-          (vid.dataset && vid.dataset.src) ||
-          (vid.querySelector('source') ? vid.querySelector('source').src : '');
-        if (!src) return;
-        var w = parseInt(vid.getAttribute('width') || '0', 10) || vid.videoWidth || 1280;
-        var h = parseInt(vid.getAttribute('height') || '0', 10) || vid.videoHeight || 720;
-        var poster = vid.getAttribute('poster') || '';
-        var blockEl =
-          vid.closest('.sqs-block, .sqs-native-video, [class*="block"]') || vid.parentElement;
-        if (seenBlocks.has(blockEl)) return;
-        seenBlocks.add(blockEl);
-        items.push({
-          type: 'video',
-          src: src,
-          poster: poster,
-          width: w,
-          height: h,
-          blockEl: blockEl,
-        });
-      });
-
-      // Fallback: find any <iframe> elements (YouTube/Vimeo embeds)
-      var allIframes = section.querySelectorAll(
-        'iframe[src*="youtube"], iframe[src*="vimeo"], iframe[data-src*="youtube"], iframe[data-src*="vimeo"]'
-      );
-      allIframes.forEach(function (iframe) {
-        var src = iframe.src || (iframe.dataset && iframe.dataset.src) || '';
-        if (!src) return;
-        var blockEl = iframe.closest('.sqs-block, [class*="block"]') || iframe.parentElement;
-        if (seenBlocks.has(blockEl)) return;
-        seenBlocks.add(blockEl);
-        items.push({
-          type: 'iframe',
-          src: src,
-          width: 1280,
-          height: 720,
-          blockEl: blockEl,
-        });
-      });
-
-      dbg('Fallback detection found', items.length, 'items');
+      dbg('Fallback image detection found', items.length, 'items');
     }
+
+    // Always scan for bare <video> elements — runs regardless of whether images were found,
+    // so videos in mixed image+video sections are never skipped. seenBlocks prevents duplicates.
+    var allVideos = section.querySelectorAll('video');
+    allVideos.forEach(function (vid) {
+      var src =
+        vid.src ||
+        (vid.dataset && vid.dataset.src) ||
+        (vid.querySelector('source') ? vid.querySelector('source').src : '');
+      var poster = vid.getAttribute('poster') || '';
+      // Collect the item even when src is empty (Squarespace native videos lazy-inject the src);
+      // use the poster as a visual placeholder until the video source becomes available.
+      if (!src && !poster) return;
+      var w = parseInt(vid.getAttribute('width') || '0', 10) || vid.videoWidth || 1280;
+      var h = parseInt(vid.getAttribute('height') || '0', 10) || vid.videoHeight || 720;
+      var blockEl =
+        vid.closest('.sqs-block, .sqs-native-video, [class*="block"]') || vid.parentElement;
+      if (seenBlocks.has(blockEl)) return;
+      seenBlocks.add(blockEl);
+      items.push({
+        type: 'video',
+        src: src,
+        poster: poster,
+        width: w,
+        height: h,
+        blockEl: blockEl,
+      });
+    });
+
+    // Always scan for bare <iframe> embeds (YouTube/Vimeo) — same reasoning as above.
+    var allIframes = section.querySelectorAll(
+      'iframe[src*="youtube"], iframe[src*="vimeo"], iframe[data-src*="youtube"], iframe[data-src*="vimeo"]'
+    );
+    allIframes.forEach(function (iframe) {
+      var src = iframe.src || (iframe.dataset && iframe.dataset.src) || '';
+      if (!src) return;
+      var blockEl = iframe.closest('.sqs-block, [class*="block"]') || iframe.parentElement;
+      if (seenBlocks.has(blockEl)) return;
+      seenBlocks.add(blockEl);
+      items.push({
+        type: 'iframe',
+        src: src,
+        width: 1280,
+        height: 720,
+        blockEl: blockEl,
+      });
+    });
 
     dbg('Collected', items.length, 'media items');
     return items;
@@ -736,6 +739,7 @@
     } else if (item.type === 'video') {
       const video = document.createElement('video');
       if (item.src) video.src = item.src;
+      if (item.poster) video.poster = item.poster;
       video.autoplay = true;
       video.muted = true;
       video.loop = true;
