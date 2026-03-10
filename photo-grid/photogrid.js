@@ -19,7 +19,7 @@
 (function () {
   'use strict';
 
-  const PLUGIN_VERSION = '1.1.0';
+  const PLUGIN_VERSION = '1.2.0';
   const PLUGIN_NAME = 'PhotoGrid';
   const STYLE_ID = 'anavo-photogrid-styles';
   const DEFAULT_IMG_WIDTH = 400;
@@ -525,6 +525,59 @@
       dbg('Fallback image detection found', items.length, 'items');
     }
 
+    // ---- Squarespace Native Video (HLS) detection ----
+    // SQS 7.1 stores video URLs in data attributes; the <video> element may not exist yet.
+    var nativeVideoWrappers = section.querySelectorAll(
+      '[data-src*="video.squarespace-cdn"], [data-video-url*="video.squarespace-cdn"], .sqs-native-video, .sqs-video-wrapper'
+    );
+    nativeVideoWrappers.forEach(function (wrapper) {
+      var blockEl = wrapper.closest('.sqs-block, [class*="block"]') || wrapper;
+      if (seenBlocks.has(blockEl)) return;
+      seenBlocks.add(blockEl);
+
+      // Extract video CDN base URL from data attributes
+      var videoBaseUrl =
+        wrapper.getAttribute('data-src') ||
+        wrapper.getAttribute('data-video-url') ||
+        '';
+
+      // Look inside for any element that holds the URL
+      if (!videoBaseUrl) {
+        var inner = wrapper.querySelector('[data-src*="video.squarespace-cdn"]');
+        if (inner) videoBaseUrl = inner.getAttribute('data-src') || '';
+      }
+
+      // Ensure HLS playlist suffix — verify hostname exactly to avoid substring spoofing
+      var isSqsCdn = false;
+      if (videoBaseUrl) {
+        try {
+          var parsedVideoUrl = new URL(videoBaseUrl);
+          isSqsCdn = parsedVideoUrl.hostname === 'video.squarespace-cdn.com';
+        } catch (_e) {
+          // Relative or malformed URL — skip suffix check
+        }
+      }
+      if (isSqsCdn && !videoBaseUrl.endsWith('playlist.m3u8')) {
+        videoBaseUrl = videoBaseUrl.replace(/\/?$/, '/playlist.m3u8');
+      }
+
+      // Get poster/thumbnail
+      var poster = wrapper.querySelector('img');
+      var posterSrc = poster ? getBestImageSrc(poster) : '';
+
+      if (videoBaseUrl || posterSrc) {
+        items.push({
+          type: 'video',
+          src: videoBaseUrl,
+          poster: posterSrc,
+          width: 1280,
+          height: 720,
+          isHLS: isSqsCdn || videoBaseUrl.endsWith('.m3u8'),
+          blockEl: blockEl,
+        });
+      }
+    });
+
     // Always scan for bare <video> elements — runs regardless of whether images were found,
     // so videos in mixed image+video sections are never skipped. seenBlocks prevents duplicates.
     var allVideos = section.querySelectorAll('video');
@@ -737,16 +790,43 @@
       img.decoding = 'async';
       el.appendChild(img);
     } else if (item.type === 'video') {
-      const video = document.createElement('video');
-      if (item.src) video.src = item.src;
-      if (item.poster) video.poster = item.poster;
-      video.autoplay = true;
-      video.muted = true;
-      video.loop = true;
-      video.playsInline = true;
-      video.setAttribute('playsinline', '');
-      video.setAttribute('muted', '');
-      el.appendChild(video);
+      if (item.isHLS) {
+        // HLS video: try native playback (works in Safari), fall back to poster image
+        var video = document.createElement('video');
+        if (item.src) video.src = item.src;
+        if (item.poster) video.poster = item.poster;
+        video.autoplay = true;
+        video.muted = true;
+        video.loop = true;
+        video.playsInline = true;
+        video.setAttribute('playsinline', '');
+        video.setAttribute('muted', '');
+        // If the video fails to play for any reason (format not supported,
+        // network error, etc.), show the poster image as a visual placeholder.
+        video.addEventListener('error', function() {
+          if (item.poster) {
+            var fallbackImg = document.createElement('img');
+            fallbackImg.src = item.poster;
+            fallbackImg.alt = 'Video thumbnail';
+            fallbackImg.loading = 'lazy';
+            fallbackImg.decoding = 'async';
+            el.replaceChild(fallbackImg, video);
+          }
+        });
+        el.appendChild(video);
+      } else {
+        // Standard video (mp4, etc.)
+        var video = document.createElement('video');
+        if (item.src) video.src = item.src;
+        if (item.poster) video.poster = item.poster;
+        video.autoplay = true;
+        video.muted = true;
+        video.loop = true;
+        video.playsInline = true;
+        video.setAttribute('playsinline', '');
+        video.setAttribute('muted', '');
+        el.appendChild(video);
+      }
     } else if (item.type === 'iframe') {
       const wrap = document.createElement('div');
       wrap.className = 'anavo-pg-iframe-wrap';

@@ -1,4 +1,4 @@
-# Photo Grid v1.1.0
+# Photo Grid v1.2.0
 
 A Squarespace plugin that builds an **auto-calculated justified collage grid** from all Image, Gallery, and Video blocks inside a target section. Features edit-mode UI controls, masonry layout, custom ordering, and responsive design.
 
