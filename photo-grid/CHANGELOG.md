@@ -1,5 +1,14 @@
 # Changelog — Photo Grid
 
+## [1.2.1] - 2026-03-10
+
+### Fixed
+- **Video duplication** — Added `getCanonicalBlock()` helper that always resolves any element to its outermost `[data-block-type]` / `.sqs-block` ancestor. All detection passes in `collectMedia()` (image blocks, gallery blocks, video blocks, HLS scan, bare `<video>` scan, bare `<iframe>` scan, and both fallback image passes) now use this helper so `seenBlocks` is keyed on the same DOM node regardless of which inner element triggered detection. Previously the primary video block pass stored the inner `.sqs-native-video` node while the HLS pass stored the outer `.sqs-block` parent, causing `seenBlocks.has()` to miss the duplicate.
+- **Source-based dedup safety net** — Added `isDuplicateVideoSrc()` helper that catches duplicates even when block-level deduplication fails (e.g. when `.closest()` resolves to different ancestors in unusual markup). It normalises away trailing `/playlist.m3u8` and trailing slashes before comparing, so two references to the same Squarespace CDN video are always treated as identical. Every `items.push()` for video and iframe items is guarded by this check.
+- **`data-config-video` on block element itself** — The video block pass now also checks whether the `block` element itself (not just a descendant) carries the `data-config-video` attribute, covering the case where `.sqs-native-video` is the outermost matched node in the selector.
+
+---
+
 ## [1.2.0] - 2026-03-10
 
 ### ✨ Added
@@ -52,6 +61,7 @@
 
 ---
 
+[1.2.1]: https://github.com/clonegarden/squarespaceplugins/releases/tag/photo-grid-v1.2.1
 [1.2.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/photo-grid-v1.2.0
 [1.1.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/photo-grid-v1.1.0
 [1.0.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/photo-grid-v1.0.0
