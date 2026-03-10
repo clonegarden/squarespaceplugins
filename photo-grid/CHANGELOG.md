@@ -1,5 +1,16 @@
 # Changelog — Photo Grid
 
+## [1.2.0] - 2026-03-10
+
+### ✨ Added
+
+- **Squarespace Native Video (HLS) detection** — new dedicated scan for `video.squarespace-cdn.com` URLs stored in data attributes (`data-src`, `data-video-url`) on wrapper elements (`.sqs-native-video`, `.sqs-video-wrapper`). These videos are never present as a `<video>` element in the DOM at page load time on Squarespace 7.1 sites, so the previous detection logic silently skipped them.
+- **HLS video rendering** — HLS videos (`.m3u8`) use native `<video>` playback, which works in Safari. For other browsers that do not support HLS natively, an `error` event listener automatically replaces the `<video>` with the poster image as a visual placeholder.
+- **Poster extraction for native videos** — the `getBestImageSrc()` helper is used to capture the poster/thumbnail `<img>` from native video wrappers, providing a visual placeholder in the grid across all browsers.
+- **Automatic `playlist.m3u8` suffix** — when a Squarespace CDN base URL is detected without the required HLS playlist suffix, `playlist.m3u8` is appended automatically so the URL is immediately playable.
+
+---
+
 ## [1.1.0] - 2026-03-10
 
 ### 🐛 Fixed
@@ -38,5 +49,6 @@
 
 ---
 
+[1.2.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/photo-grid-v1.2.0
 [1.1.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/photo-grid-v1.1.0
 [1.0.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/photo-grid-v1.0.0
