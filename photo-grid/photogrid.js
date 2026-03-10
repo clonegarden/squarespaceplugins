@@ -446,6 +446,68 @@
           height: 720,
           blockEl: block,
         });
+        return;
+      }
+
+      // Squarespace Native Video via data-config-video JSON attribute
+      // SQS 7.1 stores the video URL inside a JSON blob on .sqs-native-video elements
+      var nativeVideoEl = block.querySelector('.sqs-native-video[data-config-video]');
+      if (nativeVideoEl) {
+        try {
+          var videoConfig = JSON.parse(nativeVideoEl.getAttribute('data-config-video'));
+          var alexandriaUrl = videoConfig.alexandriaUrl || '';
+
+          if (alexandriaUrl) {
+            // Validate hostname exactly to prevent substring spoofing
+            var isValidCdnUrl = false;
+            try {
+              isValidCdnUrl = new URL(alexandriaUrl.replace('{variant}', 'playlist.m3u8')).hostname === 'video.squarespace-cdn.com';
+            } catch (_urlErr) { /* malformed URL — skip */ }
+
+            if (isValidCdnUrl) {
+              // Replace {variant} placeholder with HLS playlist path
+              var hlsUrl = alexandriaUrl.replace('{variant}', 'playlist.m3u8');
+
+              // Extract aspect ratio for proper dimensions (0.5625 = 9/16 height/width, i.e. default 16:9 landscape)
+              var aspectRatio = videoConfig.aspectRatio || 0.5625;
+              var videoWidth = 1280;
+              var videoHeight = Math.round(videoWidth * aspectRatio);
+
+              // Try to get poster/thumbnail
+              var posterSrc = '';
+              var thumbnailAttr = nativeVideoEl.getAttribute('data-config-thumbnail');
+              if (thumbnailAttr && thumbnailAttr !== 'null') {
+                try {
+                  var thumbConfig = JSON.parse(thumbnailAttr);
+                  posterSrc = thumbConfig.url || thumbConfig.src || '';
+                } catch (_thumbErr) {
+                  posterSrc = thumbnailAttr; // might be a plain URL string
+                }
+              }
+              // Also check for an img inside the wrapper as poster fallback
+              if (!posterSrc) {
+                var posterImg = nativeVideoEl.querySelector('img');
+                if (posterImg) posterSrc = getBestImageSrc(posterImg);
+              }
+
+              items.push({
+                type: 'video',
+                src: hlsUrl,
+                poster: posterSrc,
+                width: videoWidth,
+                height: videoHeight,
+                isHLS: true,
+                blockEl: block,
+              });
+            }
+          }
+        } catch (_jsonErr) {
+          // JSON parse failed — skip this video
+          if (cfg.debug) {
+            console.warn('[PhotoGrid] Failed to parse data-config-video JSON:', _jsonErr);
+          }
+        }
+        return; // handled this block
       }
     });
 
@@ -528,7 +590,7 @@
     // ---- Squarespace Native Video (HLS) detection ----
     // SQS 7.1 stores video URLs in data attributes; the <video> element may not exist yet.
     var nativeVideoWrappers = section.querySelectorAll(
-      '[data-src*="video.squarespace-cdn"], [data-video-url*="video.squarespace-cdn"], .sqs-native-video, .sqs-video-wrapper'
+      '[data-src*="video.squarespace-cdn"], [data-video-url*="video.squarespace-cdn"], .sqs-native-video[data-config-video], .sqs-video-wrapper'
     );
     nativeVideoWrappers.forEach(function (wrapper) {
       var blockEl = wrapper.closest('.sqs-block, [class*="block"]') || wrapper;
@@ -541,10 +603,32 @@
         wrapper.getAttribute('data-video-url') ||
         '';
 
+      // Try data-config-video JSON attribute (Squarespace native video)
+      var parsedConfigVideo = null;
+      if (!videoBaseUrl) {
+        var configVideoAttr = wrapper.getAttribute('data-config-video');
+        if (configVideoAttr) {
+          try {
+            parsedConfigVideo = JSON.parse(configVideoAttr);
+            videoBaseUrl = (parsedConfigVideo.alexandriaUrl || '').replace('{variant}', 'playlist.m3u8');
+          } catch (_e) { /* JSON parse failed — skip */ }
+        }
+      }
+
       // Look inside for any element that holds the URL
       if (!videoBaseUrl) {
         var inner = wrapper.querySelector('[data-src*="video.squarespace-cdn"]');
         if (inner) videoBaseUrl = inner.getAttribute('data-src') || '';
+      }
+      if (!videoBaseUrl) {
+        var innerConfig = wrapper.querySelector('[data-config-video]');
+        if (innerConfig) {
+          try {
+            var innerVideoConfig = JSON.parse(innerConfig.getAttribute('data-config-video'));
+            videoBaseUrl = (innerVideoConfig.alexandriaUrl || '').replace('{variant}', 'playlist.m3u8');
+            if (!parsedConfigVideo) parsedConfigVideo = innerVideoConfig;
+          } catch (_e) { /* JSON parse failed — skip */ }
+        }
       }
 
       // Ensure HLS playlist suffix — verify hostname exactly to avoid substring spoofing
@@ -557,21 +641,42 @@
           // Relative or malformed URL — skip suffix check
         }
       }
+      // For non-alexandriaUrl sources that still need the playlist suffix
       if (isSqsCdn && !videoBaseUrl.endsWith('playlist.m3u8')) {
         videoBaseUrl = videoBaseUrl.replace(/\/?$/, '/playlist.m3u8');
       }
 
       // Get poster/thumbnail
-      var poster = wrapper.querySelector('img');
-      var posterSrc = poster ? getBestImageSrc(poster) : '';
+      var posterSrc = '';
+      var thumbnailAttr = wrapper.getAttribute('data-config-thumbnail');
+      if (thumbnailAttr && thumbnailAttr !== 'null') {
+        try {
+          var thumbData = JSON.parse(thumbnailAttr);
+          posterSrc = thumbData.url || thumbData.src || '';
+        } catch (_e) {
+          posterSrc = thumbnailAttr;
+        }
+      }
+      if (!posterSrc) {
+        var poster = wrapper.querySelector('img');
+        posterSrc = poster ? getBestImageSrc(poster) : '';
+      }
+
+      // Extract aspect ratio if available (0.5625 = 9/16 height/width, i.e. default 16:9 landscape)
+      var hlsItemAspectRatio = 0.5625;
+      if (parsedConfigVideo && parsedConfigVideo.aspectRatio) {
+        hlsItemAspectRatio = parsedConfigVideo.aspectRatio;
+      }
+      var w = 1280;
+      var h = Math.round(w * hlsItemAspectRatio);
 
       if (videoBaseUrl || posterSrc) {
         items.push({
           type: 'video',
           src: videoBaseUrl,
           poster: posterSrc,
-          width: 1280,
-          height: 720,
+          width: w,
+          height: h,
           isHLS: isSqsCdn || videoBaseUrl.endsWith('.m3u8'),
           blockEl: blockEl,
         });
