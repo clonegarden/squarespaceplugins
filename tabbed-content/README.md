@@ -78,12 +78,12 @@ Then:
 
 ## ✨ Quick-Start Presets
 
-| Preset | Style | Best For |
-|--------|-------|----------|
-| `default` | Warm beige, serif, border separators | Photography, lifestyle |
-| `minimal` | White, no borders, clean sans-serif | Tech, modern brands |
-| `elegant` | Cormorant Garamond, warm tones | Luxury, weddings, fine art |
-| `bold` | Dark mode, white active, bold type | Creative agencies, portfolios |
+| Preset | Style | Tab Style | Best For |
+|--------|-------|-----------|----------|
+| `default` | Warm beige, serif, border separators | `concrete` | Photography, lifestyle |
+| `minimal` | White, no borders, clean sans-serif | `minimal` | Tech, modern brands |
+| `elegant` | Cormorant Garamond, warm tones | `concrete` | Luxury, weddings, fine art |
+| `bold` | Dark mode, white active, bold type | `browser` | Creative agencies, portfolios |
 
 ```html
 <!-- Elegant (matches reference site) -->
@@ -94,6 +94,25 @@ Then:
 
 <!-- Bold / Dark Mode -->
 <script src="...tabbed-content.min.js?sectionIndex=2&preset=bold"></script>
+```
+
+### Tab Style Options
+
+| Style | Visual Effect | Default For |
+|-------|--------------|-------------|
+| `concrete` | Full rectangular border on all 4 sides; active tab opens into panel (no bottom border) | `default`, `elegant` |
+| `browser` | Rounded top corners; active tab connects to content area | `bold` |
+| `minimal` | No border; active tab has a 2px underline in `activeColor` | `minimal` |
+
+```html
+<!-- File-folder (concrete) style -->
+<script src="...tabbed-content.min.js?sectionIndex=2&tabStyle=concrete"></script>
+
+<!-- Browser tab style with custom gap -->
+<script src="...tabbed-content.min.js?sectionIndex=2&tabStyle=browser&tabGap=12"></script>
+
+<!-- Minimal underline style -->
+<script src="...tabbed-content.min.js?sectionIndex=2&tabStyle=minimal"></script>
 ```
 
 ---
@@ -125,13 +144,15 @@ Then:
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
+| `tabStyle` | `concrete` | Visual style: `concrete` (file-folder, full border) / `browser` (rounded tops) / `minimal` (underline only) |
+| `tabGap` | `8` | Gap between tabs in px |
 | `tabAlign` | `left` | Tab alignment: `left` / `center` / `right` |
 | `tabFontSize` | `14` | Tab font size in px |
 | `tabFontColor` | *(inactiveColor)* | Font color for inactive tabs |
 | `tabFontFamily` | *(fontFamily)* | Font family specifically for tabs |
 | `tabTransform` | `uppercase` | CSS text-transform |
 | `tabLetterSpacing` | `0.15em` | Tab letter spacing |
-| `tabBorder` | `true` | Show bottom border on inactive tabs |
+| `tabBorder` | `true` | Show borders on tabs (always on for `concrete`/`browser`) |
 | `tabBorderColor` | `cccccc` | Tab border color hex |
 
 ### Content Panel
