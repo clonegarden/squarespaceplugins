@@ -99,6 +99,19 @@
       ],
       "expires": null
     },
+    "TabbedContent": {
+      "license_key": "lic_tabbed_content_demo",
+      "license_type": "trial",
+      "allowed_domains": [
+        "localhost",
+        "127.0.0.1"
+      ],
+      "features": [
+        "customization",
+        "no_watermark"
+      ],
+      "expires": null
+    },
     "FloatingHeader": {
       "license_key": "lic_floating_header_001",
       "license_type": "standard",
