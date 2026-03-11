@@ -7,10 +7,10 @@
   "homepage": "https://anavo.tech/plugins",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/clonegarden/squarespace-plugins.git"
+    "url": "git+https://github.com/clonegarden/squarespaceplugins.git"
   },
   "bugs": {
-    "url": "https://github.com/clonegarden/squarespace-plugins/issues",
+    "url": "https://github.com/clonegarden/squarespaceplugins/issues",
     "email": "support@institutomalleusdei.org"
   },
   "keywords": [

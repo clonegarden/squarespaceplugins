@@ -3,7 +3,7 @@ Squarespace Plugins by Anavo Tech
 
 Professional, production-ready plugins for Squarespace 7.0 & 7.1 websites.
 
-[![jsDelivr hits](https://data.jsdelivr.com/v1/package/gh/clonegarden/squarespace-plugins/badge)](https://www.jsdelivr.com/package/gh/clonegarden/squarespace-plugins)
+[![jsDelivr hits](https://data.jsdelivr.com/v1/package/gh/clonegarden/squarespaceplugins/badge)](https://www.jsdelivr.com/package/gh/clonegarden/squarespaceplugins)
 [![License:  Commercial](https://img.shields.io/badge/License-Commercial-blue.svg)](LICENSE.md)
 [![Squarespace](https://img.shields.io/badge/Squarespace-7.0%20%7C%207.1-black)](https://squarespace.com)
 
@@ -74,7 +74,7 @@ Interactive quotation calculator for service-based businesses.
 **Install:**
 ```html
 <div id="quotemachine"></div>
-<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespace-plugins@latest/quotation-builder/quotation-builder.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/quotation-builder/quotation-builder.min.js"></script>
 ```
 
 [📖 Documentation](quotation-builder/README.md) | [🎬 Live Demo](https://katoptron.institutomalleusdei.org/demos/quotation-builder)
@@ -126,6 +126,54 @@ Menu sticky que inicia no footer e sobe smooth para o topo ao rolar. **v2.0.0 - 
 
 ---
 
+### Expanded Menu
+Full-width expanded navigation menu for Squarespace, replacing the native header with a custom multi-column layout. Supports mobile wrap, custom spacing, and full color/font control. **v2.1.5**
+
+**Install:**
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/expanded-menu/expanded-menu.min.js"></script>
+```
+
+[📖 Documentation](expanded-menu/README.md) | [📋 Changelog](expanded-menu/CHANGELOG.md)
+
+---
+
+### Floating Header
+A floating header that begins at the bottom of the page and smoothly slides to the top on scroll. Universal Squarespace 7.0 & 7.1 compatibility. **v1.0.8**
+
+**Install:**
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/floating-header/floating-header.min.js"></script>
+```
+
+[📖 Documentation](floating-header/README.md) | [📋 Changelog](floating-header/CHANGELOG.md)
+
+---
+
+### Photo Grid
+Dynamic photo grid/masonry layout for Squarespace image galleries. Fully responsive with configurable columns and spacing. **v1.3.0**
+
+**Install:**
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/photo-grid/photogrid.min.js"></script>
+```
+
+[📖 Documentation](photo-grid/README.md) | [📋 Changelog](photo-grid/CHANGELOG.md)
+
+---
+
+### Logo Reaper
+Animated continuous logo marquee with stamp and particle explosion effects. Logos enter from the right, receive a random stamp, then "die" into a pile in the left corner. **v1.2.0**
+
+**Install:**
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/logo-reaper/logo-reaper.min.js?logos=...&height=220"></script>
+```
+
+[📖 Documentation](logo-reaper/README.md) | [📋 Changelog](logo-reaper/CHANGELOG.md)
+
+---
+
 ## 🔐 Licensing
 
 These plugins are **commercially licensed** and require activation. 
@@ -159,14 +207,14 @@ All plugins follow the same pattern:
 <div id="plugin-container"></div>
 
 <!-- 2. Load plugin from CDN -->
-<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespace-plugins@latest/[plugin-name]/[plugin-name].min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/[plugin-name]/[plugin-name].min.js"></script>
 ```
 
 ### Version Pinning (Recommended for Production)
 
 ```html
 <!-- Use specific version for stability -->
-<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespace-plugins@v1.0.0/quotation-builder/quotation-builder. min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@v1.0.0/quotation-builder/quotation-builder. min.js"></script>
 ```
 
 ### Customization
@@ -198,8 +246,8 @@ See individual plugin documentation for available parameters.
 
 ```bash
 # Clone repository
-git clone https://github.com/clonegarden/squarespace-plugins.git
-cd squarespace-plugins
+git clone https://github.com/clonegarden/squarespaceplugins.git
+cd squarespaceplugins
 
 # Install dependencies
 npm install
@@ -231,17 +279,17 @@ See [Plugin Development Guide](docs/development.md) for details.
 
 **Latest version:**
 ```
-https://cdn.jsdelivr.net/gh/clonegarden/squarespace-plugins@latest/[plugin]/[plugin].min.js
+https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/[plugin]/[plugin].min.js
 ```
 
 **Specific version:**
 ```
-https://cdn.jsdelivr.net/gh/clonegarden/squarespace-plugins@v1.0.0/[plugin]/[plugin].min.js
+https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@v1.0.0/[plugin]/[plugin].min.js
 ```
 
 **Specific commit:**
 ```
-https://cdn.jsdelivr.net/gh/clonegarden/squarespace-plugins@[commit-hash]/[plugin]/[plugin]. min.js
+https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@[commit-hash]/[plugin]/[plugin]. min.js
 ```
 
 
@@ -249,8 +297,8 @@ https://cdn.jsdelivr.net/gh/clonegarden/squarespace-plugins@[commit-hash]/[plugi
 
 ## 📊 Analytics & Stats
 
-- **Total Downloads:** [View on jsDelivr](https://www.jsdelivr.com/package/gh/clonegarden/squarespace-plugins)
-- **GitHub Stars:** ![GitHub stars](https://img.shields.io/github/stars/clonegarden/squarespace-plugins? style=social)
+- **Total Downloads:** [View on jsDelivr](https://www.jsdelivr.com/package/gh/clonegarden/squarespaceplugins)
+- **GitHub Stars:** ![GitHub stars](https://img.shields.io/github/stars/clonegarden/squarespaceplugins? style=social)
 - **Active Licenses:** View in [Plugin Manager]
 
 ---
@@ -265,7 +313,7 @@ https://cdn.jsdelivr.net/gh/clonegarden/squarespace-plugins@[commit-hash]/[plugi
 
 ### Get Help
 - 📧 Email: hello@anavo.tech
-- 🐛 Bug Reports: [GitHub Issues](https://github.com/clonegarden/squarespace-plugins/issues)
+- 🐛 Bug Reports: [GitHub Issues](https://github.com/clonegarden/squarespaceplugins/issues)
 - 📖 Knowledge Base: Anavo Tech
 
 ### Business Hours
@@ -277,13 +325,18 @@ https://cdn.jsdelivr.net/gh/clonegarden/squarespace-plugins@[commit-hash]/[plugi
 
 ## 🔄 Updates & Changelog
 
-### Latest Release:  v1.0.0 (2026-01-20)
+### Latest Release: v1.1.0 (2026-03-11)
 
-**Quotation Builder v1.0.0**
-- ✨ Initial release
-- ✅ Squarespace 7.0 & 7.1 compatible
-- ✅ Mobile responsive
-- ✅ PDF export functionality
+**Tabbed Content v1.1.0**
+- ✨ Visual redesign — file-organizer style tabs with gap between tabs
+- ✨ Active tab has no underline; inactive tabs show subtle bottom border
+- ✨ 11 new parameters: `tabFontColor`, `tabFontFamily`, `borderColor`, `photoSize`, `titleFontSize`, `titleFontColor`, `titleFontFamily`, `descFontSize`, `descFontColor`, `descFontFamily`, `imagePadding`
+- ✅ Backward compatible with all v1.0.0 parameters
+
+**Recent Releases:**
+- Photo Grid v1.3.0 — Enhanced masonry grid with configurable columns
+- Space Invaders v2.5.1 — Performance improvements and new game modes
+- Logo Reaper v1.2.0 — New stamp effects and improved particle system
 
 [View Full Changelog](CHANGELOG.md)
 

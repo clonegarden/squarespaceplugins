@@ -6,6 +6,44 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.1.0] — 2026-03-11
+
+### Added
+
+#### New URL Parameters
+- `tabFontColor` — font color for inactive tabs (defaults to `inactiveColor`)
+- `tabFontFamily` — font family specifically for tabs (defaults to `fontFamily`)
+- `borderColor` — general border color alias for `sectionBorderColor`
+- `photoSize` — image column width in % (alias for `imageWidth`)
+- `titleFontSize` — heading font size in px (alias for `headingSize`)
+- `titleFontColor` — font color for the content title (defaults to `activeColor`)
+- `titleFontFamily` — font family for the content title (defaults to `contentFont`)
+- `descFontSize` — description body font size in px (alias for `bodySize`)
+- `descFontColor` — font color for description text (defaults to `inactiveColor`)
+- `descFontFamily` — font family for description text (defaults to `contentFont`)
+- `imagePadding` — padding around the image inside `.anavo-tc-image-wrap` in px (default `16`)
+
+### Changed
+
+#### Visual Redesign — File Organizer Style
+- **Tab bar:** added `gap: 6px` between individual tabs (replaced touching side borders)
+- **Tab padding:** reduced from `18px 24px` to `10px 16px` for a more compact look
+- **Inactive tabs:** now display a bottom border/underline (`border-bottom: 1px solid tabBorderColor`)
+- **Active tab:** `border-bottom-color: transparent` — active tab has NO underline (open-file style)
+- **Removed** `::after` pseudo-element underline from active tab (now `display: none`)
+- **Removed** `border-right` and `border-left` separators between tabs
+- **Image wrap:** added `padding: {imagePadding}px` and `box-sizing: border-box` for breathing room around image
+- **Heading color:** uses `titleFontColor` (falls back to `activeColor`)
+- **Heading font:** uses `titleFontFamily` (falls back to `contentFont`)
+- **Body color:** uses `descFontColor` (falls back to `inactiveColor`)
+- **Body font:** uses `descFontFamily` (falls back to `contentFont`)
+- **Tab color:** uses `tabFontColor` (falls back to `inactiveColor`)
+- **Tab font:** uses `tabFontFamily` (falls back to `fontFamily`)
+- **Mobile tab bar:** gap reduced to `4px` on `≤768px`; mobile tab padding changed from `14px 18px` to `8px 14px`
+- **Reduced motion:** removed `::after` from transition reset (no longer needed)
+
+---
+
 ## [1.0.0] — 2026-03-11
 
 ### Added
@@ -83,4 +121,5 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+[1.1.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/tabbed-content-v1.1.0
 [1.0.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/tabbed-content-v1.0.0
