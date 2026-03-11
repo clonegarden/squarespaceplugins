@@ -44,6 +44,18 @@ Polished testimonial carousel with smooth transitions, keyboard navigation, star
 
 ---
 
+### Tabbed Content
+Transforms Squarespace lists into a tabbed file-organizer layout with image + content panels. Auto-extracts from Summary Blocks, List Sections, or custom HTML.
+
+**Install (Settings → Advanced → Code Injection → Footer):**
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/tabbed-content/tabbed-content.min.js?sectionIndex=2"></script>
+```
+
+[📖 Documentation](tabbed-content/README.md) | [🎬 Live Demo](tabbed-content/examples/basic.html) | [📋 Changelog](tabbed-content/CHANGELOG.md)
+
+---
+
 ### ASCII Animation
 Animated rotating text circles with explosion and rain effects.
 

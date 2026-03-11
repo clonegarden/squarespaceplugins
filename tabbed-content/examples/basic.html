@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tabbed Content — Basic Demo | Anavo Tech</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      /* Demo page chrome only — the plugin uses its own injected styles */
+    font-family: Georgia, "Times New Roman", serif;
+      background: #f5f0ea;
+      color: #333;
+      min-height: 100vh;
+    }
+    header {
+      background: #1a1a1a;
+      color: #fff;
+      padding: 28px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    header h1 { font-size: 20px; font-weight: 400; letter-spacing: 0.1em; }
+    header span { font-size: 12px; color: #888; letter-spacing: 0.15em; text-transform: uppercase; }
+    .info-panel {
+      background: #fff8f0;
+      border: 1px solid #e8d8c4;
+      border-radius: 8px;
+      padding: 24px 32px;
+      margin: 40px auto;
+      max-width: 860px;
+    }
+    .info-panel h2 {
+      font-size: 18px;
+      margin-bottom: 10px;
+      color: #8B7355;
+    }
+    .info-panel p { font-size: 14px; line-height: 1.7; color: #555; margin-bottom: 8px; }
+    .info-panel code {
+      display: block;
+      background: #f0e8dc;
+      border-radius: 4px;
+      padding: 12px 16px;
+      font-family: monospace;
+      font-size: 13px;
+      color: #333;
+      white-space: pre;
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 20px 60px;
+    }
+    h2.section-label {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #aaa;
+      margin: 40px 0 12px;
+    }
+    footer {
+      text-align: center;
+      padding: 32px 20px;
+      background: #1a1a1a;
+      color: #666;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>📁 Tabbed Content Plugin</h1>
+  <span>Anavo Tech — v1.0.0</span>
+</header>
+
+<main>
+
+  <div class="info-panel">
+    <h2>About This Demo</h2>
+    <p>
+      This demo shows the <strong>Tabbed Content</strong> plugin targeting a hidden
+      <code>&lt;ul id="services-list"&gt;</code> element. Each <code>&lt;li&gt;</code> uses
+      <code>data-title</code>, <code>data-subtitle</code>, and <code>data-image</code> attributes.
+      The plugin extracts this data and renders a beautiful tabbed layout.
+    </p>
+    <p>The script tag used below:</p>
+    <code>&lt;script src="../tabbed-content.js?ulId=services-list&amp;preset=elegant&amp;debug=true"&gt;&lt;/script&gt;</code>
+  </div>
+
+  <h2 class="section-label">Elegant Preset (default)</h2>
+
+  <!-- Hidden source list — the plugin will read this and hide it -->
+  <ul id="services-list" style="display:none">
+    <li
+      data-title="Elopements"
+      data-subtitle="Intimate & Adventurous"
+      data-image="https://images.unsplash.com/photo-1529636798458-92182e662485?w=900&auto=format&fit=crop&q=80"
+    >
+      <p>Your elopement is one of the most intimate moments of your life — and it deserves to be documented beautifully. We travel anywhere, from mountain peaks to coastal cliffs, to capture your story.</p>
+    </li>
+    <li
+      data-title="Weddings"
+      data-subtitle="Timeless Celebration"
+      data-image="https://images.unsplash.com/photo-1519741347686-c1e0aadf4611?w=900&auto=format&fit=crop&q=80"
+    >
+      <p>Every wedding is a unique love story. We work quietly in the background, capturing the laughter, the tears, and all the beautiful in-between moments that make your wedding day unforgettable.</p>
+    </li>
+    <li
+      data-title="Couples"
+      data-subtitle="Love Sessions"
+      data-image="https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=900&auto=format&fit=crop&q=80"
+    >
+      <p>Couples sessions are the perfect way to celebrate your relationship. Relaxed, fun, and full of connection — these sessions result in images you'll treasure for a lifetime.</p>
+    </li>
+    <li
+      data-title="Portraits"
+      data-subtitle="Personal & Professional"
+      data-image="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=900&auto=format&fit=crop&q=80"
+    >
+      <p>Whether you need personal branding photos, headshots, or a creative portrait session, we create images that reflect your personality and tell your story with authenticity.</p>
+    </li>
+    <li
+      data-title="Branding"
+      data-subtitle="Visual Identity"
+      data-image="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=900&auto=format&fit=crop&q=80"
+    >
+      <p>Your brand deserves imagery that speaks to your ideal client. We create cohesive, on-brand photo and video content that elevates your online presence and attracts your dream audience.</p>
+    </li>
+    <li
+      data-title="Film"
+      data-subtitle="Cinematic Stories"
+      data-image="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=900&auto=format&fit=crop&q=80"
+    >
+      <p>Cinematic wedding films that capture not just the events of your day, but the feeling of it. Emotional, timeless, and beautifully edited — these films will move you every time you watch them.</p>
+    </li>
+    <li
+      data-title="Super 8"
+      data-subtitle="Vintage & Nostalgic"
+      data-image="https://images.unsplash.com/photo-1617791160536-598cf32026fb?w=900&auto=format&fit=crop&q=80"
+    >
+      <p>Super 8 film adds a nostalgic, dream-like quality to your wedding or portrait session. Warm tones, natural grain, and the gentle flicker of film create footage that feels like a beautiful memory.</p>
+    </li>
+  </ul>
+
+  <!-- Plugin is loaded below, targeting the <ul> above -->
+  <script src="../tabbed-content.js?ulId=services-list&preset=elegant&debug=true"></script>
+
+  <div class="info-panel" style="margin-top:48px">
+    <h2>Try Other Presets</h2>
+    <p>Replace <code>preset=elegant</code> with any of these in the script URL:</p>
+    <code>preset=default   — Warm beige, serif headings, border separators
+preset=minimal   — White background, no borders, clean sans-serif
+preset=elegant   — Cormorant Garamond font, warm tones (shown above)
+preset=bold      — Dark mode, white active color, bold typography</code>
+  </div>
+
+</main>
+
+<footer>
+  Built with ❤️ by <strong>Anavo Tech</strong> &nbsp;|&nbsp; hello@anavo.tech
+</footer>
+
+</body>
+</html>
