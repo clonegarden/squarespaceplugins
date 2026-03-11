@@ -214,7 +214,7 @@ All plugins follow the same pattern:
 
 ```html
 <!-- Use specific version for stability -->
-<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@v1.0.0/quotation-builder/quotation-builder. min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@v1.0.0/quotation-builder/quotation-builder.min.js"></script>
 ```
 
 ### Customization
@@ -222,7 +222,7 @@ All plugins follow the same pattern:
 Add parameters to the script URL:
 
 ```html
-<script src="...  quotation-builder.min.js? font:Arial;bg:ffffff;primary: ff0000"></script>
+<script src="... plugin-name.min.js?bgColor=ffffff&activeColor=2563eb&sectionBorder=false"></script>
 ```
 
 See individual plugin documentation for available parameters.
@@ -237,7 +237,7 @@ See individual plugin documentation for available parameters.
 /plugin-name/
   ├── plugin-name.js          ← Source code
   ├── plugin-name.min.js      ← Minified (production)
-  ├── README. md               ← Plugin documentation
+  ├── README.md               ← Plugin documentation
   ├── CHANGELOG.md            ← Version history
   └── examples/               ← Usage examples
 ```
@@ -289,7 +289,7 @@ https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@v1.0.0/[plugin]/[plug
 
 **Specific commit:**
 ```
-https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@[commit-hash]/[plugin]/[plugin]. min.js
+https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@[commit-hash]/[plugin]/[plugin].min.js
 ```
 
 
@@ -298,7 +298,7 @@ https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@[commit-hash]/[plugin
 ## 📊 Analytics & Stats
 
 - **Total Downloads:** [View on jsDelivr](https://www.jsdelivr.com/package/gh/clonegarden/squarespaceplugins)
-- **GitHub Stars:** ![GitHub stars](https://img.shields.io/github/stars/clonegarden/squarespaceplugins? style=social)
+- **GitHub Stars:** ![GitHub stars](https://img.shields.io/github/stars/clonegarden/squarespaceplugins?style=social)
 - **Active Licenses:** View in [Plugin Manager]
 
 ---
@@ -307,7 +307,7 @@ https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@[commit-hash]/[plugin
 
 ### Documentation
 - [Installation Guide](docs/installation.md)
-- [Customization Guide](docs/customization. md)
+- [Customization Guide](docs/customization.md)
 - [Licensing & Activation](docs/licensing.md)
 - [Troubleshooting](docs/troubleshooting.md)
 

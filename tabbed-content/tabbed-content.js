@@ -25,13 +25,15 @@
  * ?borderColor=       - General border color for the wrapper
  *
  * TAB BAR PARAMETERS:
+ * ?tabStyle=concrete     - Tab visual style: concrete / browser / minimal (default: concrete)
+ * ?tabGap=8              - Gap between tabs in px (default: 8)
  * ?tabAlign=center       - Tab alignment: left / center / right
  * ?tabFontSize=14        - Tab font size in px
  * ?tabFontColor=         - Tab font color (defaults to inactiveColor)
  * ?tabFontFamily=        - Tab font family (defaults to fontFamily)
  * ?tabTransform=uppercase - Tab text transform
  * ?tabLetterSpacing=0.15em - Tab letter spacing
- * ?tabBorder=true        - Show tab bottom borders on inactive tabs
+ * ?tabBorder=true        - Show borders on tabs (always on for concrete/browser; controls underline for minimal)
  * ?tabBorderColor=cccccc - Tab border color hex
  *
  * CONTENT PANEL PARAMETERS:
@@ -113,6 +115,7 @@
       bgColor: '#FAF5EF',
       activeColor: '#8B7355',
       inactiveColor: '#999999',
+      tabStyle: 'concrete',
       tabBorder: true,
       tabBorderColor: '#cccccc',
       sectionBorder: true,
@@ -124,6 +127,7 @@
       bgColor: '#ffffff',
       activeColor: '#333333',
       inactiveColor: '#aaaaaa',
+      tabStyle: 'minimal',
       tabBorder: false,
       tabBorderColor: '#eeeeee',
       sectionBorder: false,
@@ -135,6 +139,7 @@
       bgColor: '#FAF5EF',
       activeColor: '#8B7355',
       inactiveColor: '#b0a090',
+      tabStyle: 'concrete',
       tabBorder: true,
       tabBorderColor: '#d4c9b8',
       sectionBorder: true,
@@ -146,6 +151,7 @@
       bgColor: '#1a1a1a',
       activeColor: '#ffffff',
       inactiveColor: '#666666',
+      tabStyle: 'browser',
       tabBorder: true,
       tabBorderColor: '#333333',
       sectionBorder: true,
@@ -192,6 +198,8 @@
 
       // Tab bar
       tabAlign: params.get('tabAlign') || 'left',
+      tabStyle: params.get('tabStyle') || preset.tabStyle || 'concrete',
+      tabGap: parseInt(params.get('tabGap') || '8', 10),
       tabFontSize: parseInt(params.get('tabFontSize') || '14', 10),
       tabFontColor: fixColor(params.get('tabFontColor') || '') || null,
       tabFontFamily: params.get('tabFontFamily') || null,
@@ -441,6 +449,45 @@
       ? `position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;`
       : `width: 100%; height: auto; display: block; object-fit: cover;`;
 
+    // ---- Tab style variables ----
+    const isConcreteOrBrowser = config.tabStyle === 'concrete' || config.tabStyle === 'browser';
+
+    // Tablist bottom border + alignment for concrete/browser (the "line across the bottom")
+    const tablistBorderLine = isConcreteOrBrowser
+      ? `border-bottom: 1px solid ${config.tabBorderColor}; align-items: flex-end;`
+      : '';
+
+    // Tab border/background/radius per style
+    let tabBorderCSS, activeTabBorderCSS;
+    if (config.tabStyle === 'browser') {
+      tabBorderCSS = `
+  border: 1px solid ${config.tabBorderColor};
+  border-radius: 6px 6px 0 0;
+  margin-bottom: -1px;
+  background: transparent;`;
+      activeTabBorderCSS = `
+  border-bottom-color: ${config.bgColor};
+  background: ${config.bgColor};`;
+    } else if (config.tabStyle === 'minimal') {
+      tabBorderCSS = `
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;`;
+      activeTabBorderCSS = `
+  border-bottom-color: ${config.activeColor};`;
+    } else {
+      // concrete (default)
+      tabBorderCSS = `
+  border: 1px solid ${config.tabBorderColor};
+  margin-bottom: -1px;
+  background: ${config.bgColor};`;
+      activeTabBorderCSS = `
+  border-bottom-color: ${config.bgColor};`;
+    }
+
+    // Tab padding — concrete/browser are more compact
+    const tabPadding = isConcreteOrBrowser ? '8px 16px' : '10px 16px';
+
     const styles = document.createElement('style');
     styles.id = styleId;
     styles.textContent = `
@@ -461,43 +508,41 @@
 /* ---- Tab Bar ---- */
 .anavo-tc-tablist {
   display: flex;
-  flex-wrap: wrap;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  scrollbar-width: none;
   list-style: none;
   margin: 0;
   padding: 0;
-  gap: 6px;
+  gap: ${config.tabGap}px;
   background: ${config.bgColor};
   justify-content: ${config.tabAlign === 'center' ? 'center' : config.tabAlign === 'right' ? 'flex-end' : 'flex-start'};
+  ${tablistBorderLine}
 }
+
+.anavo-tc-tablist::-webkit-scrollbar { display: none; }
 
 .anavo-tc-tab {
   position: relative;
-  padding: 10px 16px;
+  padding: ${tabPadding};
   cursor: pointer;
+  flex-shrink: 0;
   font-size: ${config.tabFontSize}px;
   font-family: ${config.tabFontFamily || config.fontFamily};
   font-weight: 400;
   text-transform: ${config.tabTransform};
   letter-spacing: ${config.tabLetterSpacing};
   color: ${config.tabFontColor || config.inactiveColor};
-  background: transparent;
-  border: none;
-  border-bottom: ${config.tabBorder ? `1px solid ${config.tabBorderColor}` : '1px solid transparent'};
   outline: none;
   transition: color ${speed}ms ease;
   white-space: nowrap;
   -webkit-appearance: none;
-  appearance: none;
-}
-
-.anavo-tc-tab::after {
-  display: none;
+  appearance: none;${tabBorderCSS}
 }
 
 .anavo-tc-tab[aria-selected="true"] {
   color: ${config.activeColor};
-  font-weight: 700;
-  border-bottom-color: transparent;
+  font-weight: 700;${activeTabBorderCSS}
 }
 
 .anavo-tc-tab:focus-visible {
@@ -649,15 +694,9 @@ ${config.animationType === 'slide' ? `
 /* ---- Responsive: Mobile ---- */
 @media (max-width: 768px) {
   .anavo-tc-tablist {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    flex-wrap: nowrap;
-    scrollbar-width: none;
-    gap: 4px;
+    gap: ${Math.max(config.tabGap - 4, 2)}px;
   }
-  .anavo-tc-tablist::-webkit-scrollbar { display: none; }
   .anavo-tc-tab {
-    flex-shrink: 0;
     padding: 8px 14px;
     font-size: ${Math.max(config.tabFontSize - 1, 11)}px;
   }
@@ -691,7 +730,7 @@ ${config.animationType === 'slide' ? `
 /* ---- Responsive: Small Mobile ---- */
 @media (max-width: 480px) {
   .anavo-tc-tab {
-    padding: 12px 14px;
+    padding: ${isConcreteOrBrowser ? '6px 12px' : '10px 12px'};
     font-size: ${Math.max(config.tabFontSize - 2, 10)}px;
     letter-spacing: 0.08em;
   }

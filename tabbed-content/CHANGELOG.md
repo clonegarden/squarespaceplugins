@@ -11,6 +11,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 
 #### New URL Parameters
+- `tabStyle` — visual mode for the tab bar: `concrete` (default, file-folder style with full rectangular borders), `browser` (rounded top corners), `minimal` (underline on active tab only)
+- `tabGap` — gap between tabs in px (default `8`)
 - `tabFontColor` — font color for inactive tabs (defaults to `inactiveColor`)
 - `tabFontFamily` — font family specifically for tabs (defaults to `fontFamily`)
 - `borderColor` — general border color alias for `sectionBorderColor`
@@ -25,13 +27,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
-#### Visual Redesign — File Organizer Style
-- **Tab bar:** added `gap: 6px` between individual tabs (replaced touching side borders)
-- **Tab padding:** reduced from `18px 24px` to `10px 16px` for a more compact look
-- **Inactive tabs:** now display a bottom border/underline (`border-bottom: 1px solid tabBorderColor`)
-- **Active tab:** `border-bottom-color: transparent` — active tab has NO underline (open-file style)
-- **Removed** `::after` pseudo-element underline from active tab (now `display: none`)
-- **Removed** `border-right` and `border-left` separators between tabs
+#### Visual Redesign — File Organizer Style (concrete)
+- **Tab bar:** full rectangular border on all 4 sides for inactive tabs (concrete style)
+- **Tab bar:** `border-bottom` line runs across the full width of the tablist; active tab uses `margin-bottom: -1px` to overlap and "break" the line, creating the file-folder illusion
+- **Tab bar:** tabs always use horizontal scroll (`flex-wrap: nowrap; overflow-x: auto`) with hidden scrollbar
+- **Tab bar:** gap is now configurable via `tabGap` (default `8px`)
+- **Active tab:** `border-bottom-color` set to `bgColor` — hides bottom border so tab appears to open into the panel
+- **Browser style:** like concrete but with `border-radius: 6px 6px 0 0` (rounded tops)
+- **Minimal style:** no borders; active tab has `border-bottom: 2px solid activeColor`
+- **Presets updated:** `default` → `concrete`, `minimal` → `minimal`, `elegant` → `concrete`, `bold` → `browser`
 - **Image wrap:** added `padding: {imagePadding}px` and `box-sizing: border-box` for breathing room around image
 - **Heading color:** uses `titleFontColor` (falls back to `activeColor`)
 - **Heading font:** uses `titleFontFamily` (falls back to `contentFont`)
@@ -39,8 +43,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Body font:** uses `descFontFamily` (falls back to `contentFont`)
 - **Tab color:** uses `tabFontColor` (falls back to `inactiveColor`)
 - **Tab font:** uses `tabFontFamily` (falls back to `fontFamily`)
-- **Mobile tab bar:** gap reduced to `4px` on `≤768px`; mobile tab padding changed from `14px 18px` to `8px 14px`
-- **Reduced motion:** removed `::after` from transition reset (no longer needed)
+- **Mobile tab bar:** gap scales down based on `tabGap`; tab padding more compact
 
 ---
 
