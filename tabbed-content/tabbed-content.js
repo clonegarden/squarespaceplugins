@@ -2,7 +2,7 @@
  * =======================================
  * TABBED CONTENT - Squarespace Plugin
  * =======================================
- * @version 1.0.0
+ * @version 1.1.0
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
@@ -20,26 +20,37 @@
  * ?bgColor=FAF5EF     - Section background color hex
  * ?activeColor=8B7355 - Active tab color hex
  * ?inactiveColor=999999 - Inactive tab color hex
- * ?fontFamily=        - Tab bar font family
- * ?contentFont=       - Content panel font family
+ * ?fontFamily=        - Tab bar font family (default)
+ * ?contentFont=       - Content panel font family (default)
+ * ?borderColor=       - General border color for the wrapper
  *
  * TAB BAR PARAMETERS:
- * ?tabAlign=center    - Tab alignment: left / center / right
- * ?tabFontSize=14     - Tab font size in px
+ * ?tabAlign=center       - Tab alignment: left / center / right
+ * ?tabFontSize=14        - Tab font size in px
+ * ?tabFontColor=         - Tab font color (defaults to inactiveColor)
+ * ?tabFontFamily=        - Tab font family (defaults to fontFamily)
  * ?tabTransform=uppercase - Tab text transform
  * ?tabLetterSpacing=0.15em - Tab letter spacing
- * ?tabBorder=true     - Show tab separator borders
+ * ?tabBorder=true        - Show tab bottom borders on inactive tabs
  * ?tabBorderColor=cccccc - Tab border color hex
  *
  * CONTENT PANEL PARAMETERS:
- * ?contentPadding=60  - Content area padding in px
- * ?imagePosition=left - Image position: left / right
- * ?imageWidth=45      - Image column width in %
- * ?imageAspect=auto   - Image aspect: auto / square / 4:3 / 3:2 / 16:9
- * ?headingTag=h2      - Heading tag: h2 / h3
- * ?headingSize=28     - Heading font size in px
- * ?subtitleSize=13    - Subtitle font size in px
- * ?bodySize=15        - Body text font size in px
+ * ?contentPadding=60   - Content area padding in px
+ * ?imagePosition=left  - Image position: left / right
+ * ?imageWidth=45       - Image column width in % (also: photoSize)
+ * ?photoSize=45        - Alias for imageWidth
+ * ?imageAspect=auto    - Image aspect: auto / square / 4:3 / 3:2 / 16:9
+ * ?imagePadding=16     - Padding around the image in px
+ * ?headingTag=h2       - Heading tag: h2 / h3
+ * ?headingSize=28      - Heading font size in px (also: titleFontSize)
+ * ?titleFontSize=28    - Alias for headingSize
+ * ?titleFontColor=     - Title font color (defaults to activeColor)
+ * ?titleFontFamily=    - Title font family (defaults to contentFont)
+ * ?subtitleSize=13     - Subtitle font size in px
+ * ?bodySize=15         - Body text font size in px (also: descFontSize)
+ * ?descFontSize=15     - Alias for bodySize
+ * ?descFontColor=      - Description font color (defaults to inactiveColor)
+ * ?descFontFamily=     - Description font family (defaults to contentFont)
  *
  * ANIMATION PARAMETERS:
  * ?animationType=fade - Animation: fade / slide / none
@@ -58,7 +69,7 @@
 (function () {
   'use strict';
 
-  const PLUGIN_VERSION = '1.0.0';
+  const PLUGIN_VERSION = '1.1.0';
   const PLUGIN_NAME = 'TabbedContent';
 
   console.log(`📁 ${PLUGIN_NAME} v${PLUGIN_VERSION} - Loading...`);
@@ -182,6 +193,8 @@
       // Tab bar
       tabAlign: params.get('tabAlign') || 'left',
       tabFontSize: parseInt(params.get('tabFontSize') || '14', 10),
+      tabFontColor: fixColor(params.get('tabFontColor') || '') || null,
+      tabFontFamily: params.get('tabFontFamily') || null,
       tabTransform: params.get('tabTransform') || 'uppercase',
       tabLetterSpacing: params.get('tabLetterSpacing') || '0.15em',
       tabBorder: getBool('tabBorder', preset.tabBorder),
@@ -190,12 +203,26 @@
       // Content panel
       contentPadding: parseInt(params.get('contentPadding') || '60', 10),
       imagePosition: params.get('imagePosition') || 'left',
-      imageWidth: parseInt(params.get('imageWidth') || '45', 10),
+      imageWidth: parseInt(
+        params.get('photoSize') || params.get('imageWidth') || '45',
+        10
+      ),
       imageAspect: params.get('imageAspect') || 'auto',
+      imagePadding: parseInt(params.get('imagePadding') || '16', 10),
       headingTag: params.get('headingTag') || 'h2',
-      headingSize: parseInt(params.get('headingSize') || '28', 10),
+      headingSize: parseInt(
+        params.get('titleFontSize') || params.get('headingSize') || '28',
+        10
+      ),
+      titleFontColor: fixColor(params.get('titleFontColor') || '') || null,
+      titleFontFamily: params.get('titleFontFamily') || null,
       subtitleSize: parseInt(params.get('subtitleSize') || '13', 10),
-      bodySize: parseInt(params.get('bodySize') || '15', 10),
+      bodySize: parseInt(
+        params.get('descFontSize') || params.get('bodySize') || '15',
+        10
+      ),
+      descFontColor: fixColor(params.get('descFontColor') || '') || null,
+      descFontFamily: params.get('descFontFamily') || null,
 
       // Animation
       animationType: params.get('animationType') || 'fade',
@@ -204,7 +231,9 @@
       // Section
       sectionBorder: getBool('sectionBorder', preset.sectionBorder),
       sectionBorderColor: fixColor(
-        params.get('sectionBorderColor') || preset.sectionBorderColor.replace('#', '')
+        params.get('borderColor') ||
+          params.get('sectionBorderColor') ||
+          preset.sectionBorderColor.replace('#', '')
       ),
       sectionRadius: parseInt(params.get('sectionRadius') || '0', 10),
 
@@ -436,24 +465,24 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  border-bottom: 1px solid ${config.tabBorder ? config.tabBorderColor : 'transparent'};
+  gap: 6px;
   background: ${config.bgColor};
   justify-content: ${config.tabAlign === 'center' ? 'center' : config.tabAlign === 'right' ? 'flex-end' : 'flex-start'};
 }
 
 .anavo-tc-tab {
   position: relative;
-  padding: 18px 24px;
+  padding: 10px 16px;
   cursor: pointer;
   font-size: ${config.tabFontSize}px;
-  font-family: ${config.fontFamily};
+  font-family: ${config.tabFontFamily || config.fontFamily};
   font-weight: 400;
   text-transform: ${config.tabTransform};
   letter-spacing: ${config.tabLetterSpacing};
-  color: ${config.inactiveColor};
+  color: ${config.tabFontColor || config.inactiveColor};
   background: transparent;
   border: none;
-  border-right: ${config.tabBorder ? `1px solid ${config.tabBorderColor}` : 'none'};
+  border-bottom: ${config.tabBorder ? `1px solid ${config.tabBorderColor}` : '1px solid transparent'};
   outline: none;
   transition: color ${speed}ms ease;
   white-space: nowrap;
@@ -461,29 +490,14 @@
   appearance: none;
 }
 
-.anavo-tc-tab:first-child {
-  border-left: ${config.tabBorder ? `1px solid ${config.tabBorderColor}` : 'none'};
-}
-
 .anavo-tc-tab::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: ${config.activeColor};
-  transform: scaleX(0);
-  transition: transform ${speed}ms ease;
+  display: none;
 }
 
 .anavo-tc-tab[aria-selected="true"] {
   color: ${config.activeColor};
   font-weight: 700;
-}
-
-.anavo-tc-tab[aria-selected="true"]::after {
-  transform: scaleX(1);
+  border-bottom-color: transparent;
 }
 
 .anavo-tc-tab:focus-visible {
@@ -541,6 +555,8 @@ ${config.animationType === 'slide' ? `
   ${imageWrapStyles}
   width: 100%;
   height: 100%;
+  padding: ${config.imagePadding}px;
+  box-sizing: border-box;
 }
 
 .anavo-tc-image-wrap img {
@@ -574,8 +590,8 @@ ${config.animationType === 'slide' ? `
 .anavo-tc-content-col .anavo-tc-heading {
   margin: 0 0 12px;
   font-size: ${config.headingSize}px;
-  font-family: ${config.contentFont};
-  color: ${config.activeColor};
+  font-family: ${config.titleFontFamily || config.contentFont};
+  color: ${config.titleFontColor || config.activeColor};
   font-weight: 600;
   line-height: 1.2;
 }
@@ -592,8 +608,8 @@ ${config.animationType === 'slide' ? `
 
 .anavo-tc-content-col .anavo-tc-body {
   font-size: ${config.bodySize}px;
-  font-family: ${config.contentFont};
-  color: ${config.inactiveColor};
+  font-family: ${config.descFontFamily || config.contentFont};
+  color: ${config.descFontColor || config.inactiveColor};
   line-height: 1.8;
   margin: 0;
 }
@@ -637,12 +653,12 @@ ${config.animationType === 'slide' ? `
     -webkit-overflow-scrolling: touch;
     flex-wrap: nowrap;
     scrollbar-width: none;
-    border-bottom: 1px solid ${config.tabBorder ? config.tabBorderColor : 'transparent'};
+    gap: 4px;
   }
   .anavo-tc-tablist::-webkit-scrollbar { display: none; }
   .anavo-tc-tab {
     flex-shrink: 0;
-    padding: 14px 18px;
+    padding: 8px 14px;
     font-size: ${Math.max(config.tabFontSize - 1, 11)}px;
   }
   .anavo-tc-panel.anavo-tc-panel--active {
@@ -687,7 +703,6 @@ ${config.animationType === 'slide' ? `
 /* ---- Reduced Motion ---- */
 @media (prefers-reduced-motion: reduce) {
   .anavo-tc-tab,
-  .anavo-tc-tab::after,
   .anavo-tc-link {
     transition: none !important;
   }

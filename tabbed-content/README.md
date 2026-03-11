@@ -117,8 +117,9 @@ Then:
 | `bgColor` | `FAF5EF` | Section background color (hex without `#`) |
 | `activeColor` | `8B7355` | Active tab and heading color |
 | `inactiveColor` | `999999` | Inactive tab and body text color |
-| `fontFamily` | *(preset)* | Tab bar font family |
-| `contentFont` | *(preset)* | Content panel font family |
+| `fontFamily` | *(preset)* | Default tab bar font family |
+| `contentFont` | *(preset)* | Default content panel font family |
+| `borderColor` | *(sectionBorderColor)* | General border color for the wrapper |
 
 ### Tab Bar
 
@@ -126,9 +127,11 @@ Then:
 |-----------|---------|-------------|
 | `tabAlign` | `left` | Tab alignment: `left` / `center` / `right` |
 | `tabFontSize` | `14` | Tab font size in px |
+| `tabFontColor` | *(inactiveColor)* | Font color for inactive tabs |
+| `tabFontFamily` | *(fontFamily)* | Font family specifically for tabs |
 | `tabTransform` | `uppercase` | CSS text-transform |
 | `tabLetterSpacing` | `0.15em` | Tab letter spacing |
-| `tabBorder` | `true` | Show vertical borders between tabs |
+| `tabBorder` | `true` | Show bottom border on inactive tabs |
 | `tabBorderColor` | `cccccc` | Tab border color hex |
 
 ### Content Panel
@@ -137,12 +140,17 @@ Then:
 |-----------|---------|-------------|
 | `contentPadding` | `60` | Content column padding in px |
 | `imagePosition` | `left` | Image side: `left` / `right` |
-| `imageWidth` | `45` | Image column width as `%` |
+| `imageWidth` / `photoSize` | `45` | Image column width as `%` |
 | `imageAspect` | `auto` | Image aspect: `auto` / `square` / `4:3` / `3:2` / `16:9` |
+| `imagePadding` | `16` | Padding around the image in px |
 | `headingTag` | `h2` | HTML tag for heading: `h2` / `h3` / `h4` |
-| `headingSize` | `28` | Heading font size in px |
+| `headingSize` / `titleFontSize` | `28` | Heading font size in px |
+| `titleFontColor` | *(activeColor)* | Font color for the content title |
+| `titleFontFamily` | *(contentFont)* | Font family for the content title |
 | `subtitleSize` | `13` | Subtitle font size in px |
-| `bodySize` | `15` | Body text font size in px |
+| `bodySize` / `descFontSize` | `15` | Body text font size in px |
+| `descFontColor` | *(inactiveColor)* | Font color for description text |
+| `descFontFamily` | *(contentFont)* | Font family for description text |
 
 ### Animation
 
@@ -271,5 +279,5 @@ This plugin requires a valid Anavo Tech license for use on production domains.
 ## 🆘 Support
 
 - 📧 Email: hello@anavo.tech
-- 🐛 Bug Reports: [GitHub Issues](https://github.com/clonegarden/squarespace-plugins/issues)
+- 🐛 Bug Reports: [GitHub Issues](https://github.com/clonegarden/squarespaceplugins/issues)
 - 📖 Knowledge Base: [anavo.tech](https://anavo.tech)
