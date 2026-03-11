@@ -32,7 +32,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Active tab:** `border-bottom-color: transparent` — active tab has NO underline (open-file style)
 - **Removed** `::after` pseudo-element underline from active tab (now `display: none`)
 - **Removed** `border-right` and `border-left` separators between tabs
-- **Image wrap:** added `padding: imagePaddingpx` and `box-sizing: border-box` for breathing room around image
+- **Image wrap:** added `padding: {imagePadding}px` and `box-sizing: border-box` for breathing room around image
 - **Heading color:** uses `titleFontColor` (falls back to `activeColor`)
 - **Heading font:** uses `titleFontFamily` (falls back to `contentFont`)
 - **Body color:** uses `descFontColor` (falls back to `inactiveColor`)
