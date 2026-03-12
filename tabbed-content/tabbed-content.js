@@ -71,7 +71,7 @@
 (function () {
   'use strict';
 
-  const PLUGIN_VERSION = '1.1.0';
+  const PLUGIN_VERSION = '1.2.0';
   const PLUGIN_NAME = 'TabbedContent';
 
   console.log(`📁 ${PLUGIN_NAME} v${PLUGIN_VERSION} - Loading...`);
@@ -454,7 +454,7 @@
 
     // Tablist bottom border + alignment for concrete/browser (the "line across the bottom")
     const tablistBorderLine = isConcreteOrBrowser
-      ? `border-bottom: 1px solid ${config.tabBorderColor}; align-items: flex-end;`
+      ? `align-items: flex-end;`
       : '';
 
     // Tab border/background/radius per style
@@ -487,6 +487,11 @@
 
     // Tab padding — concrete/browser are more compact
     const tabPadding = isConcreteOrBrowser ? '8px 16px' : '10px 16px';
+
+    // Content panel border — concrete/browser use the panel's top border to create the folder-tab line
+    const panelsBorderCSS = isConcreteOrBrowser
+      ? `border: 1px solid ${config.tabBorderColor};`
+      : '';
 
     const styles = document.createElement('style');
     styles.id = styleId;
@@ -553,6 +558,7 @@
 /* ---- Panels ---- */
 .anavo-tc-panels {
   position: relative;
+  ${panelsBorderCSS}
 }
 
 .anavo-tc-panel {
