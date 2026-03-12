@@ -58,7 +58,7 @@ In your Squarespace page editor:
 
 ```html
 <div id="quotemachine"></div>
-<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespace-plugins@latest/quotation-builder/quotation-builder.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/quotation-builder/quotation-builder.min.js"></script>
 ```
 
 ### Step 3: Save & Publish
@@ -74,7 +74,7 @@ Click **Save** → **Publish** and view your page!
 Add parameters to the script URL to match your brand:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespace-plugins@latest/quotation-builder/quotation-builder.min.js?font: Helvetica;bg:ffffff;primary:ff0000"></script>
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/quotation-builder/quotation-builder.min.js?font: Helvetica;bg:ffffff;primary:ff0000"></script>
 ```
 
 ### Available Parameters
@@ -195,7 +195,7 @@ Set `contactPage` to your form's URL (e.g., `/contact`)
     <h1>Get Your Custom Quote</h1>
     
     <div id="quotemachine"></div>
-    <script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespace-plugins@latest/quotation-builder/quotation-builder.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/quotation-builder/quotation-builder.min.js"></script>
 </body>
 </html>
 ```
@@ -297,7 +297,7 @@ If you see errors:
 - 📧 **Email:** support@anavotech.com
 - 💬 **Live Chat:** [anavotech.com](https://anavotech.com)
 - 📖 **Documentation:** [docs.anavotech.com](https://docs.anavotech.com)
-- 🐛 **Bug Reports:** [GitHub Issues](https://github.com/clonegarden/squarespace-plugins/issues)
+- 🐛 **Bug Reports:** [GitHub Issues](https://github.com/clonegarden/squarespaceplugins/issues)
 
 ### Response Times
 - **Email:** Within 24 hours

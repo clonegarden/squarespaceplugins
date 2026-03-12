@@ -69,7 +69,7 @@ const readmeTemplate = `# ${pluginName. replace(/-/g, ' ').replace(/\b\w/g, l =>
 
 \`\`\`html
 <div id="${pluginName}-container"></div>
-<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespace-plugins@latest/${pluginName}/${pluginName}.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/${pluginName}/${pluginName}.min.js"></script>
 \`\`\`
 
 ## Customization
