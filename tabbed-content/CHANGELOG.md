@@ -6,6 +6,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.0] — 2026-03-12
+
+### Fixed
+
+#### Concrete / Browser tab style — folder-tab CSS pattern corrected
+- **Removed** `border-bottom` from `.anavo-tc-tablist` — the full-width bottom line on the tab bar no longer exists, so gaps between tabs and the space after the last tab are now visually open (show the page background)
+- **Added** `border: 1px solid [tabBorderColor]` to `.anavo-tc-panels` — the content panel's top border now creates the horizontal line that runs between tabs and after the last tab, giving the correct folder-tab appearance
+- **Active tab** continues to use `border-bottom-color: bgColor` + `margin-bottom: -1px` to seamlessly merge with the content panel below (no visible bottom border on the active tab)
+- **Inactive tabs** retain a full rectangular border (top + left + right + bottom) so they look like closed folder tabs
+- `browser` style receives the same fix (also had the full-width tablist line issue)
+
+---
+
 ## [1.1.0] — 2026-03-11
 
 ### Added
@@ -124,5 +137,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+[1.2.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/tabbed-content-v1.2.0
 [1.1.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/tabbed-content-v1.1.0
 [1.0.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/tabbed-content-v1.0.0
