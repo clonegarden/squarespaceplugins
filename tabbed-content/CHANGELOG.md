@@ -6,6 +6,31 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.3.0] — 2026-03-13
+
+### Added
+
+- `contentBgColor` parameter — explicit background color for the content panel (defaults to `bgColor`). Used for the active-tab border-masking trick so custom panel backgrounds work correctly without overrides.
+
+### Changed
+
+#### Architecture — True Folder-Tab Visual Pattern
+- **`.anavo-tc-wrapper`** background changed from `bgColor` to `transparent` — the wrapper is now an invisible positioning container, not a colored box
+- **`.anavo-tc-wrapper`** overflow changed from `hidden` to `visible` — allows tabs to overlap the content panel border correctly
+- **`.anavo-tc-tablist`** background changed from `bgColor` to `transparent`; added `position: relative; z-index: 2` so the tab bar sits above the content panel
+- **`.anavo-tc-tab`** (concrete/browser) inactive background changed from `bgColor` to `transparent` — closed folder tabs show the page background through them; added `z-index: 2`
+- **`.anavo-tc-tab[aria-selected="true"]`** (concrete/browser) `border-bottom-color` and `background` now use `contentBgColor` instead of `bgColor` — ensures the active tab's bottom border matches the content panel exactly, even when `contentBgColor` is set independently
+- **`.anavo-tc-tab[aria-selected="true"]`** (concrete/browser) added `z-index: 3` — active tab sits above both the tablist and the content panel
+- **`.anavo-tc-panels`** (concrete/browser) added `background: contentBgColor` and `z-index: 1` — the content panel is now the lowest z-index layer; its background is what the active tab's border-bottom must match
+- `tabGap` default changed from `8` to `6`
+
+#### Preset Defaults
+- `default` preset: `sectionBorder` changed from `true` to `false`
+- `elegant` preset: `sectionBorder` changed from `true` to `false`
+- `bold` preset: `sectionBorder` changed from `true` to `false`
+
+---
+
 ## [1.2.0] — 2026-03-12
 
 ### Fixed
@@ -137,6 +162,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+[1.3.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/tabbed-content-v1.3.0
 [1.2.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/tabbed-content-v1.2.0
 [1.1.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/tabbed-content-v1.1.0
 [1.0.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/tabbed-content-v1.0.0

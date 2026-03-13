@@ -2,7 +2,7 @@
  * =======================================
  * TABBED CONTENT - Squarespace Plugin
  * =======================================
- * @version 1.1.0
+ * @version 1.3.0
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
@@ -17,7 +17,8 @@
  *
  * APPEARANCE PARAMETERS:
  * ?preset=elegant     - Preset style: default / minimal / elegant / bold
- * ?bgColor=FAF5EF     - Section background color hex
+ * ?bgColor=FAF5EF     - Background color hex (used as fallback for contentBgColor)
+ * ?contentBgColor=    - Content panel background color (defaults to bgColor); used for the active-tab masking trick
  * ?activeColor=8B7355 - Active tab color hex
  * ?inactiveColor=999999 - Inactive tab color hex
  * ?fontFamily=        - Tab bar font family (default)
@@ -26,7 +27,7 @@
  *
  * TAB BAR PARAMETERS:
  * ?tabStyle=concrete     - Tab visual style: concrete / browser / minimal (default: concrete)
- * ?tabGap=8              - Gap between tabs in px (default: 8)
+ * ?tabGap=6              - Gap between tabs in px (default: 6)
  * ?tabAlign=center       - Tab alignment: left / center / right
  * ?tabFontSize=14        - Tab font size in px
  * ?tabFontColor=         - Tab font color (defaults to inactiveColor)
@@ -59,7 +60,7 @@
  * ?animationSpeed=400 - Animation duration in ms
  *
  * SECTION PARAMETERS:
- * ?sectionBorder=true      - Show outer border
+ * ?sectionBorder=false     - Show outer border (default: false)
  * ?sectionBorderColor=cccccc - Outer border color hex
  * ?sectionRadius=0         - Outer border radius in px
  *
@@ -71,7 +72,7 @@
 (function () {
   'use strict';
 
-  const PLUGIN_VERSION = '1.2.0';
+  const PLUGIN_VERSION = '1.3.0';
   const PLUGIN_NAME = 'TabbedContent';
 
   console.log(`📁 ${PLUGIN_NAME} v${PLUGIN_VERSION} - Loading...`);
@@ -118,7 +119,7 @@
       tabStyle: 'concrete',
       tabBorder: true,
       tabBorderColor: '#cccccc',
-      sectionBorder: true,
+      sectionBorder: false,
       sectionBorderColor: '#cccccc',
       fontFamily: 'Georgia, "Times New Roman", serif',
       contentFont: 'Georgia, "Times New Roman", serif',
@@ -142,7 +143,7 @@
       tabStyle: 'concrete',
       tabBorder: true,
       tabBorderColor: '#d4c9b8',
-      sectionBorder: true,
+      sectionBorder: false,
       sectionBorderColor: '#d4c9b8',
       fontFamily: '"Cormorant Garamond", "Cormorant", Georgia, serif',
       contentFont: '"Cormorant Garamond", "Cormorant", Georgia, serif',
@@ -154,7 +155,7 @@
       tabStyle: 'browser',
       tabBorder: true,
       tabBorderColor: '#333333',
-      sectionBorder: true,
+      sectionBorder: false,
       sectionBorderColor: '#333333',
       fontFamily: '"Helvetica Neue", Arial, sans-serif',
       contentFont: '"Helvetica Neue", Arial, sans-serif',
@@ -179,6 +180,8 @@
       return v !== 'false';
     };
 
+    const bgColor = fixColor(params.get('bgColor') || preset.bgColor.replace('#', ''));
+
     return {
       // Targeting
       sectionIndex: params.get('sectionIndex') ? parseInt(params.get('sectionIndex'), 10) : null,
@@ -190,16 +193,16 @@
       preset: presetName,
 
       // Appearance
-      bgColor: fixColor(params.get('bgColor') || preset.bgColor.replace('#', '')),
+      bgColor,
+      contentBgColor: fixColor(params.get('contentBgColor') || '') || bgColor,
       activeColor: fixColor(params.get('activeColor') || preset.activeColor.replace('#', '')),
       inactiveColor: fixColor(params.get('inactiveColor') || preset.inactiveColor.replace('#', '')),
       fontFamily: params.get('fontFamily') || preset.fontFamily,
       contentFont: params.get('contentFont') || preset.contentFont,
-
       // Tab bar
       tabAlign: params.get('tabAlign') || 'left',
       tabStyle: params.get('tabStyle') || preset.tabStyle || 'concrete',
-      tabGap: parseInt(params.get('tabGap') || '8', 10),
+      tabGap: parseInt(params.get('tabGap') || '6', 10),
       tabFontSize: parseInt(params.get('tabFontSize') || '14', 10),
       tabFontColor: fixColor(params.get('tabFontColor') || '') || null,
       tabFontFamily: params.get('tabFontFamily') || null,
@@ -451,8 +454,9 @@
 
     // ---- Tab style variables ----
     const isConcreteOrBrowser = config.tabStyle === 'concrete' || config.tabStyle === 'browser';
+    const contentBgColor = config.contentBgColor;
 
-    // Tablist bottom border + alignment for concrete/browser (the "line across the bottom")
+    // Tablist alignment for concrete/browser (tabs sit at the bottom of the tablist)
     const tablistBorderLine = isConcreteOrBrowser
       ? `align-items: flex-end;`
       : '';
@@ -464,10 +468,12 @@
   border: 1px solid ${config.tabBorderColor};
   border-radius: 6px 6px 0 0;
   margin-bottom: -1px;
-  background: transparent;`;
+  background: transparent;
+  z-index: 2;`;
       activeTabBorderCSS = `
-  border-bottom-color: ${config.bgColor};
-  background: ${config.bgColor};`;
+  border-bottom-color: ${contentBgColor};
+  background: ${contentBgColor};
+  z-index: 3;`;
     } else if (config.tabStyle === 'minimal') {
       tabBorderCSS = `
   border: none;
@@ -480,17 +486,22 @@
       tabBorderCSS = `
   border: 1px solid ${config.tabBorderColor};
   margin-bottom: -1px;
-  background: ${config.bgColor};`;
+  background: transparent;
+  z-index: 2;`;
       activeTabBorderCSS = `
-  border-bottom-color: ${config.bgColor};`;
+  border-bottom-color: ${contentBgColor};
+  background: ${contentBgColor};
+  z-index: 3;`;
     }
 
     // Tab padding — concrete/browser are more compact
     const tabPadding = isConcreteOrBrowser ? '8px 16px' : '10px 16px';
 
-    // Content panel border — concrete/browser use the panel's top border to create the folder-tab line
+    // Content panel border + background — concrete/browser use the panel's top border to create the folder-tab line
     const panelsBorderCSS = isConcreteOrBrowser
-      ? `border: 1px solid ${config.tabBorderColor};`
+      ? `border: 1px solid ${config.tabBorderColor};
+  background: ${contentBgColor};
+  z-index: 1;`
       : '';
 
     const styles = document.createElement('style');
@@ -501,11 +512,11 @@
    ============================================= */
 
 .anavo-tc-wrapper {
-  background: ${config.bgColor};
+  background: transparent;
   font-family: ${config.fontFamily};
   border: ${config.sectionBorder ? `1px solid ${config.sectionBorderColor}` : 'none'};
   border-radius: ${config.sectionRadius}px;
-  overflow: hidden;
+  overflow: visible;
   width: 100%;
   box-sizing: border-box;
 }
@@ -520,8 +531,10 @@
   margin: 0;
   padding: 0;
   gap: ${config.tabGap}px;
-  background: ${config.bgColor};
+  background: transparent;
   justify-content: ${config.tabAlign === 'center' ? 'center' : config.tabAlign === 'right' ? 'flex-end' : 'flex-start'};
+  position: relative;
+  z-index: 2;
   ${tablistBorderLine}
 }
 

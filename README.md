@@ -325,13 +325,16 @@ https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@[commit-hash]/[plugin
 
 ## 🔄 Updates & Changelog
 
-### Latest Release: v1.1.0 (2026-03-11)
+### Latest Release: v1.3.0 (2026-03-13)
 
-**Tabbed Content v1.1.0**
-- ✨ Visual redesign — file-organizer style tabs with gap between tabs
-- ✨ Active tab has no underline; inactive tabs show subtle bottom border
-- ✨ 11 new parameters: `tabFontColor`, `tabFontFamily`, `borderColor`, `photoSize`, `titleFontSize`, `titleFontColor`, `titleFontFamily`, `descFontSize`, `descFontColor`, `descFontFamily`, `imagePadding`
-- ✅ Backward compatible with all v1.0.0 parameters
+**Tabbed Content v1.3.0**
+- ✨ True folder-tab architecture — wrapper is now transparent (`background: transparent`, `overflow: visible`), allowing tabs to cleanly overlap the content panel border
+- ✨ New `contentBgColor` parameter — explicit content panel background color, used for the active-tab border-masking trick
+- ✨ Active tab z-index layering — tablist (`z-index: 2`), active tab (`z-index: 3`), content panel (`z-index: 1`) — correct stacking order by default
+- ✨ Inactive tabs now have `background: transparent` — the page background shows through closed folder tabs
+- 🔧 `sectionBorder` default changed to `false` for all presets except `minimal`
+- 🔧 `tabGap` default changed from `8` to `6`
+- ✅ Eliminates the need for `!important` CSS overrides in Squarespace — injected styles are architecturally correct by default
 
 **Recent Releases:**
 - Photo Grid v1.3.0 — Enhanced masonry grid with configurable columns

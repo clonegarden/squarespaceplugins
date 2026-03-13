@@ -133,7 +133,8 @@ Then:
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `preset` | `default` | Style preset: `default` / `minimal` / `elegant` / `bold` |
-| `bgColor` | `FAF5EF` | Section background color (hex without `#`) |
+| `bgColor` | `FAF5EF` | Background color fallback (hex without `#`) — used as `contentBgColor` when that param is not set |
+| `contentBgColor` | *(bgColor)* | Content panel background color — also used for the active-tab border-masking trick |
 | `activeColor` | `8B7355` | Active tab and heading color |
 | `inactiveColor` | `999999` | Inactive tab and body text color |
 | `fontFamily` | *(preset)* | Default tab bar font family |
@@ -145,7 +146,7 @@ Then:
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `tabStyle` | `concrete` | Visual style: `concrete` (file-folder, full border) / `browser` (rounded tops) / `minimal` (underline only) |
-| `tabGap` | `8` | Gap between tabs in px |
+| `tabGap` | `6` | Gap between tabs in px |
 | `tabAlign` | `left` | Tab alignment: `left` / `center` / `right` |
 | `tabFontSize` | `14` | Tab font size in px |
 | `tabFontColor` | *(inactiveColor)* | Font color for inactive tabs |
@@ -184,7 +185,7 @@ Then:
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `sectionBorder` | `true` | Show outer border around component |
+| `sectionBorder` | `false` | Show outer border around component |
 | `sectionBorderColor` | `cccccc` | Outer border color hex |
 | `sectionRadius` | `0` | Outer border radius in px |
 
