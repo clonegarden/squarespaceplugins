@@ -6,6 +6,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.2.0] — 2026-03-13
+
+### Added
+- `mobileMode=default` option — preserves the Squarespace native mobile menu on screens ≤479px
+- When `mobileMode=default`: custom menu (`anavo-menu-wrapper`) is hidden on mobile via CSS media query
+- When `mobileMode=default`: Squarespace header and nav are only hidden on desktop (>479px); they are restored on mobile
+- Resize event listener (debounced) re-evaluates header/nav visibility when viewport crosses the 479px breakpoint
+
+---
+
 ## [2.1.5] — 2026-03-11
 
 ### Fixed
@@ -40,6 +50,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+[2.2.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/expanded-menu-v2.2.0
 [2.1.5]: https://github.com/clonegarden/squarespaceplugins/releases/tag/expanded-menu-v2.1.5
 [2.1.4]: https://github.com/clonegarden/squarespaceplugins/releases/tag/expanded-menu-v2.1.4
 [2.0.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/expanded-menu-v2.0.0

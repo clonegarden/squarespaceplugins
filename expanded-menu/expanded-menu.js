@@ -2,9 +2,13 @@
  * =======================================
  * EXPANDED MENU PLUGIN - Squarespace
  * =======================================
- * @version 2.1.5
+ * @version 2.2.0
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
+ *
+ * CHANGELOG v2.2.0:
+ * - Added: mobileMode=default preserves Squarespace native mobile menu on ≤479px
+ * - Added: resize listener restores correct header/nav visibility on viewport change
  *
  * CHANGELOG v2.1.5:
  * - Fixed: CSS units (5px not 5)
@@ -24,7 +28,7 @@
 (function() {
   'use strict';
 
-  const PLUGIN_VERSION = '2.1.5';
+  const PLUGIN_VERSION = '2.2.0';
   console.log(`🚀 Expanded Menu Plugin v${PLUGIN_VERSION} - Starting...`);
 
   const currentScript = document.currentScript || (function() {
@@ -77,6 +81,12 @@
   console.log('⚙️ Config:', config);
 
   function forceHideSquarespaceHeader() {
+    // When mobileMode=default, preserve the Squarespace header on mobile (≤479px)
+    if (config.mobileMode === 'default' && window.innerWidth <= 479) {
+      restoreSquarespaceHeader();
+      return;
+    }
+
     const headers = document.querySelectorAll('.header, .Header, header, [data-nc-group="header"]');
     
     headers.forEach(header => {
@@ -112,6 +122,14 @@
     }
 
     console.log('✅ Forced header hiding via inline styles (Subtle Approach)');
+  }
+
+  function restoreSquarespaceHeader() {
+    const headers = document.querySelectorAll('.header, .Header, header, [data-nc-group="header"]');
+    headers.forEach(header => {
+      header.style.cssText = '';
+    });
+    console.log('✅ Squarespace header restored (mobileMode=default, mobile viewport)');
   }
 
   async function waitForSquarespaceNav(maxTries) {
@@ -254,6 +272,12 @@
   }
 
   function hideSquarespaceNav() {
+    // When mobileMode=default, preserve the Squarespace nav on mobile (≤479px)
+    if (config.mobileMode === 'default' && window.innerWidth <= 479) {
+      restoreSquarespaceNav();
+      return;
+    }
+
     const navSelectors = [
       '.header-nav',
       '.header-menu-nav-wrapper',
@@ -267,6 +291,22 @@
       }
     });
     console.log('✅ Squarespace nav hidden');
+  }
+
+  function restoreSquarespaceNav() {
+    const navSelectors = [
+      '.header-nav',
+      '.header-menu-nav-wrapper',
+      '.header-nav-wrapper',
+      '[data-nc-element="navigation"]',
+    ];
+    navSelectors.forEach(sel => {
+      const el = document.querySelector(sel);
+      if (el) {
+        el.style.cssText = '';
+      }
+    });
+    console.log('✅ Squarespace nav restored (mobileMode=default, mobile viewport)');
   }
 
   function insertCustomMenu(menuHTML) {
@@ -601,6 +641,20 @@
           font-size: ${Math.max(parseInt(config.fontSize) - 4, 12)}px !important;
         }
       }
+
+      ${config.mobileMode === 'default' ? `
+      /* mobileMode=default: hide custom menu on mobile so Squarespace native menu shows */
+      @media (max-width: 479px) {
+        .anavo-menu-wrapper {
+          display: none !important;
+        }
+      }
+      @media (min-width: 480px) {
+        .anavo-menu-wrapper {
+          display: block !important;
+        }
+      }
+      ` : ''}
     `;
 
     document.head.appendChild(styles);
@@ -672,6 +726,17 @@
 
       if (config.mobileMode === 'burger') {
         enableBurgerMode();
+      }
+
+      if (config.mobileMode === 'default') {
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+          clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(() => {
+            forceHideSquarespaceHeader();
+            hideSquarespaceNav();
+          }, 100);
+        });
       }
 
       setTimeout(forceHideSquarespaceHeader, 500);
