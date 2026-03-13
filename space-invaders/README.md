@@ -2,7 +2,7 @@
 
 Interactive Space Invaders game overlay for Squarespace sites. Perfect for tech portfolios, developer showcases, and gamified user experiences.
 
-![Version](https://img.shields.io/badge/version-2.5.1-blue)
+![Version](https://img.shields.io/badge/version-2.6.0-blue)
 ![License](https://img.shields.io/badge/license-Commercial-red)
 
 ---
@@ -82,6 +82,64 @@ Add this code to **Settings → Advanced → Code Injection → Footer**.
 ```html
 <script src="...space-invaders.min.js?showTechTable=false"></script>
 ```
+
+---
+
+## 🏆 Leaderboard (Supabase)
+
+The plugin includes an optional per-domain leaderboard powered by Supabase Edge Functions. When enabled, the **Game Over** screen shows a live leaderboard and lets players submit their score.
+
+### Requirements
+
+You need:
+1. A Supabase project with the `space-invaders-top` and `space-invaders-submit` Edge Functions deployed.
+2. Your project's **anon (public) key** — this key is safe to include in client-side code. Enforce row-level validation in the Edge Functions.
+
+### Basic Installation
+
+Paste one `<script>` tag in **Settings → Advanced → Code Injection → Footer** (all params on one line):
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/space-invaders/space-invaders.min.js?leaderboard=true&leaderboardBaseUrl=https://YOUR_PROJECT.functions.supabase.co/functions/v1&supabaseAnonKey=YOUR_ANON_KEY"></script>
+```
+
+### All Leaderboard Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `leaderboard` | boolean | `false` | **Required.** Enable the leaderboard feature |
+| `leaderboardBaseUrl` | string | `""` | **Required.** Full Edge Functions base URL, e.g. `https://<ref>.functions.supabase.co/functions/v1` |
+| `supabaseAnonKey` | string | `""` | **Required.** Supabase anon/public key |
+| `leaderboardDomain` | string | `""` | Domain used in requests. Defaults to `window.location.hostname` (www. stripped) |
+| `leaderboardLimit` | number | `10` | Number of top scores to display |
+| `leaderboardModeAll` | boolean | `true` | Show all-time leaderboard |
+| `leaderboardMode30d` | boolean | `true` | Show last-30-days leaderboard |
+| `leaderboardTitle` | string | `LEADERBOARD` | Section heading |
+| `leaderboardSubmitLabel` | string | `Submit score` | Submit button label |
+| `leaderboardNameLabel` | string | `Name` | Name input placeholder/label |
+| `leaderboardAllLabel` | string | `All-time` | All-time list heading |
+| `leaderboard30dLabel` | string | `Last 30 days` | 30-day list heading |
+| `leaderboardErrorLabel` | string | `Could not load leaderboard` | Error message |
+| `leaderboardMinScoreToSubmit` | number | `1` | Minimum score required to submit |
+| `leaderboardMaxNameLen` | number | `24` | Maximum characters in player name |
+
+### Example with Custom Labels
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/space-invaders/space-invaders.min.js?leaderboard=true&leaderboardBaseUrl=https://abc123.functions.supabase.co/functions/v1&supabaseAnonKey=eyJ...&leaderboardTitle=TOP+SCORES&leaderboardLimit=5&leaderboardMode30d=false"></script>
+```
+
+### Example with Fixed Domain
+
+By default the domain is read from `window.location.hostname`. To pin it to a specific value (useful in development or multi-domain setups):
+
+```html
+<script src="...?leaderboard=true&leaderboardBaseUrl=...&supabaseAnonKey=...&leaderboardDomain=example.com"></script>
+```
+
+### Security Note
+
+The anon key is intentionally public — it only allows operations permitted by your Supabase Row Level Security policies and Edge Function logic. Ensure your Edge Functions validate input (name length, score range, domain allow-list) server-side.
 
 ---
 
