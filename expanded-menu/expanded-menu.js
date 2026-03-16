@@ -2,9 +2,15 @@
  * =======================================
  * EXPANDED MENU PLUGIN - Squarespace
  * =======================================
- * @version 2.3.0
+ * @version 2.3.1
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
+ *
+ * CHANGELOG v2.3.1:
+ * - Fixed: mobileMode=default now physically removes wrapper from DOM on mobile instead of
+ *   hiding via inline CSS (which lost to global stylesheet !important rules)
+ * - Fixed: Desktop re-inserts wrapper from cachedMenuHTML if it was removed on mobile
+ * - Fixed: Added setTimeout(applyMobileDefaultMode, 500/1500) to handle Squarespace late JS init
  *
  * CHANGELOG v2.3.0:
  * - Fixed: mobileMode=default now uses JS state snapshot + swap instead of CSS media queries
@@ -39,7 +45,7 @@
 (function() {
   'use strict';
 
-  const PLUGIN_VERSION = '2.3.0';
+  const PLUGIN_VERSION = '2.3.1';
   console.log(`🚀 Expanded Menu Plugin v${PLUGIN_VERSION} - Starting...`);
 
   const currentScript = document.currentScript || (function() {
@@ -95,6 +101,10 @@
   // Only used when config.mobileMode === 'default' to restore Squarespace's own
   // header/nav state when the viewport is ≤479px (mobile).
   const originalStateMap = new WeakMap();
+
+  // Cached menu HTML used to re-insert the wrapper when switching back to desktop
+  // after it was removed from the DOM on mobile (mobileMode=default).
+  let cachedMenuHTML = null;
 
   function captureOriginalState() {
     const selectors = [
@@ -340,7 +350,6 @@
   // Called on init and whenever the viewport crosses the 479px boundary.
   function applyMobileDefaultMode() {
     const isMobile = window.matchMedia('(max-width: 479px)').matches;
-    const wrapper = document.querySelector('.anavo-menu-wrapper');
 
     if (isMobile) {
       // Restore all header/nav elements to their original pre-plugin state
@@ -367,15 +376,24 @@
         }
       });
 
-      // Remove custom menu from visual flow entirely to avoid z-index conflicts
+      // REMOVE wrapper from DOM entirely — no CSS rule can show what doesn't exist,
+      // bypassing all specificity conflicts with the global !important stylesheet rule.
+      const wrapper = document.querySelector('.anavo-menu-wrapper');
       if (wrapper) {
-        wrapper.style.cssText = 'display: none !important; position: absolute !important; left: -9999px !important;';
+        wrapper.remove();
       }
       console.log('📱 mobileMode=default: Squarespace native menu active');
     } else {
       // Desktop: hide Squarespace header/nav and show custom menu
       forceHideSquarespaceHeader();
       hideSquarespaceNav();
+
+      // Re-insert wrapper if it was removed on mobile
+      let wrapper = document.querySelector('.anavo-menu-wrapper');
+      if (!wrapper && cachedMenuHTML) {
+        document.body.insertAdjacentHTML('afterbegin', cachedMenuHTML);
+        wrapper = document.querySelector('.anavo-menu-wrapper');
+      }
       if (wrapper) {
         wrapper.style.cssText = '';
       }
@@ -790,6 +808,8 @@
       if (config.mobileMode === 'default') {
         // Capture nav elements now that they are in the DOM (before any hiding)
         captureOriginalState();
+        // Cache the HTML so applyMobileDefaultMode() can re-insert on desktop
+        cachedMenuHTML = menuHTML;
       } else {
         hideSquarespaceNav();
       }
@@ -810,8 +830,11 @@
         } else {
           mq.addListener(handleViewportChange); // legacy Safari/IE
         }
-        // Apply correct initial state
+        // Apply correct initial state, then re-apply after Squarespace's late JS init
+        // (Squarespace can restore header/nav elements at ~500ms and ~1500ms after DOMContentLoaded)
         applyMobileDefaultMode();
+        setTimeout(applyMobileDefaultMode, 500);  // handle Squarespace's first late re-init wave
+        setTimeout(applyMobileDefaultMode, 1500); // handle Squarespace's second late re-init wave
       } else {
         setTimeout(forceHideSquarespaceHeader, 500);
         setTimeout(forceHideSquarespaceHeader, 1000);
