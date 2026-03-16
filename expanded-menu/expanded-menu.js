@@ -2,9 +2,14 @@
  * =======================================
  * EXPANDED MENU PLUGIN - Squarespace
  * =======================================
- * @version 2.2.0
+ * @version 2.2.1
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
+ *
+ * CHANGELOG v2.2.1:
+ * - Fixed: mobileMode=default CSS specificity bug — custom menu now fully hidden on mobile
+ * - Fixed: mobileMode=default no longer sets pointer-events via JS; CSS media queries handle all show/hide
+ * - Fixed: Squarespace MENU button is now clickable on mobile when mobileMode=default
  *
  * CHANGELOG v2.2.0:
  * - Added: mobileMode=default preserves Squarespace native mobile menu on ≤479px
@@ -28,7 +33,7 @@
 (function() {
   'use strict';
 
-  const PLUGIN_VERSION = '2.2.0';
+  const PLUGIN_VERSION = '2.2.1';
   console.log(`🚀 Expanded Menu Plugin v${PLUGIN_VERSION} - Starting...`);
 
   const currentScript = document.currentScript || (function() {
@@ -81,9 +86,8 @@
   console.log('⚙️ Config:', config);
 
   function forceHideSquarespaceHeader() {
-    // When mobileMode=default, preserve the Squarespace header on mobile (≤479px)
-    if (config.mobileMode === 'default' && window.innerWidth <= 479) {
-      restoreSquarespaceHeader();
+    // When mobileMode=default, CSS media queries handle all show/hide declaratively
+    if (config.mobileMode === 'default') {
       return;
     }
 
@@ -272,9 +276,8 @@
   }
 
   function hideSquarespaceNav() {
-    // When mobileMode=default, preserve the Squarespace nav on mobile (≤479px)
-    if (config.mobileMode === 'default' && window.innerWidth <= 479) {
-      restoreSquarespaceNav();
+    // When mobileMode=default, CSS media queries handle all show/hide declaratively
+    if (config.mobileMode === 'default') {
       return;
     }
 
@@ -643,15 +646,52 @@
       }
 
       ${config.mobileMode === 'default' ? `
-      /* mobileMode=default: hide custom menu on mobile so Squarespace native menu shows */
+      /* mobileMode=default: CSS media queries handle all show/hide declaratively */
+
+      /* MOBILE (≤479px): hide custom menu completely; keep Squarespace header visible & interactive */
       @media (max-width: 479px) {
-        .anavo-menu-wrapper {
+        html body div.anavo-menu-wrapper,
+        html body div[class*="anavo-menu"] {
           display: none !important;
+          visibility: hidden !important;
+          pointer-events: none !important;
+          height: 0 !important;
+          overflow: hidden !important;
+        }
+        .header, .Header, header, [data-nc-group="header"] {
+          display: block !important;
+          visibility: visible !important;
+          height: auto !important;
+          min-height: initial !important;
+          max-height: none !important;
+          overflow: visible !important;
+          pointer-events: auto !important;
+          position: relative !important;
+          top: auto !important;
+        }
+        .header-nav, .header-menu-nav-wrapper, .header-nav-wrapper, [data-nc-element="navigation"] {
+          display: block !important;
+          visibility: visible !important;
+          pointer-events: auto !important;
         }
       }
+
+      /* DESKTOP (≥480px): hide Squarespace header/nav; show custom menu */
       @media (min-width: 480px) {
-        .anavo-menu-wrapper {
-          display: block !important;
+        .header, .Header, header, [data-nc-group="header"] {
+          display: none !important;
+          visibility: hidden !important;
+          height: 5px !important;
+          min-height: 5px !important;
+          max-height: 5px !important;
+          overflow: hidden !important;
+          pointer-events: none !important;
+          position: fixed !important;
+          top: -5px !important;
+        }
+        .header-nav, .header-menu-nav-wrapper, .header-nav-wrapper, [data-nc-element="navigation"] {
+          display: none !important;
+          visibility: hidden !important;
         }
       }
       ` : ''}
@@ -728,19 +768,10 @@
         enableBurgerMode();
       }
 
-      if (config.mobileMode === 'default') {
-        let resizeTimer;
-        window.addEventListener('resize', () => {
-          clearTimeout(resizeTimer);
-          resizeTimer = setTimeout(() => {
-            forceHideSquarespaceHeader();
-            hideSquarespaceNav();
-          }, 100);
-        });
+      if (config.mobileMode !== 'default') {
+        setTimeout(forceHideSquarespaceHeader, 500);
+        setTimeout(forceHideSquarespaceHeader, 1000);
       }
-
-      setTimeout(forceHideSquarespaceHeader, 500);
-      setTimeout(forceHideSquarespaceHeader, 1000);
 
       console.log(`✅ Expanded Menu Plugin v${PLUGIN_VERSION} Active!`);
       console.log('   Sticky Menu:', config.stickyMenu ? 'Enabled' : 'Disabled');
