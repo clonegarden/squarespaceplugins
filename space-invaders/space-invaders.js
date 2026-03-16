@@ -20,7 +20,7 @@
 (function () {
   'use strict';
 
-  const PLUGIN_VERSION = '2.5.1';
+  const PLUGIN_VERSION = '2.6.0';
   console.log(`🎮 Space Invaders Plugin v${PLUGIN_VERSION} - Loading...`);
 
   // ========================================
@@ -101,7 +101,24 @@
 
       // ✅ Post-game button
       postGameButton: params.get('postGameButton') === 'true',
-      postGameButtonText: decodeParam('postGameButtonText', 'Portifolio Game'),
+      postGameButtonText: decodeParam('postGameButtonText', 'Portfolio Game'),
+
+      // ✅ Leaderboard (Supabase)
+      leaderboard: params.get('leaderboard') === 'true',
+      leaderboardBaseUrl: decodeParam('leaderboardBaseUrl', '').replace(/\/$/, ''),
+      supabaseAnonKey: decodeParam('supabaseAnonKey', ''),
+      leaderboardLimit: parseInt(decodeParam('leaderboardLimit', '10'), 10),
+      leaderboardDomain: decodeParam('leaderboardDomain', ''),
+      leaderboardModeAll: params.get('leaderboardModeAll') !== 'false',
+      leaderboardMode30d: params.get('leaderboardMode30d') !== 'false',
+      leaderboardTitle: decodeParam('leaderboardTitle', 'LEADERBOARD'),
+      leaderboardSubmitLabel: decodeParam('leaderboardSubmitLabel', 'Submit score'),
+      leaderboardNameLabel: decodeParam('leaderboardNameLabel', 'Name'),
+      leaderboardAllLabel: decodeParam('leaderboardAllLabel', 'All-time'),
+      leaderboard30dLabel: decodeParam('leaderboard30dLabel', 'Last 30 days'),
+      leaderboardErrorLabel: decodeParam('leaderboardErrorLabel', 'Could not load leaderboard'),
+      leaderboardMinScoreToSubmit: parseInt(decodeParam('leaderboardMinScoreToSubmit', '1'), 10),
+      leaderboardMaxNameLen: parseInt(decodeParam('leaderboardMaxNameLen', '24'), 10),
     };
   }
 
@@ -614,6 +631,148 @@
     document.head.appendChild(style);
   }
 
+  function injectLeaderboardStyles() {
+    const styleId = 'anavo-si-leaderboard-styles';
+    if (document.getElementById(styleId)) return;
+
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `
+      #anavo-si-leaderboard {
+        margin: 24px auto 0;
+        width: min(500px, 90vw);
+        text-align: left;
+        font-family: 'Syne Mono', 'Courier New', monospace;
+      }
+
+      .anavo-si-lb-title {
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 14px;
+        letter-spacing: 2px;
+        color: ${config.fontColor};
+      }
+
+      .anavo-si-lb-submit-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .anavo-si-lb-name-input {
+        flex: 1;
+        min-width: 0;
+        padding: 8px 12px;
+        font-family: 'Syne Mono', 'Courier New', monospace;
+        font-size: 14px;
+        background: rgba(255,255,255,0.1);
+        border: 1px solid ${config.fontColor};
+        color: ${config.fontColor};
+        outline: none;
+      }
+
+      .anavo-si-lb-name-input::placeholder {
+        color: ${config.fontColor};
+        opacity: 0.5;
+      }
+
+      .anavo-si-lb-submit-btn {
+        padding: 8px 16px;
+        font-family: 'Syne Mono', 'Courier New', monospace;
+        font-size: 14px;
+        background: ${config.fontColor};
+        color: #000;
+        border: none;
+        cursor: pointer;
+        transition: opacity 0.15s;
+        white-space: nowrap;
+      }
+
+      .anavo-si-lb-submit-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .anavo-si-lb-status {
+        font-size: 12px;
+        min-height: 18px;
+        margin-bottom: 12px;
+        color: ${config.fontColor};
+        opacity: 0.8;
+      }
+
+      .anavo-si-lb-sections {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      .anavo-si-lb-section {
+        flex: 1;
+        min-width: 160px;
+      }
+
+      .anavo-si-lb-section-title {
+        font-size: 12px;
+        letter-spacing: 1px;
+        opacity: 0.7;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        color: ${config.fontColor};
+      }
+
+      .anavo-si-lb-list {
+        border: 1px solid rgba(255,255,255,0.15);
+      }
+
+      .anavo-si-lb-row {
+        display: flex;
+        align-items: center;
+        padding: 5px 10px;
+        font-size: 13px;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        color: ${config.fontColor};
+      }
+
+      .anavo-si-lb-row:last-child { border-bottom: none; }
+
+      .anavo-si-lb-rank {
+        width: 28px;
+        opacity: 0.6;
+        font-size: 11px;
+        flex-shrink: 0;
+      }
+
+      .anavo-si-lb-name {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .anavo-si-lb-score {
+        font-weight: bold;
+        flex-shrink: 0;
+        margin-left: 8px;
+      }
+
+      .anavo-si-lb-empty,
+      .anavo-si-lb-loading {
+        padding: 8px 10px;
+        opacity: 0.5;
+        font-size: 13px;
+        color: ${config.fontColor};
+      }
+
+      @media (max-width: 480px) {
+        #anavo-si-leaderboard { width: 95vw; }
+        .anavo-si-lb-sections { flex-direction: column; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   // ========================================
   // DOM CREATION
   // ========================================
@@ -742,6 +901,227 @@
     overlayEl.appendChild(overlayEl.querySelector('#anavo-si-close'));
   }
 
+  // ========================================
+  // LEADERBOARD (SUPABASE)
+  // ========================================
+  function lbNormalizeDomain(domain) {
+    return domain.toLowerCase().replace(/^www\./, '');
+  }
+
+  function lbGetDomain() {
+    const raw = config.leaderboardDomain || window.location.hostname;
+    return lbNormalizeDomain(raw);
+  }
+
+  async function lbFetchTop(mode) {
+    const base = config.leaderboardBaseUrl;
+    const key = config.supabaseAnonKey;
+    if (!base || !key) return null;
+    const domain = lbGetDomain();
+    const limit = config.leaderboardLimit > 0 ? config.leaderboardLimit : 10;
+    const url =
+      base +
+      '/space-invaders-top?domain=' +
+      encodeURIComponent(domain) +
+      '&mode=' +
+      encodeURIComponent(mode) +
+      '&limit=' +
+      encodeURIComponent(limit);
+    const res = await fetch(url, {
+      headers: {
+        apikey: key,
+        Authorization: 'Bearer ' + key,
+      },
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  }
+
+  async function lbSubmitScore(playerName, playerScore, playerWave) {
+    const base = config.leaderboardBaseUrl;
+    const key = config.supabaseAnonKey;
+    if (!base || !key) return null;
+    const domain = lbGetDomain();
+    const res = await fetch(base + '/space-invaders-submit', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: key,
+        Authorization: 'Bearer ' + key,
+      },
+      body: JSON.stringify({
+        domain: domain,
+        player_name: playerName,
+        score: playerScore,
+        wave: playerWave,
+      }),
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  }
+
+  function lbRenderList(top, containerEl) {
+    containerEl.innerHTML = '';
+    if (!top || top.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'anavo-si-lb-empty';
+      empty.textContent = 'No scores yet';
+      containerEl.appendChild(empty);
+      return;
+    }
+    top.forEach(function (entry, i) {
+      const row = document.createElement('div');
+      row.className = 'anavo-si-lb-row';
+      const rank = document.createElement('span');
+      rank.className = 'anavo-si-lb-rank';
+      rank.textContent = i + 1;
+      const name = document.createElement('span');
+      name.className = 'anavo-si-lb-name';
+      name.textContent = entry.player_name || '';
+      const scoreEl = document.createElement('span');
+      scoreEl.className = 'anavo-si-lb-score';
+      scoreEl.textContent = String(entry.score);
+      row.appendChild(rank);
+      row.appendChild(name);
+      row.appendChild(scoreEl);
+      containerEl.appendChild(row);
+    });
+  }
+
+  async function lbRefresh(allListEl, d30ListEl, statusEl) {
+    try {
+      const promises = [];
+      if (config.leaderboardModeAll && allListEl) {
+        const loadingAll = document.createElement('div');
+        loadingAll.className = 'anavo-si-lb-loading';
+        loadingAll.textContent = 'Loading\u2026';
+        allListEl.innerHTML = '';
+        allListEl.appendChild(loadingAll);
+        promises.push(
+          lbFetchTop('all').then(function (data) {
+            lbRenderList(data ? data.top : [], allListEl);
+          })
+        );
+      }
+      if (config.leaderboardMode30d && d30ListEl) {
+        const loadingD30 = document.createElement('div');
+        loadingD30.className = 'anavo-si-lb-loading';
+        loadingD30.textContent = 'Loading\u2026';
+        d30ListEl.innerHTML = '';
+        d30ListEl.appendChild(loadingD30);
+        promises.push(
+          lbFetchTop('30d').then(function (data) {
+            lbRenderList(data ? data.top : [], d30ListEl);
+          })
+        );
+      }
+      await Promise.all(promises);
+    } catch (_e) {
+      if (statusEl) statusEl.textContent = config.leaderboardErrorLabel;
+    }
+  }
+
+  function buildLeaderboardSection(currentScore, currentWave) {
+    if (!config.leaderboardBaseUrl || !config.supabaseAnonKey) return null;
+
+    injectLeaderboardStyles();
+
+    const section = document.createElement('div');
+    section.id = 'anavo-si-leaderboard';
+
+    const titleEl = document.createElement('h3');
+    titleEl.className = 'anavo-si-lb-title';
+    titleEl.textContent = config.leaderboardTitle;
+    section.appendChild(titleEl);
+
+    const submitRow = document.createElement('div');
+    submitRow.className = 'anavo-si-lb-submit-row';
+
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.className = 'anavo-si-lb-name-input';
+    nameInput.placeholder = config.leaderboardNameLabel;
+    nameInput.maxLength = config.leaderboardMaxNameLen;
+    nameInput.setAttribute('aria-label', config.leaderboardNameLabel);
+    submitRow.appendChild(nameInput);
+
+    const submitBtn = document.createElement('button');
+    submitBtn.className = 'anavo-si-lb-submit-btn';
+    submitBtn.textContent = config.leaderboardSubmitLabel;
+    submitRow.appendChild(submitBtn);
+
+    section.appendChild(submitRow);
+
+    const statusText = document.createElement('div');
+    statusText.className = 'anavo-si-lb-status';
+    section.appendChild(statusText);
+
+    const listsWrapper = document.createElement('div');
+    listsWrapper.className = 'anavo-si-lb-sections';
+
+    let allListEl = null;
+    let d30ListEl = null;
+
+    if (config.leaderboardModeAll) {
+      const allSection = document.createElement('div');
+      allSection.className = 'anavo-si-lb-section';
+      const allTitle = document.createElement('div');
+      allTitle.className = 'anavo-si-lb-section-title';
+      allTitle.textContent = config.leaderboardAllLabel;
+      allSection.appendChild(allTitle);
+      allListEl = document.createElement('div');
+      allListEl.className = 'anavo-si-lb-list';
+      allSection.appendChild(allListEl);
+      listsWrapper.appendChild(allSection);
+    }
+
+    if (config.leaderboardMode30d) {
+      const d30Section = document.createElement('div');
+      d30Section.className = 'anavo-si-lb-section';
+      const d30Title = document.createElement('div');
+      d30Title.className = 'anavo-si-lb-section-title';
+      d30Title.textContent = config.leaderboard30dLabel;
+      d30Section.appendChild(d30Title);
+      d30ListEl = document.createElement('div');
+      d30ListEl.className = 'anavo-si-lb-list';
+      d30Section.appendChild(d30ListEl);
+      listsWrapper.appendChild(d30Section);
+    }
+
+    if (config.leaderboardModeAll || config.leaderboardMode30d) {
+      section.appendChild(listsWrapper);
+    }
+
+    submitBtn.addEventListener('click', function () {
+      const playerName = nameInput.value.trim();
+      if (!playerName) {
+        statusText.textContent = 'Please enter your ' + config.leaderboardNameLabel.toLowerCase();
+        return;
+      }
+      if (currentScore < config.leaderboardMinScoreToSubmit) {
+        statusText.textContent =
+          'Score must be at least ' + config.leaderboardMinScoreToSubmit;
+        return;
+      }
+      submitBtn.disabled = true;
+      statusText.textContent = '';
+      lbSubmitScore(playerName, currentScore, currentWave)
+        .then(function () {
+          nameInput.disabled = true;
+          statusText.textContent = '\u2705 Score submitted!';
+          return lbRefresh(allListEl, d30ListEl, statusText);
+        })
+        .catch(function () {
+          submitBtn.disabled = false;
+          statusText.textContent = config.leaderboardErrorLabel;
+        });
+    });
+
+    lbRefresh(allListEl, d30ListEl, statusText);
+
+    return section;
+  }
+
   function showGameOverScreen() {
     stopGameLoop();
 
@@ -795,6 +1175,11 @@
       }
 
       container.appendChild(cta);
+    }
+
+    if (config.leaderboard) {
+      const lbSection = buildLeaderboardSection(score, wave);
+      if (lbSection) container.appendChild(lbSection);
     }
 
     const btnRow = document.createElement('div');
@@ -1541,6 +1926,9 @@
 
     const styles = document.getElementById('anavo-space-invaders-styles');
     if (styles && styles.parentNode) styles.parentNode.removeChild(styles);
+
+    const lbStyles = document.getElementById('anavo-si-leaderboard-styles');
+    if (lbStyles && lbStyles.parentNode) lbStyles.parentNode.removeChild(lbStyles);
 
     const watermark = document.querySelector('.anavo-watermark-game');
     if (watermark && watermark.parentNode) watermark.parentNode.removeChild(watermark);
