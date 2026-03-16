@@ -104,7 +104,7 @@
         centerZonePx: 60,
         particles: 20,
         pileMax: 8,
-        words: ['REJECTED', 'DEAD', 'GONE', 'REKT', 'GG', 'LOSER', 'CRUSHED', 'BURIED'],
+        words: ['DONE', 'GOT IT', 'GONE', 'FINISHED', 'GG', 'OWND', 'CRUSHED', 'BURIED'],
         pauseOnHover: true,
         logos: [],
         logoH: 64,
