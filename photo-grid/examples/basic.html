@@ -352,12 +352,15 @@
       <button onclick="loadPreset(3)" id="btn-3">Wide</button>
       <button onclick="loadPreset(4)" id="btn-4">Masonry</button>
       <button onclick="loadPreset(5)" id="btn-5">Tight</button>
+      <span>|</span>
+      <button onclick="loadOption('itemWidths')" id="btn-itemwidths" title="Item 0 → 600 px wide, item 3 → 400 px wide">Width Override</button>
+      <button onclick="loadOption('itemContain')" id="btn-itemcontain" title="Items 0 and 2 show full image without cropping">No-Crop (Contain)</button>
     </div>
 
     <!-- ===== Footer ===== -->
     <footer class="demo-footer">
       <p>
-        Photo Grid v1.0.0 &mdash; by
+        Photo Grid v1.4.0 &mdash; by
         <a href="https://anavo.tech/plugins" target="_blank" rel="noopener">Anavo Tech</a>
       </p>
     </footer>
@@ -379,6 +382,19 @@
       function loadPreset(n) {
         const params = new URLSearchParams(window.location.search);
         params.set('demo-preset', n);
+        params.delete('demo-option');
+        window.location.search = params.toString();
+      }
+
+      // Load a named demo option (itemWidths / itemContain)
+      function loadOption(name) {
+        const params = new URLSearchParams(window.location.search);
+        const current = params.get('demo-option');
+        if (current === name) {
+          params.delete('demo-option');
+        } else {
+          params.set('demo-option', name);
+        }
         window.location.search = params.toString();
       }
 
@@ -390,10 +406,25 @@
         const btn = document.getElementById('btn-' + active);
         if (btn) btn.classList.add('active');
 
+        const activeOption = params.get('demo-option');
+        if (activeOption) {
+          const optBtn = document.getElementById('btn-' + activeOption);
+          if (optBtn) optBtn.classList.add('active');
+        }
+
+        // Build extra params based on demo-option
+        const extraParams = [];
+        if (activeOption === 'itemWidths') extraParams.push('itemWidths=0:600,3:400');
+        if (activeOption === 'itemContain') extraParams.push('itemContain=0,2');
+
         // Swap premadegrid param on the script element so the plugin loads with the chosen preset
         const scriptEl = document.getElementById('photogrid-script');
-        if (scriptEl && params.get('demo-preset')) {
-          scriptEl.src = '../photogrid.js?premadegrid=' + active + '&debug=true';
+        if (scriptEl) {
+          const presetParam = params.get('demo-preset') ? active : 1;
+          scriptEl.src =
+            '../photogrid.js?premadegrid=' + presetParam +
+            (extraParams.length ? '&' + extraParams.join('&') : '') +
+            '&debug=true';
         }
       })();
     </script>

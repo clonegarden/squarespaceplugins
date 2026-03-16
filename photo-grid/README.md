@@ -1,4 +1,4 @@
-# Photo Grid v1.3.0
+# Photo Grid v1.4.0
 
 A Squarespace plugin that builds an **auto-calculated justified collage grid** from all Image, Gallery, and Video blocks inside a target section. Features edit-mode UI controls, masonry layout, custom ordering, and responsive design.
 
@@ -41,6 +41,21 @@ No other setup required. Add a section heading titled **"Photo Album"** (exact t
 <script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/photo-grid/photogrid.min.js?premadegrid=2&order=0,3,1,4"></script>
 ```
 
+### Override the width of specific items (height scales proportionally)
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/photo-grid/photogrid.min.js?itemWidths=0:600,3:400"></script>
+```
+
+### Force specific items to display full / no-crop (contain mode)
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/photo-grid/photogrid.min.js?itemContain=0,2,5"></script>
+```
+
+### Combined: premade preset + custom order + width override + contain mode
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/photo-grid/photogrid.min.js?premadegrid=1&order=2,0,3,1,4&itemWidths=0:600&itemContain=3,4"></script>
+```
+
 ---
 
 ## ⚙️ All Parameters
@@ -72,8 +87,10 @@ All parameters are appended as URL query strings to the script `src`.
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `order` | _(natural)_ | Comma-separated 0-based indices to reorder items, e.g. `order=0,3,2,1` |
+| `order` | _(natural)_ | Comma-separated 0-based indices to reorder **all** items (images, videos, iframes), e.g. `order=0,3,2,1`. Videos and iframes receive sequential indices after images. |
 | `premadegrid` | — | Number 1–5: load a premade preset (see table below) |
+| `itemWidths` | — | Per-item width overrides: `index:widthPx` pairs separated by commas, e.g. `itemWidths=0:600,3:400`. Height adjusts proportionally from the item's native aspect ratio. |
+| `itemContain` | — | Comma-separated indices to display in full without cropping, e.g. `itemContain=0,2,5`. Uses `object-fit: contain` instead of `cover` (letterboxed with black background). |
 
 ### Premade Grid Presets
 
@@ -170,7 +187,7 @@ Licensing is **fully async and non-blocking** — the grid renders immediately; 
 ## 🆘 Troubleshooting
 
 **Q: The grid doesn't appear.**  
-A: Enable debug mode (`?debug=true`) and check the browser console. Ensure your section has a heading with the exact text "Photo Album" (or use `targetId`). The plugin should print `✅ Photo Grid v1.3.0 Active!`.
+A: Enable debug mode (`?debug=true`) and check the browser console. Ensure your section has a heading with the exact text "Photo Album" (or use `targetId`). The plugin should print `✅ Photo Grid v1.4.0 Active!`.
 
 **Q: Images appear stretched or cropped unexpectedly.**  
 A: The plugin uses `object-fit: cover` to fill each cell. The `rowHeight` / `maxRowHeight` params control how tall rows are — adjust them to your preference.
