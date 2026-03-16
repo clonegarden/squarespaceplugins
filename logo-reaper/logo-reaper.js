@@ -2,7 +2,7 @@
  * =======================================
  * LOGO REAPER - Squarespace Plugin
  * =======================================
- * @version 1.2.0
+ * @version 1.3.0
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
@@ -18,7 +18,7 @@
 (function () {
   'use strict';
 
-  const PLUGIN_VERSION = '1.2.0';
+  const PLUGIN_VERSION = '1.3.0';
   const PLUGIN_NAME = 'LogoReaper';
 
   console.log(`💀 ${PLUGIN_NAME} v${PLUGIN_VERSION} - Loading...`);
@@ -58,6 +58,8 @@
       const url = new URL(src, window.location.href);
       const p = url.searchParams;
 
+      const logoH = parseInt(p.get('logoH') || p.get('logoSize') || '64', 10);
+
       return {
         selector: p.get('selector') || 'body',
         height: parseInt(p.get('height') || '220', 10),
@@ -80,7 +82,11 @@
         ),
         // logoH controls logo height in pixels; width is set to auto so logos keep natural proportions.
         // Accepts logoH or legacy logoSize for backward compatibility.
-        logoH: parseInt(p.get('logoH') || p.get('logoSize') || '64', 10),
+        logoH: logoH,
+        // gapPx: minimum edge-to-edge gap (px) between consecutive logos; prevents overlap.
+        gapPx: parseInt(p.get('gapPx') || String(Math.round(logoH * 0.35)), 10),
+        // clickToKill: when true, clicking a live logo immediately triggers its death sequence.
+        clickToKill: p.get('clickToKill') === 'true',
         bgColor: fixHexColor(p.get('bgColor')) || '#f5f5f5',
         stampColor: p.get('stampColor') ? '#' + p.get('stampColor').replace(/^#/, '') : '#cc0000',
         // Stamp positioning controls (percent of logo dimensions)
@@ -108,6 +114,8 @@
         pauseOnHover: true,
         logos: [],
         logoH: 64,
+        gapPx: Math.round(64 * 0.35),
+        clickToKill: false,
         bgColor: '#f5f5f5',
         stampColor: '#cc0000',
         stampEnabled: true,
@@ -214,6 +222,8 @@
         align-items: center;
         justify-content: center;
         will-change: transform;
+        pointer-events: ${cfg.clickToKill ? 'auto' : 'none'};
+        cursor: ${cfg.clickToKill ? 'pointer' : 'default'};
       }
       .anavo-lr-logo img {
         height: ${cfg.logoH}px;
@@ -407,10 +417,10 @@
     const ec = effectiveCfg();
 
     // Spawn new logo?
-    if (
-      liveLogos.filter(l => !l.dead).length < ec.maxLive &&
-      ts - lastSpawn > ec.spawnEvery
-    ) {
+    const aliveLogos = liveLogos.filter(l => !l.dead);
+    const newestLogo = aliveLogos.length > 0 ? aliveLogos[aliveLogos.length - 1] : null;
+    const gapOk = !newestLogo || newestLogo.x + newestLogo.width <= stageW - ec.gapPx;
+    if (aliveLogos.length < ec.maxLive && ts - lastSpawn > ec.spawnEvery && gapOk) {
       spawnLogo();
       lastSpawn = ts;
     }
@@ -489,7 +499,21 @@
       triggered: false,
     };
 
+    // Refresh width once the image has loaded for accurate gap calculations
+    img.onload = function () {
+      logoData.width = wrapper.offsetWidth || cfg.logoH * 2;
+    };
+
     liveLogos.push(logoData);
+
+    // Click-to-kill: clicking a live logo triggers the death sequence immediately
+    if (cfg.clickToKill) {
+      wrapper.addEventListener('click', function () {
+        if (logoData.triggered || logoData.dead) return;
+        logoData.triggered = true;
+        triggerDeath(logoData, effectiveCfg());
+      });
+    }
 
     if (cfg.debug) {
       console.log(`[LogoReaper] Spawn: logo #${logoIndex} → ${url}`);
@@ -647,6 +671,7 @@
     console.log(`🔧 ${PLUGIN_NAME}: Initializing...`);
     if (cfg.debug) {
       console.log('[LogoReaper] Debug mode ON. Parsed config:', cfg);
+      console.log(`[LogoReaper] gapPx = ${cfg.gapPx}px | clickToKill = ${cfg.clickToKill}`);
     }
     injectStyles();
     mount();
