@@ -126,6 +126,58 @@
     </div>
   </div>
 
+  <h2>✨ New in v1.3 – Constant Spacing &amp; Click-to-Kill</h2>
+
+  <p style="font-size:0.9rem;opacity:0.7;line-height:1.6;margin-bottom:16px;">
+    Use <code>gapPx</code> (fixed pixels) or <code>gapScale</code> (fraction of <code>logoH</code>) to guarantee logos never overlap.
+    Enable <code>clickToKill=true</code> so users can click any live logo to trigger the death sequence immediately.
+    <strong>Click any logo below to stamp &amp; kill it!</strong>
+  </p>
+
+  <div class="snippet">
+    <span class="comment">&lt;!-- Constant spacing: 28px fixed gap, click any logo to kill --&gt;</span><br>
+    &lt;script src="…/logo-reaper.min.js<br>
+    &nbsp;&nbsp;?selector=%23logo-stage<br>
+    &nbsp;&nbsp;&amp;gapPx=28<br>
+    &nbsp;&nbsp;&amp;clickToKill=true<br>
+    &nbsp;&nbsp;&amp;logos=…<br>
+    "&gt;&lt;/script&gt;
+  </div>
+
+  <!-- ④ Constant spacing + click-to-kill demo -->
+  <h2>🖱️ Live Demo: gapPx=28, clickToKill=true</h2>
+  <p style="font-size:0.85rem;opacity:0.6;margin-bottom:8px;">Click any logo to kill it instantly!</p>
+  <div id="logo-stage-gap" style="width:100%;margin:16px 0;"></div>
+  <script>
+    (function () {
+      var logos = [
+        "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='60'><rect width='120' height='60' rx='8' fill='%23e94560'/><text x='60' y='38' text-anchor='middle' fill='white' font-size='18' font-family='Arial' font-weight='bold'>ACME</text></svg>",
+        "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='60'><rect width='80' height='60' rx='8' fill='%233498db'/><text x='40' y='38' text-anchor='middle' fill='white' font-size='16' font-family='Arial' font-weight='bold'>BIG</text></svg>",
+        "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='60'><rect width='160' height='60' rx='8' fill='%232ecc71'/><text x='80' y='38' text-anchor='middle' fill='white' font-size='16' font-family='Arial' font-weight='bold'>LONGNAME</text></svg>",
+        "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='60'><rect width='100' height='60' rx='8' fill='%23f39c12'/><text x='50' y='38' text-anchor='middle' fill='white' font-size='16' font-family='Arial' font-weight='bold'>ZETA</text></svg>"
+      ];
+
+      var params = new URLSearchParams({
+        selector:    '#logo-stage-gap',
+        height:      '180',
+        logoH:       '55',
+        speed:       '70',
+        spawnEvery:  '1500',
+        maxLive:     '4',
+        bgColor:     '0f172a',
+        stampColor:  'ff3300',
+        triggerX:    '50',
+        gapPx:       '28',
+        clickToKill: 'true',
+        logos:       JSON.stringify(logos)
+      });
+
+      var s = document.createElement('script');
+      s.src = '../logo-reaper.js?' + params.toString();
+      document.head.appendChild(s);
+    })();
+  </script>
+
   <h2>🐛 New in v1.2 – Debug Mode</h2>
 
   <p style="font-size:0.9rem;opacity:0.7;line-height:1.6;margin-bottom:16px;">

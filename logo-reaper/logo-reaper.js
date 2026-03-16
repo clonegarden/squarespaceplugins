@@ -2,7 +2,7 @@
  * =======================================
  * LOGO REAPER - Squarespace Plugin
  * =======================================
- * @version 1.2.0
+ * @version 1.3.0
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
@@ -18,7 +18,7 @@
 (function () {
   'use strict';
 
-  const PLUGIN_VERSION = '1.2.0';
+  const PLUGIN_VERSION = '1.3.0';
   const PLUGIN_NAME = 'LogoReaper';
 
   console.log(`💀 ${PLUGIN_NAME} v${PLUGIN_VERSION} - Loading...`);
@@ -91,6 +91,11 @@
         stampScale: parseFloat(p.get('stampScale') || '1'),
         // Trigger position (percent of stage width)
         triggerX: parseFloat(p.get('triggerX') || '50'),
+        // Spacing: gapPx (fixed px) takes priority over gapScale (proportion of logoH)
+        gapPx: p.has('gapPx') ? parseInt(p.get('gapPx'), 10) : null,
+        gapScale: parseFloat(p.get('gapScale') || '0.35'),
+        // Click-to-kill: clicking a live logo triggers death immediately
+        clickToKill: p.get('clickToKill') === 'true',
         // Debug mode – shows visual guide line and extra console logs
         debug: p.get('debug') === 'true',
       };
@@ -116,6 +121,9 @@
         stampRotate: -12,
         stampScale: 1,
         triggerX: 50,
+        gapPx: null,
+        gapScale: 0.35,
+        clickToKill: false,
         debug: false,
       };
     }
@@ -214,6 +222,7 @@
         align-items: center;
         justify-content: center;
         will-change: transform;
+        ${cfg.clickToKill ? 'pointer-events: auto; cursor: pointer;' : ''}
       }
       .anavo-lr-logo img {
         height: ${cfg.logoH}px;
@@ -406,13 +415,26 @@
 
     const ec = effectiveCfg();
 
+    // Compute effective gap (px between logos, edge-to-edge)
+    const gap = cfg.gapPx !== null ? cfg.gapPx : Math.round(cfg.logoH * cfg.gapScale);
+
     // Spawn new logo?
+    const aliveLogos = liveLogos.filter(l => !l.dead);
     if (
-      liveLogos.filter(l => !l.dead).length < ec.maxLive &&
+      aliveLogos.length < ec.maxLive &&
       ts - lastSpawn > ec.spawnEvery
     ) {
-      spawnLogo();
-      lastSpawn = ts;
+      let canSpawn = true;
+      if (aliveLogos.length > 0) {
+        // Find the rightmost alive logo and check spacing
+        const last = aliveLogos.reduce((max, l) => l.x > max.x ? l : max, aliveLogos[0]);
+        const lastRightEdge = last.x + last.width;
+        canSpawn = lastRightEdge <= stageW - gap;
+      }
+      if (canSpawn) {
+        spawnLogo();
+        lastSpawn = ts;
+      }
     }
 
     // Move logos
@@ -488,6 +510,20 @@
       dead: false,
       triggered: false,
     };
+
+    // Update width after image loads (may be 0 at creation time)
+    img.addEventListener('load', () => {
+      logoData.width = wrapper.offsetWidth || cfg.logoH * 2;
+    }, { once: true });
+
+    // Click-to-kill: trigger death on click (if not already dead/triggered)
+    if (cfg.clickToKill) {
+      wrapper.addEventListener('click', () => {
+        if (logoData.dead || logoData.triggered) return;
+        logoData.triggered = true;
+        triggerDeath(logoData, effectiveCfg());
+      });
+    }
 
     liveLogos.push(logoData);
 
