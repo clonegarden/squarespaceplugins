@@ -2,7 +2,7 @@
  * =======================================
  * PHOTO GRID - Squarespace Plugin
  * =======================================
- * @version 1.3.0
+ * @version 1.4.0
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
@@ -19,7 +19,7 @@
 (function () {
   'use strict';
 
-  const PLUGIN_VERSION = '1.3.0';
+  const PLUGIN_VERSION = '1.4.0';
   const PLUGIN_NAME = 'PhotoGrid';
   const STYLE_ID = 'anavo-photogrid-styles';
   const DEFAULT_IMG_WIDTH = 400;
@@ -72,6 +72,32 @@
             .filter(n => !isNaN(n))
         : null;
 
+      // Per-item width overrides: "index:widthPx,index:widthPx"
+      const itemWidthsParam = p.get('itemWidths');
+      const itemWidths = {};
+      if (itemWidthsParam) {
+        itemWidthsParam.split(',').forEach(function (pair) {
+          const parts = pair.trim().split(':');
+          if (parts.length === 2) {
+            const idx = parseInt(parts[0], 10);
+            const w = parseInt(parts[1], 10);
+            if (!isNaN(idx) && !isNaN(w) && w > 0) {
+              itemWidths[idx] = w;
+            }
+          }
+        });
+      }
+
+      // Per-item contain mode: "index,index,index"
+      const itemContainParam = p.get('itemContain');
+      const itemContain = new Set();
+      if (itemContainParam) {
+        itemContainParam.split(',').forEach(function (s) {
+          const idx = parseInt(s.trim(), 10);
+          if (!isNaN(idx)) itemContain.add(idx);
+        });
+      }
+
       // Layout resolution: explicit param > preset > default
       const layoutParam = p.get('layout') || (preset ? preset.layout : 'justified');
       const uneven = p.get('uneven') === 'true' || layoutParam === 'masonry';
@@ -92,6 +118,8 @@
         targetIndex: parseInt(p.get('targetIndex') || '1', 10),
         premadegrid: premadegridIndex || null,
         order,
+        itemWidths,
+        itemContain,
         gridWidth: p.get('gridWidth') || '100%',
         gridMaxWidth: p.get('gridMaxWidth') || 'none',
         debug: p.get('debug') === 'true',
@@ -110,6 +138,8 @@
         targetIndex: 1,
         premadegrid: null,
         order: null,
+        itemWidths: {},
+        itemContain: new Set(),
         gridWidth: '100%',
         gridMaxWidth: 'none',
         debug: false,
@@ -235,7 +265,8 @@
       '}' +
       '.anavo-pg-copy-btn:hover{opacity:0.82;}' +
       '.anavo-pg-mini-btn{position:fixed;top:48px;right:60px;width:36px;height:36px;border-radius:8px;background:rgba(18,18,18,0.93);color:#fff;border:1px solid rgba(255,255,255,0.15);font-size:18px;cursor:pointer;z-index:99999;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.3);}' +
-      '.anavo-pg-mini-btn:hover{opacity:0.85;}';
+      '.anavo-pg-mini-btn:hover{opacity:0.85;}' +
+      '.anavo-pg-item--contain img,.anavo-pg-item--contain video{object-fit:contain !important;background:#000;}';
     document.head.appendChild(style);
   }
 
@@ -934,6 +965,10 @@
     const el = document.createElement('div');
     el.className = 'anavo-pg-item';
 
+    if (item._contain) {
+      el.classList.add('anavo-pg-item--contain');
+    }
+
     if (item.type === 'image') {
       const img = document.createElement('img');
       img.src = item.src;
@@ -1081,6 +1116,12 @@
     }
     if (cfg.gridWidth && cfg.gridWidth !== '100%') params.push('gridWidth=' + encodeURIComponent(cfg.gridWidth));
     if (cfg.gridMaxWidth && cfg.gridMaxWidth !== 'none') params.push('gridMaxWidth=' + encodeURIComponent(cfg.gridMaxWidth));
+    if (cfg.itemWidths && Object.keys(cfg.itemWidths).length) {
+      params.push('itemWidths=' + Object.keys(cfg.itemWidths).map(function (k) { return k + ':' + cfg.itemWidths[k]; }).join(','));
+    }
+    if (cfg.itemContain && cfg.itemContain.size) {
+      params.push('itemContain=' + Array.from(cfg.itemContain).join(','));
+    }
     return base + (params.length ? '?' + params.join('&') : '');
   }
 
@@ -1166,6 +1207,34 @@
 
     panel.appendChild(presetsRow);
 
+    // ---- Item index legend (index + type + tooltip) ----
+    const legendLabel = document.createElement('div');
+    legendLabel.className = 'anavo-pg-url-label';
+    legendLabel.textContent = 'Media items (index · type):';
+    panel.appendChild(legendLabel);
+
+    const legendList = document.createElement('div');
+    legendList.style.cssText =
+      'display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;max-height:72px;overflow-y:auto;';
+    originalItems.forEach(function (item, i) {
+      var itemTypeIcon =
+        item.type === 'image' ? '\uD83D\uDDBC\uFE0F' :
+        item.type === 'video' ? '\uD83C\uDFAC' :
+        item.type === 'iframe' ? '\uD83D\uDCFA' : '\u2753';
+      var tooltipText =
+        item.type + ' #' + i +
+        (item.alt ? ' \u2014 ' + item.alt : '') +
+        (item.src ? '\n' + item.src.substring(0, 60) : '');
+      var legendBadge = document.createElement('span');
+      legendBadge.title = tooltipText;
+      legendBadge.style.cssText =
+        'background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);' +
+        'border-radius:4px;padding:2px 5px;font-size:11px;cursor:default;white-space:nowrap;';
+      legendBadge.textContent = itemTypeIcon + ' ' + i;
+      legendList.appendChild(legendBadge);
+    });
+    panel.appendChild(legendList);
+
     // ---- Action buttons ----
     const actionsRow = document.createElement('div');
     actionsRow.className = 'anavo-pg-panel-row';
@@ -1205,7 +1274,7 @@
     // ---- Script URL ----
     const urlLabel = document.createElement('div');
     urlLabel.className = 'anavo-pg-url-label';
-    urlLabel.textContent = 'Script URL to reproduce this layout:';
+    urlLabel.textContent = 'Script URL (images + videos):';
     panel.appendChild(urlLabel);
 
     const urlBox = document.createElement('div');
@@ -1421,6 +1490,27 @@
       // Apply custom order
       _rawItems = rawItems;
       _orderedItems = applyOrder(rawItems, cfg.order);
+
+      // Apply per-item width overrides (height adjusts proportionally)
+      if (cfg.itemWidths && Object.keys(cfg.itemWidths).length > 0) {
+        _orderedItems.forEach(function (item, i) {
+          if (cfg.itemWidths[i] !== undefined) {
+            var newWidth = cfg.itemWidths[i];
+            var ratio = item.width / item.height || (4 / 3);
+            item.width = newWidth;
+            item.height = Math.round(newWidth / ratio);
+          }
+        });
+      }
+
+      // Mark items that should use object-fit: contain
+      if (cfg.itemContain && cfg.itemContain.size > 0) {
+        _orderedItems.forEach(function (item, i) {
+          if (cfg.itemContain.has(i)) {
+            item._contain = true;
+          }
+        });
+      }
 
       // Clear section and build fresh grid container
       _section = section;

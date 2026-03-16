@@ -1,5 +1,18 @@
 # Changelog — Photo Grid
 
+## [1.4.0] - 2026-03-16
+
+### ✨ Added
+
+- **`itemWidths` parameter** — per-item width overrides: `?itemWidths=0:600,3:400`. Forces specific items (by 0-based index, after any `order` reordering) to a given pixel width; height is recalculated proportionally from the item's native aspect ratio. Works with both justified and masonry layouts.
+- **`itemContain` parameter** — per-item no-crop / contain mode: `?itemContain=0,2,5`. Items at the specified indices display their full image or video without any cropping, using `object-fit: contain` with a black letterbox background. Applies after any `order` reordering.
+- **Edit panel — media item legend** — a new compact legend in the edit panel (below preset buttons, above Shuffle/Reset) shows each item's 0-based index and its type using emoji: 🖼️ for images, 🎬 for videos, 📺 for iframes. Each badge has a tooltip with the full item type, index, alt text, and source URL. This makes it easy to look up which index to use in the `order`, `itemWidths`, and `itemContain` parameters.
+- **Edit panel — URL label updated** — the script URL copy box is now labelled "Script URL (images + videos):" to clarify that the `order` parameter covers all media types, not only images.
+- **`itemWidths` and `itemContain` in generated script URLs** — the "Copy Script URL" button in the edit panel now includes `itemWidths` and `itemContain` in the generated URL when those parameters are active.
+- **Ordering docs clarification** — the README now explicitly states that the `order` parameter covers all media types (images, videos, iframes) and that videos and iframes receive sequential indices after images.
+
+---
+
 ## [1.3.0] - 2026-03-10
 
 ### ✨ Added
@@ -71,6 +84,7 @@
 
 ---
 
+[1.4.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/photo-grid-v1.4.0
 [1.3.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/photo-grid-v1.3.0
 [1.2.1]: https://github.com/clonegarden/squarespaceplugins/releases/tag/photo-grid-v1.2.1
 [1.2.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/photo-grid-v1.2.0
