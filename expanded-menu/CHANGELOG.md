@@ -6,6 +6,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.3.0] — 2026-03-16
+
+### Fixed
+- `mobileMode=default`: replaced the broken CSS-only approach with a JS state snapshot + swap strategy
+- Before any DOM changes, original `cssText` of all header/nav elements is captured in a `WeakMap`
+- On mobile (≤479px): all header/nav elements are restored to their exact original Squarespace state; the custom menu wrapper is removed from the visual flow (`display: none; position: absolute; left: -9999px`)
+- On desktop (≥480px): `forceHideSquarespaceHeader()` and `hideSquarespaceNav()` are called by the swap function; custom menu is shown
+- A `matchMedia('(max-width: 479px)')` listener fires the swap function whenever the viewport crosses the 479px boundary, eliminating race conditions with `setTimeout` and Squarespace's own dynamic JS
+- Removed CSS media query rules for `mobileMode=default` from `injectStyles()` (CSS cannot override Squarespace inline styles; JS swap is used instead)
+- Mobile CSS for the custom menu (horizontal scroll layout) is no longer injected when `mobileMode=default`
+
+---
+
 ## [2.2.1] — 2026-03-16
 
 ### Fixed
@@ -59,6 +72,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+[2.3.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/expanded-menu-v2.3.0
 [2.2.1]: https://github.com/clonegarden/squarespaceplugins/releases/tag/expanded-menu-v2.2.1
 [2.2.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/expanded-menu-v2.2.0
 [2.1.5]: https://github.com/clonegarden/squarespaceplugins/releases/tag/expanded-menu-v2.1.5

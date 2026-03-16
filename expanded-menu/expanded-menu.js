@@ -2,9 +2,15 @@
  * =======================================
  * EXPANDED MENU PLUGIN - Squarespace
  * =======================================
- * @version 2.2.1
+ * @version 2.3.0
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
+ *
+ * CHANGELOG v2.3.0:
+ * - Fixed: mobileMode=default now uses JS state snapshot + swap instead of CSS media queries
+ * - Fixed: Squarespace header/nav restored to exact original state on mobile (≤479px)
+ * - Fixed: custom menu fully removed from visual flow on mobile when mobileMode=default
+ * - Fixed: matchMedia listener swaps between Squarespace and custom menu reliably on resize
  *
  * CHANGELOG v2.2.1:
  * - Fixed: mobileMode=default CSS specificity bug — custom menu now fully hidden on mobile
@@ -33,7 +39,7 @@
 (function() {
   'use strict';
 
-  const PLUGIN_VERSION = '2.2.1';
+  const PLUGIN_VERSION = '2.3.0';
   console.log(`🚀 Expanded Menu Plugin v${PLUGIN_VERSION} - Starting...`);
 
   const currentScript = document.currentScript || (function() {
@@ -85,12 +91,35 @@
   const config = getScriptParams();
   console.log('⚙️ Config:', config);
 
-  function forceHideSquarespaceHeader() {
-    // When mobileMode=default, CSS media queries handle all show/hide declaratively
-    if (config.mobileMode === 'default') {
-      return;
-    }
+  // WeakMap storing each element's original style before the plugin touches it.
+  // Only used when config.mobileMode === 'default' to restore Squarespace's own
+  // header/nav state when the viewport is ≤479px (mobile).
+  const originalStateMap = new WeakMap();
 
+  function captureOriginalState() {
+    const selectors = [
+      '.header', '.Header', 'header', '[data-nc-group="header"]',
+      '.header-nav', '.header-menu-nav-wrapper', '.header-nav-wrapper', '[data-nc-element="navigation"]',
+    ];
+    selectors.forEach(function(sel) {
+      document.querySelectorAll(sel).forEach(function(el) {
+        if (!originalStateMap.has(el)) {
+          originalStateMap.set(el, { cssText: el.style.cssText });
+        }
+      });
+    });
+    [
+      document.body,
+      document.querySelector('#page .page-section:first-child, .page-section:first-child'),
+      document.querySelector('#page'),
+    ].forEach(function(el) {
+      if (el && !originalStateMap.has(el)) {
+        originalStateMap.set(el, { cssText: el.style.cssText });
+      }
+    });
+  }
+
+  function forceHideSquarespaceHeader() {
     const headers = document.querySelectorAll('.header, .Header, header, [data-nc-group="header"]');
     
     headers.forEach(header => {
@@ -276,11 +305,6 @@
   }
 
   function hideSquarespaceNav() {
-    // When mobileMode=default, CSS media queries handle all show/hide declaratively
-    if (config.mobileMode === 'default') {
-      return;
-    }
-
     const navSelectors = [
       '.header-nav',
       '.header-menu-nav-wrapper',
@@ -310,6 +334,53 @@
       }
     });
     console.log('✅ Squarespace nav restored (mobileMode=default, mobile viewport)');
+  }
+
+  // Swaps between Squarespace native menu (mobile) and custom menu (desktop).
+  // Called on init and whenever the viewport crosses the 479px boundary.
+  function applyMobileDefaultMode() {
+    const isMobile = window.matchMedia('(max-width: 479px)').matches;
+    const wrapper = document.querySelector('.anavo-menu-wrapper');
+
+    if (isMobile) {
+      // Restore all header/nav elements to their original pre-plugin state
+      const selectors = [
+        '.header', '.Header', 'header', '[data-nc-group="header"]',
+        '.header-nav', '.header-menu-nav-wrapper', '.header-nav-wrapper', '[data-nc-element="navigation"]',
+      ];
+      selectors.forEach(function(sel) {
+        document.querySelectorAll(sel).forEach(function(el) {
+          const saved = originalStateMap.get(el);
+          if (saved !== undefined) el.style.cssText = saved.cssText;
+        });
+      });
+
+      // Restore body, first page-section, and #page
+      [
+        document.body,
+        document.querySelector('#page .page-section:first-child, .page-section:first-child'),
+        document.querySelector('#page'),
+      ].forEach(function(el) {
+        if (el) {
+          const saved = originalStateMap.get(el);
+          if (saved !== undefined) el.style.cssText = saved.cssText;
+        }
+      });
+
+      // Remove custom menu from visual flow entirely to avoid z-index conflicts
+      if (wrapper) {
+        wrapper.style.cssText = 'display: none !important; position: absolute !important; left: -9999px !important;';
+      }
+      console.log('📱 mobileMode=default: Squarespace native menu active');
+    } else {
+      // Desktop: hide Squarespace header/nav and show custom menu
+      forceHideSquarespaceHeader();
+      hideSquarespaceNav();
+      if (wrapper) {
+        wrapper.style.cssText = '';
+      }
+      console.log('🖥️ mobileMode=default: Custom menu active');
+    }
   }
 
   function insertCustomMenu(menuHTML) {
@@ -572,7 +643,8 @@
         }
       }
 
-      /* ✅ MOBILE - CORRIGIDO: TODO CSS MOBILE AQUI DENTRO */
+      /* ✅ MOBILE - custom menu styles (not applied when mobileMode=default, which uses JS swap) */
+      ${config.mobileMode !== 'default' ? `
       @media (max-width: 479px) {
         /* Menu container - especificidade alta */
         html body nav.anavo-custom-menu {
@@ -644,56 +716,6 @@
           font-size: ${Math.max(parseInt(config.fontSize) - 4, 12)}px !important;
         }
       }
-
-      ${config.mobileMode === 'default' ? `
-      /* mobileMode=default: CSS media queries handle all show/hide declaratively */
-
-      /* MOBILE (≤479px): hide custom menu completely; keep Squarespace header visible & interactive */
-      @media (max-width: 479px) {
-        html body div.anavo-menu-wrapper,
-        html body div[class*="anavo-menu"] {
-          display: none !important;
-          visibility: hidden !important;
-          pointer-events: none !important;
-          height: 0 !important;
-          overflow: hidden !important;
-        }
-        .header, .Header, header, [data-nc-group="header"] {
-          display: block !important;
-          visibility: visible !important;
-          height: auto !important;
-          min-height: initial !important;
-          max-height: none !important;
-          overflow: visible !important;
-          pointer-events: auto !important;
-          position: relative !important;
-          top: auto !important;
-        }
-        .header-nav, .header-menu-nav-wrapper, .header-nav-wrapper, [data-nc-element="navigation"] {
-          display: block !important;
-          visibility: visible !important;
-          pointer-events: auto !important;
-        }
-      }
-
-      /* DESKTOP (≥480px): hide Squarespace header/nav; show custom menu */
-      @media (min-width: 480px) {
-        .header, .Header, header, [data-nc-group="header"] {
-          display: none !important;
-          visibility: hidden !important;
-          height: 5px !important;
-          min-height: 5px !important;
-          max-height: 5px !important;
-          overflow: hidden !important;
-          pointer-events: none !important;
-          position: fixed !important;
-          top: -5px !important;
-        }
-        .header-nav, .header-menu-nav-wrapper, .header-nav-wrapper, [data-nc-element="navigation"] {
-          display: none !important;
-          visibility: hidden !important;
-        }
-      }
       ` : ''}
     `;
 
@@ -742,7 +764,12 @@
     try {
       console.log('🔧 Starting initialization...');
 
-      forceHideSquarespaceHeader();
+      if (config.mobileMode === 'default') {
+        // Snapshot original Squarespace state BEFORE any DOM modifications
+        captureOriginalState();
+      } else {
+        forceHideSquarespaceHeader();
+      }
 
       const navList = await waitForSquarespaceNav();
       
@@ -760,7 +787,13 @@
 
       const menuHTML = buildCustomMenu(menuItems);
 
-      hideSquarespaceNav();
+      if (config.mobileMode === 'default') {
+        // Capture nav elements now that they are in the DOM (before any hiding)
+        captureOriginalState();
+      } else {
+        hideSquarespaceNav();
+      }
+
       injectStyles();
       insertCustomMenu(menuHTML);
 
@@ -768,7 +801,18 @@
         enableBurgerMode();
       }
 
-      if (config.mobileMode !== 'default') {
+      if (config.mobileMode === 'default') {
+        // Register matchMedia listener to swap menus when viewport crosses 479px
+        const mq = window.matchMedia('(max-width: 479px)');
+        const handleViewportChange = function() { applyMobileDefaultMode(); };
+        if (mq.addEventListener) {
+          mq.addEventListener('change', handleViewportChange);
+        } else {
+          mq.addListener(handleViewportChange); // legacy Safari/IE
+        }
+        // Apply correct initial state
+        applyMobileDefaultMode();
+      } else {
         setTimeout(forceHideSquarespaceHeader, 500);
         setTimeout(forceHideSquarespaceHeader, 1000);
       }
