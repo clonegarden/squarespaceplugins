@@ -94,6 +94,7 @@
 <header>
   <h1>💀 Logo Reaper</h1>
   <p>Logos enter from the right, get stamped at the trigger point, and pile up on the left.</p>
+  <p style="font-size:0.9rem;opacity:0.6;margin-top:6px;">Click any logo to stamp &amp; kill it instantly (<code>clickToKill=true</code>) · Spacing enforced by <code>gapPx</code></p>
 </header>
 
 <!-- ① Plugin mount point – the plugin appends itself here -->
@@ -121,9 +122,31 @@
       <p>Respects <code>prefers-reduced-motion</code> and disables heavy animations.</p>
     </div>
     <div class="card">
-      <h3>🔐 Licensed</h3>
-      <p>Non-blocking license check – renders instantly, validates in background.</p>
+      <h3>📏 No Overlap</h3>
+      <p>Logos maintain a constant minimum gap (<code>gapPx</code>) edge-to-edge, even with mixed aspect ratios.</p>
     </div>
+    <div class="card">
+      <h3>🖱️ Click to Kill</h3>
+      <p>Enable <code>clickToKill=true</code> to let visitors stamp &amp; kill logos on click.</p>
+    </div>
+  </div>
+
+  <h2>📏 Spacing + Click-to-Kill Demo</h2>
+
+  <p style="font-size:0.9rem;opacity:0.7;line-height:1.6;margin-bottom:16px;">
+    The instance below uses <code>gapPx=28</code> (constant minimum gap between logos) and <code>clickToKill=true</code>
+    (click any logo to stamp &amp; kill it immediately). Open the browser console to see
+    <code>[LogoReaper]</code> log messages.
+  </p>
+
+  <div class="snippet">
+    <span class="comment">&lt;!-- Gap-based spacing + click-to-kill --&gt;</span><br>
+    &lt;script src="…/logo-reaper.min.js<br>
+    &nbsp;&nbsp;?selector=%23logo-stage<br>
+    &nbsp;&nbsp;&amp;gapPx=28<br>
+    &nbsp;&nbsp;&amp;clickToKill=true<br>
+    &nbsp;&nbsp;&amp;logos=…<br>
+    "&gt;&lt;/script&gt;
   </div>
 
   <h2>🐛 New in v1.2 – Debug Mode</h2>
@@ -260,6 +283,8 @@
       stampRotate: '-12',      // degrees
       stampScale:  '1',
       triggerX:   '50',        // percent of stage width (50 = center)
+      gapPx:      '28',        // minimum edge-to-edge gap between logos
+      clickToKill: 'true',     // click a logo to stamp & kill it
       words:      'REJECTED,REKT,CRUSHED,BURIED,GONE,DEAD',
       logos:      JSON.stringify(logos)
     });
@@ -278,6 +303,8 @@
     ?selector=%23logo-stage
     &height=220
     &logoH=80
+    &gapPx=28
+    &clickToKill=true
     &logos=%5B%22https%3A%2F%2Fyoursite.com%2Flogo1.svg%22%2C%22https%3A%2F%2Fyoursite.com%2Flogo2.svg%22%5D
     &speed=90
     &bgColor=1a1a2e

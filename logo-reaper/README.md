@@ -2,7 +2,7 @@
 
 Animated marquee of company logos that enter from the right. When a logo reaches the trigger position it receives a random **stamp word** + a **particle explosion**, then falls into a dead-logo pile stacked in the left corner of the block. Loops infinitely.
 
-![Version](https://img.shields.io/badge/version-1.2.0-blue)
+![Version](https://img.shields.io/badge/version-1.3.0-blue)
 ![License](https://img.shields.io/badge/license-Commercial-red)
 
 ---
@@ -16,6 +16,8 @@ Animated marquee of company logos that enter from the right. When a logo reaches
 - ⏸️ **Pause on hover** – optional; respects `prefers-reduced-motion`
 - 🔧 **Zero dependencies** – pure Vanilla JS, compatible with Squarespace 7.0 / 7.1
 - 🔐 **Non-blocking licensing** – renders immediately; license checked in background
+- 📏 **Gap-based spacing** – constant minimum gap between logos prevents overlap even with mixed aspect ratios
+- 🖱️ **Click-to-kill** – optional; clicking a logo instantly triggers the death sequence
 
 ---
 
@@ -58,6 +60,8 @@ All parameters are passed as query-string values on the `<script>` `src` URL.
 | `stampRotate` | number | `-12` | Rotation of the stamp in degrees (negative = counter-clockwise). |
 | `stampScale` | number | `1` | Final scale of the stamp after its pop animation. |
 | `debug` | boolean | `false` | Enable debug mode. When `true`: prints `[LogoReaper]` prefixed logs (config, triggerX in px, spawn/death events) and shows a visible red vertical guide line at the `triggerX` position inside the stage. Stays aligned on resize via `ResizeObserver` (with graceful fallback). Has no effect and no overhead when `false`. |
+| `gapPx` | number | `Math.round(logoH × 0.35)` | Minimum edge-to-edge gap in pixels between consecutive logos. A new logo only spawns after the previous one has cleared this gap from the right edge. Prevents overlap even with mixed-width logos. Default scales proportionally with `logoH`. |
+| `clickToKill` | boolean | `false` | When `true`, clicking a live logo immediately triggers its death sequence (stamp + particles + pile). Ignored if the logo is already dying. When `false`, clicks have no effect and pointer-events are disabled on logo wrappers. |
 
 ### Encoding the `logos` array
 
@@ -130,6 +134,21 @@ Add `<div id="partner-logos"></div>` wherever you want the block to appear in yo
   &logos=%5B%22https%3A%2F%2Fexample.com%2Flogo1.svg%22%5D
 "></script>
 ```
+
+### Gap-based spacing + click-to-kill
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/logo-reaper/logo-reaper.min.js
+  ?selector=%23partner-logos
+  &height=220
+  &logoH=64
+  &gapPx=28
+  &clickToKill=true
+  &logos=%5B%22https%3A%2F%2Fexample.com%2Flogo1.svg%22%2C%22https%3A%2F%2Fexample.com%2Flogo2.svg%22%5D
+"></script>
+```
+
+Add `<div id="partner-logos"></div>` where you want the block. When `clickToKill=true`, a hover pointer cursor appears and clicking any moving logo instantly stamps + kills it.
 
 ---
 
@@ -225,6 +244,11 @@ The plugin respects the `prefers-reduced-motion` media query:
 ---
 
 ## 📝 Changelog
+
+### v1.3.0 (2026-03-16)
+- ✨ `gapPx` parameter – constant minimum edge-to-edge gap between logos; prevents overlap with mixed aspect ratios. Default proportional to `logoH` (`Math.round(logoH * 0.35)`).
+- ✨ `clickToKill` parameter – when `true`, clicking a live logo immediately triggers the death sequence (stamp + particles + pile). Ignored on double-trigger or already-dying logos.
+- 🐛 Logo widths now refresh after image load for accurate gap calculations.
 
 ### v1.2.0 (2026-03-04)
 - ✨ `debug` parameter – enable debug mode via `?debug=true`
