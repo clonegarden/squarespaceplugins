@@ -38,6 +38,7 @@
     "build:testimonial-carousel-slider": "npm run minify testimonial-carousel-slider/testimonial-carousel-slider.js",
     "build:tabbed-content": "npm run minify tabbed-content/tabbed-content.js",
     "build:photo-grid": "npm run minify photo-grid/photogrid.js",
+    "build:mega-menu": "npm run minify mega-menu/mega-menu.js",
     "minify": "node scripts/minify.js",
     "watch": "node scripts/watch.js",
     "dev": "npm run watch",
