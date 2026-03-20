@@ -39,6 +39,7 @@
     "build:tabbed-content": "npm run minify tabbed-content/tabbed-content.js",
     "build:photo-grid": "npm run minify photo-grid/photogrid.js",
     "build:mega-menu": "npm run minify mega-menu/mega-menu.js",
+    "build:timeline": "npm run minify timeline/timeline.js",
     "minify": "node scripts/minify.js",
     "watch": "node scripts/watch.js",
     "dev": "npm run watch",
