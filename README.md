@@ -32,6 +32,18 @@ Squarekicker-inspired header enhancement — centered layout, sticky/auto-hide, 
 
 ---
 
+### Mega Menu
+Full-width mega menu dropdown that steals a Squarespace section and transforms it into a nav-triggered panel. Supports hover/click triggers, 5 animation modes, and 4 presets. **v1.0.0**
+
+**Install (Settings → Advanced → Code Injection → Footer):**
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/mega-menu/mega-menu.min.js?sectionId=YOUR_ID&triggerLabel=Services"></script>
+```
+
+[📖 Documentation](mega-menu/README.md) | [📋 Changelog](mega-menu/CHANGELOG.md)
+
+---
+
 ### Testimonial Carousel Slider
 Polished testimonial carousel with smooth transitions, keyboard navigation, star ratings, and responsive design. Auto-inserts into any section with a "Testimonials" heading.
 
