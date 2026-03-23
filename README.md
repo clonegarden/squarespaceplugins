@@ -56,6 +56,27 @@ Polished testimonial carousel with smooth transitions, keyboard navigation, star
 
 ---
 
+### Timeline
+Animated timeline widget with vertical, horizontal, and alternate (zigzag) layouts. Scroll-synced line draw with glow effect, dot reveal animations, and fully parameter-driven styling. Auto-detects `<div id="timeline">` or any section with an `<h1>Timeline</h1>`. **v1.0.0**
+
+**Install (Settings → Advanced → Code Injection → Footer):**
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/timeline/timeline.min.js"></script>
+```
+
+**Layout examples:**
+```html
+<!-- Zigzag / alternate -->
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/timeline/timeline.min.js?layout=alternate&preset=elegant"></script>
+
+<!-- Horizontal scrollable row -->
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/timeline/timeline.min.js?layout=horizontal&preset=dark"></script>
+```
+
+[📖 Documentation](timeline/README.md) | [🎬 Live Demo](timeline/examples/basic.html) | [📋 Changelog](timeline/CHANGELOG.md)
+
+---
+
 ### Tabbed Content
 Transforms Squarespace lists into a tabbed file-organizer layout with image + content panels. Auto-extracts from Summary Blocks, List Sections, or custom HTML.
 
