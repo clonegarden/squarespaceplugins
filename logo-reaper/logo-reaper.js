@@ -2,7 +2,7 @@
  * ======================================
  * LOGO REAPER - Squarespace Plugin
  * ======================================
- * @version 1.3.0
+ * @version 1.3.1
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
@@ -20,7 +20,7 @@
 (function () {
   'use strict';
 
-  const PLUGIN_VERSION = '1.3.0';
+  const PLUGIN_VERSION = '1.3.1';
   const PLUGIN_NAME = 'LogoReaper';
 
   console.log(`💀 ${PLUGIN_NAME} v${PLUGIN_VERSION} - Loading...`);
@@ -247,8 +247,16 @@
         align-items: center;
         justify-content: center;
         will-change: transform;
-        ${cfg.clickToKill ? 'pointer-events: auto; cursor: pointer;' : ''}
+        pointer-events: none;
       }
+      ${cfg.clickToKill ? `
+      .anavo-lr-hit-layer {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        pointer-events: auto;
+        cursor: pointer;
+        z-index: 10;
+      }` : ''}
       .anavo-lr-logo img {
         height: ${cfg.logoH}px;
         width: auto;
@@ -516,15 +524,6 @@
       { once: true }
     );
 
-    // ✅ click-to-kill
-    if (cfg.clickToKill) {
-      wrapper.addEventListener('click', () => {
-        if (logoData.dead || logoData.triggered) return;
-        logoData.triggered = true;
-        triggerDeath(logoData, effectiveCfg());
-      });
-    }
-
     liveLogos.push(logoData);
 
     if (cfg.debug) console.log(`[LogoReaper] Spawn: logo #${logoIndex} → ${src}`);
@@ -670,6 +669,55 @@
         ro.observe(root);
         root._lrResizeObserver = ro;
       }
+    }
+
+    // ✅ click-to-kill: transparent overlay above lane to reliably capture clicks
+    // (works even when .anavo-lr-lane has pointer-events:none, avoiding Squarespace CSS conflicts)
+    if (cfg.clickToKill) {
+      const hitLayer = document.createElement('div');
+      hitLayer.className = 'anavo-lr-hit-layer';
+      root.appendChild(hitLayer);
+
+      let pointerStartX = 0;
+      let pointerStartY = 0;
+      let dragging = false;
+
+      hitLayer.addEventListener('pointerdown', e => {
+        pointerStartX = e.clientX;
+        pointerStartY = e.clientY;
+        dragging = false;
+      });
+
+      hitLayer.addEventListener('pointermove', e => {
+        if (
+          e.buttons &&
+          (Math.abs(e.clientX - pointerStartX) > 5 ||
+            Math.abs(e.clientY - pointerStartY) > 5)
+        ) {
+          dragging = true;
+        }
+      });
+
+      hitLayer.addEventListener('click', e => {
+        if (dragging) return;
+        const rootRect = root.getBoundingClientRect();
+        const cx = e.clientX - rootRect.left;
+        const cy = e.clientY - rootRect.top;
+        const ec = effectiveCfg();
+        for (const logo of liveLogos) {
+          if (logo.dead || logo.triggered) continue;
+          if (
+            cx >= logo.x &&
+            cx <= logo.x + logo.width &&
+            cy >= laneTop &&
+            cy <= laneTop + cfg.logoH
+          ) {
+            logo.triggered = true;
+            triggerDeath(logo, ec);
+            break;
+          }
+        }
+      });
     }
 
     // async licensing
