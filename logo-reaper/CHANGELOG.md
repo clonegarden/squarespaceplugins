@@ -6,6 +6,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.3.1] — 2026-03-23
+
+### Fixed
+- `clickToKill=true` now reliably triggers the death sequence when a logo is clicked.
+  Previously, `pointer-events: none` on the `.anavo-lr-lane` container could prevent click events from reaching logo elements in certain Squarespace themes, even when `pointer-events: auto` was applied to individual logos.
+  The fix introduces a transparent `.anavo-lr-hit-layer` overlay (a direct child of the root, above the lane) that intercepts clicks when `clickToKill` is enabled. A JavaScript bounding-rect hit-test identifies which live logo was clicked, so the lane itself never needs pointer-event changes.
+- Added drag-vs-click detection (5 px pointer-movement threshold) to prevent accidental death triggers during scroll or drag gestures.
+
+---
+
 ## [1.3.0] — 2026-03-16
 
 ### Added
@@ -49,6 +59,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+[1.3.1]: https://github.com/clonegarden/squarespaceplugins/releases/tag/logo-reaper-v1.3.1
 [1.3.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/logo-reaper-v1.3.0
 [1.2.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/logo-reaper-v1.2.0
 [1.1.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/logo-reaper-v1.1.0
