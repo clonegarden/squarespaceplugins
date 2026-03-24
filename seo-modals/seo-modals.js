@@ -389,9 +389,20 @@
   background: rgba(0,0,0,0.15) !important;
   margin: 0 2px !important;
 }
-/* Font size scoped to panel body */
-.anavo-seo-font-125 .anavo-seo-panel-body { font-size: 115% !important; }
-.anavo-seo-font-150 .anavo-seo-panel-body { font-size: 130% !important; }
+/* Font size — target each text element explicitly */
+.anavo-seo-font-125 .anavo-seo-nav-list li a,
+.anavo-seo-font-125 .anavo-seo-summary,
+.anavo-seo-font-125 .anavo-seo-contact p,
+.anavo-seo-font-125 .anavo-seo-faq-item summary,
+.anavo-seo-font-125 .anavo-seo-faq-answer { font-size: 16px !important; }
+.anavo-seo-font-125 .anavo-seo-section-title { font-size: 13px !important; }
+
+.anavo-seo-font-150 .anavo-seo-nav-list li a,
+.anavo-seo-font-150 .anavo-seo-summary,
+.anavo-seo-font-150 .anavo-seo-contact p,
+.anavo-seo-font-150 .anavo-seo-faq-item summary,
+.anavo-seo-font-150 .anavo-seo-faq-answer { font-size: 19px !important; }
+.anavo-seo-font-150 .anavo-seo-section-title { font-size: 15px !important; }
 /* High contrast scoped to panel */
 .anavo-seo-high-contrast {
   background: #000000 !important;
@@ -423,9 +434,36 @@
 }
 
 /* --- Accessibility --- */
-.anavo-seo-panel:focus { outline: 2px solid var(--onassis-accent, #000) !important; }
+.anavo-seo-panel:focus { outline: none !important; }
+.anavo-seo-btn:focus-visible,
+.anavo-seo-close:focus-visible,
+.anavo-seo-a11y-btn:focus-visible,
+.anavo-seo-nav-list li a:focus-visible,
+.anavo-seo-faq-item summary:focus-visible {
+  outline: 2px solid var(--onassis-accent, var(--onassis-text, #1a1a1a)) !important;
+  outline-offset: 2px !important;
+}
 @media (prefers-reduced-motion: reduce) {
-  .anavo-seo-triggers, .anavo-seo-btn { transition: none !important; }
+  .anavo-seo-triggers, .anavo-seo-btn, .anavo-seo-panel { transition: none !important; }
+}
+@media (prefers-color-scheme: dark) {
+  .anavo-seo-panel {
+    background: #1a1a1a !important;
+    color: #f0f0f0 !important;
+    border-color: rgba(255,255,255,0.2) !important;
+  }
+  .anavo-seo-panel-header, .anavo-seo-a11y { background: #1a1a1a !important; }
+  .anavo-seo-panel-title, .anavo-seo-section-title { color: #f0f0f0 !important; }
+  .anavo-seo-nav-list li a, .anavo-seo-summary,
+  .anavo-seo-contact p, .anavo-seo-panel-footer,
+  .anavo-seo-faq-item summary, .anavo-seo-faq-answer { color: #f0f0f0 !important; }
+  .anavo-seo-close, .anavo-seo-a11y-btn, .anavo-seo-a11y-label { color: #f0f0f0 !important; }
+  .anavo-seo-a11y-btn { border-color: rgba(255,255,255,0.3) !important; }
+  .anavo-seo-btn {
+    background: #1a1a1a !important;
+    color: #f0f0f0 !important;
+    border-color: rgba(255,255,255,0.4) !important;
+  }
 }
 
 /* --- Responsive --- */
@@ -618,6 +656,50 @@
   let _initialTimer = null;
   let _triggerWrap  = null;
 
+  // aria-live region for screen reader announcements
+  function getOrCreateLiveRegion() {
+    let el = document.getElementById('anavo-seo-live');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'anavo-seo-live';
+      el.setAttribute('aria-live', 'polite');
+      el.setAttribute('aria-atomic', 'true');
+      el.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;';
+      document.body.appendChild(el);
+    }
+    return el;
+  }
+
+  function announce(msg) {
+    const el = getOrCreateLiveRegion();
+    el.textContent = '';
+    setTimeout(() => { el.textContent = msg; }, 50);
+  }
+
+  // Focus trap — keep Tab inside open panel
+  function trapFocus(panel) {
+    const focusable = panel.querySelectorAll(
+      'a[href],button:not([disabled]),input,[tabindex]:not([tabindex="-1"])'
+    );
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last  = focusable[focusable.length - 1];
+
+    function handler(e) {
+      if (e.key !== 'Tab') return;
+      if (!panel.classList.contains('anavo-seo-open')) {
+        panel.removeEventListener('keydown', handler);
+        return;
+      }
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+      } else {
+        if (document.activeElement === last)  { e.preventDefault(); first.focus(); }
+      }
+    }
+    panel.addEventListener('keydown', handler);
+  }
+
   function openPanel(type) {
     const panel = document.getElementById(`anavo-seo-${type}-panel`);
     if (!panel) return;
@@ -630,11 +712,19 @@
     panel.classList.add('anavo-seo-open');
     _anyOpen = true;
 
-    // ensure triggers visible
     if (_triggerWrap) _triggerWrap.classList.remove('anavo-seo-faded');
     if (_initialTimer) { clearTimeout(_initialTimer); _initialTimer = null; }
 
-    panel.focus();
+    // Focus first focusable element inside panel
+    const firstFocusable = panel.querySelector('a[href],button:not([disabled])');
+    if (firstFocusable) firstFocusable.focus();
+    else panel.focus();
+
+    trapFocus(panel);
+
+    const label = panel.querySelector('.anavo-seo-panel-title');
+    if (label) announce(label.textContent + ' opened');
+
     dbg(`Panel opened: ${type}`);
   }
 
@@ -650,6 +740,12 @@
     if (!_anyOpen && _initialDone && _triggerWrap) {
       _triggerWrap.classList.add('anavo-seo-faded');
     }
+
+    announce('Panel closed');
+    // Return focus to trigger button
+    const btn = document.getElementById(`anavo-seo-${type === 'info' ? 'info' : 'faq'}-btn`);
+    if (btn) btn.focus();
+
     dbg(`Panel closed: ${type}`);
   }
 
