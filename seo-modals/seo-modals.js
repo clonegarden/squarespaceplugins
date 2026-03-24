@@ -347,6 +347,81 @@
   border-top: 1px solid rgba(0,0,0,0.07) !important;
 }
 
+/* --- Accessibility Controls --- */
+.anavo-seo-a11y {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 8px 16px !important;
+  border-top: 1px solid rgba(0,0,0,0.07) !important;
+  background: var(--onassis-bg, #ffffff) !important;
+}
+.anavo-seo-a11y-label {
+  font-size: 10px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+  opacity: 0.5 !important;
+  color: var(--onassis-text, #1a1a1a) !important;
+  margin-right: 2px !important;
+  flex-shrink: 0 !important;
+}
+.anavo-seo-a11y-btn {
+  background: none !important;
+  border: 1px solid rgba(0,0,0,0.2) !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  color: var(--onassis-text, #1a1a1a) !important;
+  padding: 2px 7px !important;
+  font-family: var(--onassis-font, sans-serif) !important;
+  font-size: 11px !important;
+  line-height: 1.6 !important;
+  transition: background 0.15s, color 0.15s !important;
+}
+.anavo-seo-a11y-btn:hover,
+.anavo-seo-a11y-btn.anavo-seo-a11y-active {
+  background: var(--onassis-accent, var(--onassis-text, #1a1a1a)) !important;
+  color: var(--onassis-bg, #ffffff) !important;
+  border-color: transparent !important;
+}
+.anavo-seo-a11y-divider {
+  width: 1px !important;
+  height: 16px !important;
+  background: rgba(0,0,0,0.15) !important;
+  margin: 0 2px !important;
+}
+/* Font size scoped to panel body */
+.anavo-seo-font-125 .anavo-seo-panel-body { font-size: 115% !important; }
+.anavo-seo-font-150 .anavo-seo-panel-body { font-size: 130% !important; }
+/* High contrast scoped to panel */
+.anavo-seo-high-contrast {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border-color: #ffffff !important;
+}
+.anavo-seo-high-contrast .anavo-seo-panel-title,
+.anavo-seo-high-contrast .anavo-seo-section-title,
+.anavo-seo-high-contrast .anavo-seo-summary,
+.anavo-seo-high-contrast .anavo-seo-contact p,
+.anavo-seo-high-contrast .anavo-seo-nav-list li a,
+.anavo-seo-high-contrast .anavo-seo-panel-footer,
+.anavo-seo-high-contrast .anavo-seo-a11y-label {
+  color: #ffffff !important;
+}
+.anavo-seo-high-contrast .anavo-seo-panel-header,
+.anavo-seo-high-contrast .anavo-seo-a11y {
+  background: #000000 !important;
+}
+.anavo-seo-high-contrast .anavo-seo-close,
+.anavo-seo-high-contrast .anavo-seo-a11y-btn {
+  color: #ffffff !important;
+  border-color: rgba(255,255,255,0.4) !important;
+}
+.anavo-seo-high-contrast .anavo-seo-a11y-btn:hover,
+.anavo-seo-high-contrast .anavo-seo-a11y-btn.anavo-seo-a11y-active {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
 /* --- Accessibility --- */
 .anavo-seo-panel:focus { outline: 2px solid var(--onassis-accent, #000) !important; }
 @media (prefers-reduced-motion: reduce) {
@@ -406,7 +481,7 @@
     return wrap;
   }
 
-  function buildPanel(type, titleText, bodyHtml) {
+  function buildPanel(type, titleText, bodyHtml, options = {}) {
     const panel = document.createElement('div');
     panel.className = 'anavo-seo-panel';
     panel.id = `anavo-seo-${type}-panel`;
@@ -415,18 +490,59 @@
     panel.setAttribute('aria-labelledby', `anavo-seo-${type}-title`);
     panel.setAttribute('tabindex', '-1');
 
+    const a11yBar = options.accessibility ? `
+      <div class="anavo-seo-a11y" role="toolbar" aria-label="Accessibility controls">
+        <span class="anavo-seo-a11y-label">Text</span>
+        <button class="anavo-seo-a11y-btn anavo-seo-a11y-active" data-font="100" aria-label="Normal font size" aria-pressed="true">A</button>
+        <button class="anavo-seo-a11y-btn" data-font="125" aria-label="Large font size" aria-pressed="false">A+</button>
+        <button class="anavo-seo-a11y-btn" data-font="150" aria-label="Extra large font size" aria-pressed="false">A++</button>
+        <div class="anavo-seo-a11y-divider" aria-hidden="true"></div>
+        <button class="anavo-seo-a11y-btn" data-contrast="toggle" aria-label="Toggle high contrast" aria-pressed="false">◐</button>
+      </div>` : '';
+
     panel.innerHTML = `
       <div class="anavo-seo-panel-header">
         <h2 class="anavo-seo-panel-title" id="anavo-seo-${type}-title">${titleText}</h2>
         <button class="anavo-seo-close" aria-label="Close panel">&times;</button>
       </div>
       <div class="anavo-seo-panel-body">${bodyHtml}</div>
+      ${a11yBar}
       <div class="anavo-seo-panel-footer">Powered by Onassis Web Media</div>
     `;
 
     document.body.appendChild(panel);
     panel.querySelector('.anavo-seo-close').addEventListener('click', () => closePanel(type));
+
+    if (options.accessibility) bindA11yControls(panel);
+
     return panel;
+  }
+
+  function bindA11yControls(panel) {
+    // Font size buttons
+    panel.querySelectorAll('[data-font]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const size = btn.dataset.font;
+        panel.classList.remove('anavo-seo-font-125', 'anavo-seo-font-150');
+        if (size !== '100') panel.classList.add(`anavo-seo-font-${size}`);
+        panel.querySelectorAll('[data-font]').forEach(b => {
+          b.classList.remove('anavo-seo-a11y-active');
+          b.setAttribute('aria-pressed', 'false');
+        });
+        btn.classList.add('anavo-seo-a11y-active');
+        btn.setAttribute('aria-pressed', 'true');
+      });
+    });
+
+    // High contrast toggle
+    const contrastBtn = panel.querySelector('[data-contrast]');
+    if (contrastBtn) {
+      contrastBtn.addEventListener('click', () => {
+        const on = panel.classList.toggle('anavo-seo-high-contrast');
+        contrastBtn.classList.toggle('anavo-seo-a11y-active', on);
+        contrastBtn.setAttribute('aria-pressed', String(on));
+      });
+    }
   }
 
   function buildInfoBody(pageData, nap) {
@@ -713,7 +829,7 @@
     // Build Info panel
     const infoBody = buildInfoBody(pageData, nap);
     const infoTitle = (pageData && pageData.title) || document.title || 'Quick Info';
-    buildPanel('info', infoTitle, infoBody);
+    buildPanel('info', infoTitle, infoBody, { accessibility: true });
 
     // Build FAQ panel
     const faqBody = buildFaqBody(faqItems);
