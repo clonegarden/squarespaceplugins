@@ -656,7 +656,9 @@
     await new Promise(resolve => setTimeout(resolve, 1500));
     try {
       const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licensing.min.js';
+      const _d = new Date();
+      const _v = `${_d.getFullYear()}${String(_d.getMonth()+1).padStart(2,'0')}${String(_d.getDate()).padStart(2,'0')}`;
+      script.src = `https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licensing.min.js?v=${_v}`;
       await new Promise((resolve, reject) => {
         script.onload = resolve;
         script.onerror = reject;
