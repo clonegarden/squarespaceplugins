@@ -844,8 +844,8 @@
       '@type': 'FAQPage',
       'mainEntity': faqItems.map(item => ({
         '@type': 'Question',
-        'name': item.question,
-        'acceptedAnswer': { '@type': 'Answer', 'text': item.answer }
+        'name': item.question || item.q || '',
+        'acceptedAnswer': { '@type': 'Answer', 'text': item.answer || item.a || '' }
       }))
     };
 
