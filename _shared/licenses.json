@@ -7,6 +7,19 @@
     "*.squarespace.com"
   ],
   "licenses": {
+    "SeoModals": {
+      "license_key": "lic_seomodals_sherrilarocque",
+      "license_type": "standard",
+      "allowed_domains": [
+        "sherrilarocque.com",
+        "www.sherrilarocque.com"
+      ],
+      "features": [
+        "customization",
+        "no_watermark"
+      ],
+      "expires": null
+    },
     "AnimatedHeader": {
       "license_key": "lic_animated_header_001",
       "license_type": "standard",
