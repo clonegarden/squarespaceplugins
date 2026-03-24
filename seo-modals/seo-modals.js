@@ -768,36 +768,26 @@
   }
 
   function initDwellObserver() {
-    // Watch last significant section — reappear after dwellTime ms on it
-    const sections = document.querySelectorAll('section, .sqs-block, [data-section-id]');
-    const lastSection = sections[sections.length - 1];
-    if (!lastSection) return;
-
+    // Reappear after dwellTime ms of scroll inactivity — works anywhere including footer
     let dwellTimer = null;
 
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          dwellTimer = setTimeout(() => {
+    function onScrollIdle() {
+      if (dwellTimer) { clearTimeout(dwellTimer); dwellTimer = null; }
+      dwellTimer = setTimeout(() => {
+        if (!_anyOpen && _triggerWrap) {
+          _triggerWrap.classList.remove('anavo-seo-faded');
+          dbg('Triggers reappeared after scroll idle');
+          setTimeout(() => {
             if (!_anyOpen && _triggerWrap) {
-              _triggerWrap.classList.remove('anavo-seo-faded');
-              dbg('Triggers reappeared after dwell');
-              // fade again after same delay
-              setTimeout(() => {
-                if (!_anyOpen && _triggerWrap) {
-                  _triggerWrap.classList.add('anavo-seo-faded');
-                }
-              }, config.fadeDelay);
+              _triggerWrap.classList.add('anavo-seo-faded');
             }
-          }, config.dwellTime);
-        } else {
-          if (dwellTimer) { clearTimeout(dwellTimer); dwellTimer = null; }
+          }, config.fadeDelay);
         }
-      });
-    }, { threshold: 0.3 });
+      }, config.dwellTime);
+    }
 
-    observer.observe(lastSection);
-    dbg('Dwell observer attached to last section');
+    window.addEventListener('scroll', onScrollIdle, { passive: true });
+    dbg('Scroll-idle dwell observer active');
   }
 
   // ========================================
