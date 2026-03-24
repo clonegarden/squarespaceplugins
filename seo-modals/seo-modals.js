@@ -462,7 +462,12 @@
       const parts = [];
       if (nap.phone)   parts.push(`<p>📞 <a href="tel:${nap.phone}">${nap.phone}</a></p>`);
       if (nap.email)   parts.push(`<p>✉️ <a href="mailto:${nap.email}">${nap.email}</a></p>`);
-      if (nap.address) parts.push(`<p>📍 ${nap.address}</p>`);
+      if (nap.address) {
+        const addr = typeof nap.address === 'object'
+          ? [nap.address.city, nap.address.state, nap.address.country].filter(Boolean).join(', ')
+          : nap.address;
+        if (addr) parts.push(`<p>📍 ${addr}</p>`);
+      }
       if (parts.length) {
         contactHtml = `
           <div class="anavo-seo-section">
