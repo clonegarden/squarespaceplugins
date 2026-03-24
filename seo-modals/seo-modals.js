@@ -490,8 +490,8 @@
     }
     return faqItems.map(item => `
       <details class="anavo-seo-faq-item">
-        <summary>${item.question}</summary>
-        <div class="anavo-seo-faq-answer">${item.answer}</div>
+        <summary>${item.question || item.q || ''}</summary>
+        <div class="anavo-seo-faq-answer">${item.answer || item.a || ''}</div>
       </details>
     `).join('');
   }
