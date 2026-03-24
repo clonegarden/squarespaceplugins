@@ -281,18 +281,12 @@
 .anavo-seo-nav-list li a:hover {
   color: var(--onassis-accent, var(--onassis-heading, #1a1a1a)) !important;
 }
-.anavo-seo-tags {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  gap: 6px !important;
-}
-.anavo-seo-tag {
-  font-size: 11px !important;
-  padding: 3px 8px !important;
-  border: 1px solid var(--onassis-accent, var(--onassis-text, #1a1a1a)) !important;
-  border-radius: 20px !important;
-  color: var(--onassis-accent, var(--onassis-text, #1a1a1a)) !important;
-  white-space: nowrap !important;
+.anavo-seo-summary {
+  font-size: 13px !important;
+  line-height: 1.6 !important;
+  color: var(--onassis-text, #1a1a1a) !important;
+  margin: 0 !important;
+  opacity: 0.85 !important;
 }
 .anavo-seo-contact p {
   font-size: 13px !important;
@@ -452,15 +446,13 @@
         </div>`;
     }
 
-    // Keywords / topics
-    const keywords = pageData && pageData.keywords ? pageData.keywords : [];
-    let tagsHtml = '';
-    if (keywords.length) {
-      const tags = keywords.slice(0, 8).map(k => `<span class="anavo-seo-tag">${k}</span>`).join('');
-      tagsHtml = `
+    // Summary (keyword-rich descriptive text — replaces raw tag list)
+    const summary = pageData && pageData.summary ? pageData.summary : null;
+    let summaryHtml = '';
+    if (summary) {
+      summaryHtml = `
         <div class="anavo-seo-section">
-          <p class="anavo-seo-section-title">Topics</p>
-          <div class="anavo-seo-tags">${tags}</div>
+          <p class="anavo-seo-summary">${summary}</p>
         </div>`;
     }
 
@@ -480,7 +472,7 @@
       }
     }
 
-    return navHtml + tagsHtml + contactHtml ||
+    return navHtml + summaryHtml + contactHtml ||
       '<p style="font-size:13px;opacity:0.7">No additional info for this page.</p>';
   }
 
