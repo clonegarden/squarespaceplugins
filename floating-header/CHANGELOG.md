@@ -6,6 +6,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.0.9] — 2026-03-30
+
+### Added
+- `stickyBottom` parameter (default: `false`) — header sticks at the bottom of the viewport instead of the top
+  - `stickyBottom=false`: current behavior — header sticks at top of viewport
+  - `stickyBottom=true`: header sticks at bottom of viewport
+  - Works with both `teleport=true` (fixed positioning) and `teleport=false` (sticky positioning)
+
+---
+
 ## [1.0.8] — 2026-03-01
 
 ### Added
@@ -49,6 +59,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+[1.0.9]: https://github.com/clonegarden/squarespaceplugins/releases/tag/floating-header-v1.0.9
 [1.0.8]: https://github.com/clonegarden/squarespaceplugins/releases/tag/floating-header-v1.0.8
 [1.0.7]: https://github.com/clonegarden/squarespaceplugins/releases/tag/floating-header-v1.0.7
 [1.0.6]: https://github.com/clonegarden/squarespaceplugins/releases/tag/floating-header-v1.0.6
