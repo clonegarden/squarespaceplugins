@@ -2,7 +2,7 @@
  * =======================================
  * ASCII ANIMATION PLUGIN - Squarespace
  * =======================================
- * @version 1.1.0
+ * @version 1.2.0
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
@@ -27,13 +27,20 @@
  * ?colorWave=false              - Enable color wave effect (default: false)
  * ?waveMode=rainbow             - Color wave mode: rainbow, gradient, pulse (default: rainbow)
  * ?waveColors=ff0000,00ff00     - Custom colors for gradient/pulse (comma-separated hex, no #)
+ * ?reveal=false                 - Enable reveal sequence (default: false)
+ * ?revealDelay=5                - Seconds before reveal triggers (default: 5)
+ * ?revealDuration=4             - Seconds the text stays visible (default: 4)
+ * ?revealTrigger=timer          - Trigger mode: timer, click, scroll, hover (default: timer)
+ * ?revealRepeat=false           - Cycle the reveal indefinitely (default: false)
+ * ?revealTitle=TEXT             - Override title text (URL-encoded, default: characters + explodeText)
+ * ?revealSubtitle=TEXT          - Override subtitle text (URL-encoded, default: secondaryText · tertiaryText)
  * =======================================
  */
 
 (function () {
   'use strict';
 
-  const PLUGIN_VERSION = '1.1.0';
+  const PLUGIN_VERSION = '1.2.0';
   console.log(`🎨 ASCII Animation Plugin v${PLUGIN_VERSION} - Loading...`);
 
   // ========================================
@@ -72,6 +79,14 @@
       waveColors: params.get('waveColors') ?
         decodeURIComponent(params.get('waveColors')).split(',').map(c => c.trim()) :
         null,
+      // Reveal sequence
+      reveal: params.get('reveal') === 'true',
+      revealDelay: parseFloat(params.get('revealDelay') || '5'),
+      revealDuration: parseFloat(params.get('revealDuration') || '4'),
+      revealTrigger: params.get('revealTrigger') || 'timer',
+      revealRepeat: params.get('revealRepeat') === 'true',
+      revealTitle: params.get('revealTitle') ? decodeURIComponent(params.get('revealTitle')) : null,
+      revealSubtitle: params.get('revealSubtitle') ? decodeURIComponent(params.get('revealSubtitle')) : null,
     };
   }
 
@@ -508,7 +523,7 @@
     }
 
     // Click to start rain
-    if (config.enableRain) {
+    if (config.enableRain && config.revealTrigger !== 'click') {
       animationDiv.addEventListener('click', () => {
         if (!isRaining) {
           startRainAnimation();
@@ -588,7 +603,304 @@
       rainLetters = [];
     }
 
+    // ========================================
+    // REVEAL SEQUENCE STATE MACHINE
+    // ========================================
+
+    // Phases: 'idle' | 'explode-out' | 'form-text' | 'hold' | 'glitch-exit' | 'explode-back'
+    let revealPhase = 'idle';
+    let revealPhaseStart = 0;
+    let revealTriggered = false;
+    let revealOverlay = null;
+
+    // Phase durations (ms)
+    const REVEAL_EXPLODE_OUT_MS  = 800;
+    const REVEAL_FORM_TEXT_MS    = 1000;
+    const REVEAL_GLITCH_EXIT_MS  = 600;
+    const REVEAL_EXPLODE_BACK_MS = 1000;
+
+    // Build title / subtitle text
+    const revealTitleText    = config.revealTitle    || (config.characters + '\n' + config.explodeText);
+    const revealSubtitleText = config.revealSubtitle || (config.secondaryText + ' \u00b7 ' + config.tertiaryText);
+
+    function createRevealOverlay() {
+      if (revealOverlay) return;
+
+      revealOverlay = document.createElement('div');
+      revealOverlay.id = 'anavo-reveal-overlay';
+      revealOverlay.style.cssText = [
+        'position:absolute',
+        'top:50%',
+        'left:50%',
+        'transform:translate(-50%,-50%)',
+        'text-align:center',
+        'z-index:10',
+        'opacity:0',
+        'pointer-events:none',
+        'font-family:"Syne Mono",monospace',
+      ].join(';');
+
+      const titleEl = document.createElement('div');
+      titleEl.className = 'anavo-reveal-title';
+      titleEl.innerHTML = revealTitleText.replace(/\n/g, '<br>');
+      titleEl.style.cssText = [
+        'font-size:' + (parseInt(config.fontSize) * 3) + 'px',
+        'font-weight:900',
+        'color:' + config.fontColor,
+        'opacity:0.95',
+        'line-height:1.1',
+        'letter-spacing:0.05em',
+        'margin-bottom:16px',
+        'white-space:nowrap',
+      ].join(';');
+
+      const subtitleEl = document.createElement('div');
+      subtitleEl.className = 'anavo-reveal-subtitle';
+      subtitleEl.textContent = revealSubtitleText;
+      subtitleEl.style.cssText = [
+        'font-size:' + (parseInt(config.fontSize) * 1.8) + 'px',
+        'font-weight:500',
+        'color:' + config.fontColor,
+        'opacity:0.7',
+        'letter-spacing:0.08em',
+        'white-space:nowrap',
+      ].join(';');
+
+      revealOverlay.appendChild(titleEl);
+      revealOverlay.appendChild(subtitleEl);
+      animationDiv.appendChild(revealOverlay);
+    }
+
+    function injectRevealStyles() {
+      if (document.getElementById('anavo-reveal-glitch-styles')) return;
+      const style = document.createElement('style');
+      style.id = 'anavo-reveal-glitch-styles';
+      style.textContent = `
+        @keyframes anavo-reveal-tremble {
+          0%,100% { transform: translate(-50%,-50%) translate(0,0); }
+          10%      { transform: translate(-50%,-50%) translate(-3px,2px); }
+          20%      { transform: translate(-50%,-50%) translate(3px,-1px); }
+          30%      { transform: translate(-50%,-50%) translate(-2px,-3px); }
+          40%      { transform: translate(-50%,-50%) translate(2px,3px); }
+          50%      { transform: translate(-50%,-50%) translate(-4px,1px); }
+          60%      { transform: translate(-50%,-50%) translate(4px,-2px); }
+          70%      { transform: translate(-50%,-50%) translate(-1px,4px); }
+          80%      { transform: translate(-50%,-50%) translate(1px,-4px); }
+          90%      { transform: translate(-50%,-50%) translate(-3px,-1px); }
+        }
+        @keyframes anavo-reveal-glitch-clip {
+          0%   { clip-path: inset(0 0 95% 0); }
+          10%  { clip-path: inset(40% 0 30% 0); }
+          20%  { clip-path: inset(80% 0 5% 0); }
+          30%  { clip-path: inset(10% 0 70% 0); }
+          40%  { clip-path: inset(50% 0 20% 0); }
+          50%  { clip-path: inset(0 0 60% 0); }
+          60%  { clip-path: inset(70% 0 10% 0); }
+          70%  { clip-path: inset(20% 0 50% 0); }
+          80%  { clip-path: inset(90% 0 0 0); }
+          90%  { clip-path: inset(5% 0 85% 0); }
+          100% { clip-path: inset(0 0 0 0); }
+        }
+        #anavo-reveal-overlay.glitching {
+          animation: anavo-reveal-tremble 0.1s steps(2) infinite,
+                     anavo-reveal-glitch-clip 0.15s steps(3) infinite;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    function triggerReveal() {
+      if (revealPhase !== 'idle') return;
+      if (revealTriggered && !config.revealRepeat) return;
+      revealTriggered = true;
+      isExploding = false;
+      isRaining = false;
+      explosionProgress = 0;
+      revealPhase = 'explode-out';
+      revealPhaseStart = Date.now();
+      console.log('🎬 Reveal sequence triggered');
+    }
+
+    function updateReveal() {
+      const now = Date.now();
+      const elapsed = now - revealPhaseStart;
+
+      switch (revealPhase) {
+
+        // ---- Phase 2: Letters fly outward ----
+        case 'explode-out': {
+          const progress = Math.min(elapsed / REVEAL_EXPLODE_OUT_MS, 1);
+          const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+
+          allLetters.forEach(({ element, circleIndex, baseAngle, baseOpacity }) => {
+            const circle = circles[circleIndex];
+            const explosionRadius = circle.radius + eased * 500;
+            const angle = baseAngle + (now / 1000) * circle.speed * 0.3;
+            const x = Math.cos(angle) * explosionRadius;
+            const y = Math.sin(angle) * explosionRadius;
+
+            element.style.left = 'calc(50% + ' + x + 'px)';
+            element.style.top  = 'calc(50% + ' + y + 'px)';
+            element.style.opacity = baseOpacity * (1 - eased * 0.8);
+            element.style.transform = 'translate(-50%,-50%) scale(' + (1 + eased) + ') rotate(' + (eased * 180) + 'deg)';
+          });
+
+          if (progress >= 1) {
+            revealPhase = 'form-text';
+            revealPhaseStart = now;
+          }
+          break;
+        }
+
+        // ---- Phase 3: Letters converge to center, overlay fades in ----
+        case 'form-text': {
+          const progress = Math.min(elapsed / REVEAL_FORM_TEXT_MS, 1);
+          const eased = progress * progress * (3 - 2 * progress); // smoothstep
+
+          allLetters.forEach(({ element, baseOpacity }, index) => {
+            // Use a stable small offset based on index instead of Math.random()
+            const seed = index * 2.399963;
+            const targetX = Math.cos(seed) * 20;
+            const targetY = Math.sin(seed) * 15;
+
+            element.style.left = 'calc(50% + ' + (targetX * (1 - eased)) + 'px)';
+            element.style.top  = 'calc(50% + ' + (targetY * (1 - eased)) + 'px)';
+            element.style.opacity = baseOpacity * 0.2 * eased;
+            element.style.transform = 'translate(-50%,-50%) scale(' + (0.5 + eased * 0.5) + ')';
+          });
+
+          if (revealOverlay) {
+            revealOverlay.style.opacity = eased;
+          }
+
+          if (progress >= 1) {
+            revealPhase = 'hold';
+            revealPhaseStart = now;
+            allLetters.forEach(({ element }) => {
+              element.style.opacity = '0';
+            });
+          }
+          break;
+        }
+
+        // ---- Phase 4: Text holds ----
+        case 'hold': {
+          if (elapsed >= config.revealDuration * 1000) {
+            revealPhase = 'glitch-exit';
+            revealPhaseStart = now;
+            if (revealOverlay) revealOverlay.classList.add('glitching');
+          }
+          break;
+        }
+
+        // ---- Phase 5: Glitch and fade ----
+        case 'glitch-exit': {
+          const progress = Math.min(elapsed / REVEAL_GLITCH_EXIT_MS, 1);
+
+          if (revealOverlay) {
+            revealOverlay.style.opacity = 1 - progress;
+          }
+
+          allLetters.forEach(({ element, baseOpacity }, index) => {
+            const seed = index * 2.399963;
+            const jitterX = Math.cos(seed * progress * 7) * 100 * progress;
+            const jitterY = Math.sin(seed * progress * 5) * 100 * progress;
+            element.style.left = 'calc(50% + ' + jitterX + 'px)';
+            element.style.top  = 'calc(50% + ' + jitterY + 'px)';
+            element.style.opacity = baseOpacity * progress * 0.5;
+            element.style.transform = 'translate(-50%,-50%) rotate(' + (Math.cos(seed) * 30) + 'deg)';
+          });
+
+          if (progress >= 1) {
+            revealPhase = 'explode-back';
+            revealPhaseStart = now;
+            if (revealOverlay) {
+              revealOverlay.classList.remove('glitching');
+              revealOverlay.style.opacity = '0';
+            }
+          }
+          break;
+        }
+
+        // ---- Phase 6: Letters reform into circles ----
+        case 'explode-back': {
+          const progress = Math.min(elapsed / REVEAL_EXPLODE_BACK_MS, 1);
+          const eased = progress * progress * (3 - 2 * progress); // smoothstep
+
+          allLetters.forEach(({ element, circleIndex, letterIndex, baseAngle, baseOpacity }) => {
+            const circle = circles[circleIndex];
+            const angle = (letterIndex / circle.numLetters) * Math.PI * 2 +
+              (now / 1000) * circle.speed;
+            const currentRadius = circle.radius * eased;
+            const x = Math.cos(angle) * currentRadius;
+            const y = Math.sin(angle) * currentRadius;
+
+            element.style.left = 'calc(50% + ' + x + 'px)';
+            element.style.top  = 'calc(50% + ' + y + 'px)';
+            element.style.opacity = baseOpacity * eased;
+            element.style.transform = 'translate(-50%,-50%) scale(' + (0.5 + eased * 0.5) + ') rotate(' + ((1 - eased) * 180) + 'deg)';
+            element.textContent = circle.characters[letterIndex % circle.characters.length];
+          });
+
+          if (progress >= 1) {
+            revealPhase = 'idle';
+            console.log('🎬 Reveal sequence complete');
+
+            if (config.revealRepeat && config.revealTrigger === 'timer') {
+              setTimeout(triggerReveal, config.revealDelay * 1000);
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    // Setup reveal triggers (only when reveal is enabled)
+    if (config.reveal) {
+      createRevealOverlay();
+      injectRevealStyles();
+
+      switch (config.revealTrigger) {
+        case 'timer':
+          setTimeout(triggerReveal, config.revealDelay * 1000);
+          break;
+
+        case 'click':
+          animationDiv.addEventListener('click', function () {
+            if (revealPhase === 'idle') triggerReveal();
+          });
+          break;
+
+        case 'scroll': {
+          let scrollTriggered = false;
+          window.addEventListener('scroll', function () {
+            if (scrollTriggered || revealPhase !== 'idle') return;
+            const rect = animationDiv.getBoundingClientRect();
+            const viewportH = window.innerHeight;
+            if (rect.top < viewportH * 0.4 && rect.bottom > viewportH * 0.6) {
+              scrollTriggered = true;
+              triggerReveal();
+            }
+          }, { passive: true });
+          break;
+        }
+
+        case 'hover':
+          animationDiv.addEventListener('mouseenter', function () {
+            if (revealPhase === 'idle') triggerReveal();
+          });
+          break;
+      }
+    }
+
     function animate() {
+      // Reveal sequence takes priority over all other animation states
+      if (config.reveal && revealPhase !== 'idle') {
+        updateReveal();
+        requestAnimationFrame(animate);
+        return;
+      }
+
       if (isRaining) {
         updateRain();
       } else {
