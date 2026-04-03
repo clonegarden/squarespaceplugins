@@ -58,6 +58,7 @@ Add to **Settings → Advanced → Code Injection → Footer**:
 | `stickyTop` | `0` | Top offset when sticky (px) | `?stickyTop=20` |
 | `startAtBottom` | `true` | Start at bottom vs top | `?startAtBottom=false` |
 | `teleport` | `true` | Enable teleport animation mode | `?teleport=false` |
+| `stickyBottom` | `false` | Stick header at bottom of viewport | `?stickyBottom=true` |
 | `fade` | `false` | Replace slide with fade-out/fade-in | `?fade=true` |
 | `noTransition` | `false` | Disable all transitions (overrides fade) | `?noTransition=true` |
 | `zIndex` | `9999` | Z-index value | `?zIndex=10000` |
@@ -123,11 +124,28 @@ Instead of sliding between positions, the header fades out, switches position in
 All CSS transitions are disabled. The header switches positions instantly with no animation.
 If both `fade` and `noTransition` are set, `noTransition` wins.
 
+### Example 9: Sticky at Bottom of Viewport
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/floating-header/floating-header.min.js?teleport=false&stickyBottom=true"></script>
+```
+
+The header starts at the bottom of the first section and scrolls naturally with the page.
+When it reaches the bottom of the viewport, it sticks there — acting as a persistent bottom navigation bar.
+
+Also works with teleport mode (header teleports to the bottom of the viewport on scroll):
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/floating-header/floating-header.min.js?stickyBottom=true"></script>
+```
+
 ---
 
 ## 🎯 How It Works
 
 ### Visual Flow
+
+#### Default (header sticks at top of viewport)
 
 ```
 PAGE LOAD
@@ -149,6 +167,27 @@ PAGE LOAD
 └─────────────────────────────────────┘
 ```
 
+#### With `stickyBottom=true` (header sticks at bottom of viewport)
+
+```
+PAGE LOAD
+┌─────────────────────────────────────┐
+│  SECTION 1 (Hero/Banner)            │
+│  [Your hero content]                │
+│  ┌─────────────────────────────┐    │ ← Header at BOTTOM of Section 1
+│  │ LOGO  Home  About  Contact  │    │
+│  └─────────────────────────────┘    │
+└─────────────────────────────────────┘
+             ⬇ User scrolls ⬇
+┌─────────────────────────────────────┐
+│  SECTION 2                          │
+│  [Content]                          │
+│                                     │
+├─────────────────────────────────────┤
+│ LOGO  Home  About  Contact          │ ← Sticky at BOTTOM of viewport
+└─────────────────────────────────────┘
+```
+
 ### Technical Details
 
 #### Teleport Mode (`teleport=true`, default)
@@ -157,7 +196,7 @@ PAGE LOAD
 2. **Wraps** existing Squarespace header
 3. **Positions** at bottom of section 1 (absolute positioning)
 4. **Monitors** scroll position
-5. **Animates** to sticky top when user scrolls past section 1
+5. **Animates** to sticky top when user scrolls past section 1 (or sticky bottom when `stickyBottom=true`)
 6. **Reverses** animation when scrolling back up
 
 #### Natural Sticky Mode (`teleport=false`)
@@ -166,7 +205,7 @@ PAGE LOAD
 2. **Wraps** existing Squarespace header
 3. **Inserts** wrapper inside the first section (at the bottom via flex layout)
 4. **Uses** CSS `position: sticky` — header scrolls naturally with the page
-5. **Sticks** to top when the header reaches the top of the viewport
+5. **Sticks** to top when the header reaches the top of the viewport (or to bottom when `stickyBottom=true`)
 6. No scroll JavaScript needed — browser handles sticking natively
 
 ---
