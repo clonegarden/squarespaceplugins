@@ -57,6 +57,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Commercial licensing integration
 - Parameters: `fontSize`, `fontFamily`, `fontWeight`, `fontColor`, `bgColor`, `transitionSpeed`, `stickyTop`, `startAtBottom`, `zIndex`, `debug`
 
+### Installation
+- Zero-config installation
+- CDN delivery via jsDelivr
+- Auto-minification via GitHub Actions
+
 ---
 
 [1.0.9]: https://github.com/clonegarden/squarespaceplugins/releases/tag/floating-header-v1.0.9
