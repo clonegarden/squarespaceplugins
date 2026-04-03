@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Letter Rain Transform — Basic Demo | Anavo Tech</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Georgia, "Times New Roman", serif;
+      background: #f5f0ea;
+      color: #333;
+    }
+
+    header {
+      background: #1a1a1a;
+      color: #fff;
+      padding: 28px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    header h1 { font-size: 20px; font-weight: 400; letter-spacing: 0.1em; }
+    header span { font-size: 12px; color: #888; letter-spacing: 0.15em; text-transform: uppercase; }
+
+    .info-panel {
+      background: #fff8f0;
+      border: 1px solid #e8d8c4;
+      border-radius: 8px;
+      padding: 24px 32px;
+      margin: 40px auto;
+      max-width: 860px;
+    }
+    .info-panel h2 { font-size: 18px; margin-bottom: 10px; color: #8B7355; }
+    .info-panel p  { font-size: 14px; line-height: 1.7; color: #555; margin-bottom: 8px; }
+    .info-panel code {
+      display: block;
+      background: #f0e8dc;
+      border-radius: 4px;
+      padding: 12px 16px;
+      font-family: monospace;
+      font-size: 13px;
+      color: #333;
+      white-space: pre;
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+
+    main { max-width: 900px; margin: 0 auto; padding: 0 20px; }
+
+    /* ---- Hero spacer — gives room to scroll ---- */
+    .spacer-top {
+      height: 90vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .spacer-top p {
+      font-size: 15px;
+      color: #999;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    /* ---- Source block ---- */
+    #letter-rain-source {
+      font-size: 52px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: #1a1a1a;
+      text-align: center;
+      padding: 60px 20px;
+      background: #fff;
+      border-radius: 12px;
+      margin: 0 auto 20px;
+    }
+
+    .scroll-hint {
+      text-align: center;
+      font-size: 13px;
+      color: #aaa;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 60vh; /* big gap so user has to scroll past the source */
+    }
+
+    /* ---- Target block ---- */
+    .target-label {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #aaa;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    #letter-rain-target {
+      font-size: 52px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: #8B7355;
+      text-align: center;
+      padding: 60px 20px;
+      background: #fff;
+      border-radius: 12px;
+      margin: 0 auto 60px;
+      min-height: 180px;
+      border: 2px dashed #e8d8c4;
+    }
+
+    footer {
+      text-align: center;
+      padding: 32px 20px;
+      background: #1a1a1a;
+      color: #666;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🌧️ Letter Rain Transform Plugin</h1>
+  <span>Anavo Tech — v1.0.0</span>
+</header>
+
+<main>
+
+  <div class="info-panel">
+    <h2>About This Demo</h2>
+    <p>
+      Scroll <strong>down past</strong> the large headline below. Each letter will detach and
+      fall like rain into the target container further down the page, where they rearrange to
+      spell a new phrase.
+    </p>
+    <p>The script tag used in this demo:</p>
+    <code>&lt;script src="../letter-rain-transform.js
+  ?source=%23letter-rain-source
+  &amp;target=%23letter-rain-target
+  &amp;phrase=Every+word+has+a+destination
+  &amp;duration=1200
+  &amp;stagger=20
+  &amp;fallDistance=70
+  &amp;debug=true"&gt;&lt;/script&gt;</code>
+  </div>
+
+  <!-- Spacer to require scrolling before the source element appears -->
+  <div class="spacer-top">
+    <p>↓ Scroll down to find the source text ↓</p>
+  </div>
+
+  <!-- Source element: plugin reads text from here and splits it into letters -->
+  <div id="letter-rain-source">
+    Words become rain
+  </div>
+
+  <p class="scroll-hint">↓ Keep scrolling past the headline ↓</p>
+
+  <!-- Target: letters land here and form the new phrase -->
+  <p class="target-label">Letters land here ↓</p>
+  <div id="letter-rain-target"></div>
+
+  <div class="info-panel">
+    <h2>Try Different Phrases</h2>
+    <p>Change the <code>phrase</code> parameter in the script URL to any URL-encoded string:</p>
+    <code>phrase=Every+word+has+a+destination   ← spaces as +
+phrase=A+new+beginning                   ← shorter than source
+phrase=The+letters+dance+into+place      ← longer than source</code>
+  </div>
+
+  <div class="info-panel">
+    <h2>Repeat Mode</h2>
+    <p>Add <code>&amp;repeat=true</code> to re-trigger the animation every time you scroll past the source element.</p>
+    <code>&lt;script src="../letter-rain-transform.js
+  ?source=%23letter-rain-source
+  &amp;target=%23letter-rain-target
+  &amp;phrase=Keep+scrolling
+  &amp;repeat=true"&gt;&lt;/script&gt;</code>
+  </div>
+
+</main>
+
+<footer>
+  Built with ❤️ by <strong>Anavo Tech</strong> &nbsp;|&nbsp; hello@anavo.tech
+</footer>
+
+<!-- Plugin loaded here — targeting the elements defined above -->
+<script src="../letter-rain-transform.js?source=%23letter-rain-source&target=%23letter-rain-target&phrase=Every+word+has+a+destination&duration=1200&stagger=20&fallDistance=70&debug=true"></script>
+
+</body>
+</html>
