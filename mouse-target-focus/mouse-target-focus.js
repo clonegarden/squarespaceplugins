@@ -73,6 +73,27 @@
     return '#' + color;
   }
 
+  // Convert a CSS color string + opacity to rgba(); falls back gracefully
+  function colorWithOpacity(color, opacity) {
+    if (!color || color === 'transparent') return 'transparent';
+    const hex = color.replace('#', '');
+    let r, g, b;
+    if (hex.length === 3) {
+      r = parseInt(hex[0] + hex[0], 16);
+      g = parseInt(hex[1] + hex[1], 16);
+      b = parseInt(hex[2] + hex[2], 16);
+    } else if (hex.length === 6) {
+      r = parseInt(hex.slice(0, 2), 16);
+      g = parseInt(hex.slice(2, 4), 16);
+      b = parseInt(hex.slice(4, 6), 16);
+    } else {
+      // Non-hex color (rgb(), named) — return with CSS color-mix fallback
+      return `rgba(0,0,0,0)`; // safe no-op fallback
+    }
+    if (isNaN(r) || isNaN(g) || isNaN(b)) return 'transparent';
+    return `rgba(${r},${g},${b},${opacity})`;
+  }
+
   function parseFloat2(val, fallback) {
     const n = parseFloat(val);
     return isNaN(n) ? fallback : n;
@@ -177,13 +198,13 @@
     switch (shape) {
       case 'circle-fill':
       case 'circle': {
+        const bg = shape === 'circle-fill' ? colorWithOpacity(fillColor, fillOpacity) : 'transparent';
         return `
           width: ${size}px;
           height: ${size}px;
           border-radius: 50%;
           border: ${strokeWidth}px solid ${strokeColor};
-          background: ${shape === 'circle-fill' ? fillColor : 'transparent'};
-          opacity: ${shape === 'circle-fill' ? 1 : 1};
+          background: ${bg};
         `;
       }
       case 'square': {
@@ -241,8 +262,6 @@
 
     const { shape, size, strokeColor, strokeWidth, fillColor, fillOpacity, zIndex, pulseDuration, pulseScale } = cfg;
 
-    const fillOpacityActual = (shape === 'circle-fill') ? fillOpacity : 0;
-
     const pulseDur = reducedMotion ? 0 : pulseDuration;
     const pulseScaleVal = reducedMotion ? 1 : pulseScale;
 
@@ -275,17 +294,9 @@
           opacity ${pulseDur}ms ease;
         --mtf-stroke: ${strokeColor};
         --mtf-fill: ${fillColor};
-        --mtf-fill-opacity: ${fillOpacityActual};
         box-sizing: border-box;
         overflow: visible;
       }
-
-      ${shape === 'circle-fill' ? `
-      #anavo-mouse-target-focus .anavo-mtf-inner {
-        background-color: var(--mtf-fill);
-        opacity: var(--mtf-fill-opacity, ${fillOpacity});
-      }
-      ` : ''}
 
       ${shape === 'crosshair' ? `
       #anavo-mouse-target-focus .anavo-mtf-inner::before,
@@ -314,7 +325,7 @@
       #anavo-mouse-target-focus.anavo-mtf-hovering .anavo-mtf-inner {
         transform: scale(${pulseScaleVal});
         ${cfg.hoverStrokeColor ? `border-color: ${cfg.hoverStrokeColor};` : ''}
-        ${(cfg.hoverFillOpacity !== null && shape === 'circle-fill') ? `opacity: ${cfg.hoverFillOpacity};` : ''}
+        ${(cfg.hoverFillOpacity !== null && shape === 'circle-fill') ? `background: ${colorWithOpacity(fillColor, cfg.hoverFillOpacity)};` : ''}
       }
 
       ${!reducedMotion ? `
