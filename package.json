@@ -40,6 +40,7 @@
     "build:photo-grid": "npm run minify photo-grid/photogrid.js",
     "build:mega-menu": "npm run minify mega-menu/mega-menu.js",
     "build:timeline": "npm run minify timeline/timeline.js",
+    "build:mouse-target-focus": "npm run minify mouse-target-focus/mouse-target-focus.js",
     "minify": "node scripts/minify.js",
     "watch": "node scripts/watch.js",
     "dev": "npm run watch",
