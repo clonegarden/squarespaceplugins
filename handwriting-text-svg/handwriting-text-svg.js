@@ -169,9 +169,9 @@
     window.matchMedia &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  var _uidCounter = 0;
+  var uidCounter = 0;
   function nextUid() {
-    return 'anavo-hts-' + (++_uidCounter);
+    return 'anavo-hts-' + (++uidCounter);
   }
 
   // ========================================
