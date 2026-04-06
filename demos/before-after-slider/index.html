@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Before/After Slider — Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;height:100vh;overflow:hidden;font-family:system-ui,sans-serif;background:#111;display:flex;flex-direction:column}
+    .top-label{padding:20px 24px 0;text-align:center}
+    .top-label h1{font-size:15px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:#fff;margin-bottom:4px}
+    .top-label p{font-size:12px;color:rgba(255,255,255,0.4)}
+    .slider-wrap{flex:1;display:flex;align-items:stretch;padding:16px}
+    .hint{text-align:center;padding:10px;font-size:11px;color:#555;flex-shrink:0}
+  </style>
+</head>
+<body>
+  <div class="top-label">
+    <h1>Before / After Slider</h1>
+    <p>Drag the handle to compare</p>
+  </div>
+  <div class="slider-wrap">
+    <div data-anavo-before-after
+         data-before="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80"
+         data-after="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80"
+         style="width:100%;height:100%;min-height:300px"></div>
+  </div>
+  <div class="hint">↑ Drag handle left/right to compare images</div>
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var u = new URL('https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/before-after-slider/before-after-slider.min.js');
+    u.searchParams.set('domain','anavo.tech');
+    u.searchParams.set('accentColor', g('accentColor','#ffffff'));
+    u.searchParams.set('handleColor', g('handleColor','#ffffff'));
+    u.searchParams.set('startPosition', g('startPosition','50'));
+    u.searchParams.set('showLabels', g('showLabels','true'));
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>

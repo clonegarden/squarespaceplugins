@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timeline — Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;min-height:100vh;font-family:system-ui,sans-serif;background:#fff;color:#111}
+    .page-header{padding:56px 40px 40px;text-align:center}
+    .page-header h1{font-size:clamp(22px,3.5vw,38px);font-weight:300;letter-spacing:-0.01em;margin-bottom:8px}
+    .page-header p{color:#aaa;font-size:13px}
+    .timeline-section{max-width:720px;margin:0 auto;padding:0 32px 80px}
+    .timeline-item{padding:32px 0;border-top:1px solid #eee;display:grid;grid-template-columns:80px 1fr;gap:24px;align-items:start}
+    .timeline-year{font-size:13px;font-weight:700;color:#aaa;letter-spacing:0.08em;padding-top:3px}
+    .timeline-content h3{font-size:17px;font-weight:600;margin-bottom:8px;color:#111}
+    .timeline-content p{font-size:14px;color:#666;line-height:1.65}
+    .hint{text-align:center;padding:0 0 24px;font-size:11px;color:#aaa}
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <h1>Our Story</h1>
+    <p>A decade of building digital experiences</p>
+  </div>
+  <section class="timeline-section">
+    <div class="timeline-item">
+      <span class="timeline-year">2014</span>
+      <div class="timeline-content">
+        <h3>Founded</h3>
+        <p>Started as a two-person studio focused on brand identity and web design for independent businesses in New York.</p>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <span class="timeline-year">2016</span>
+      <div class="timeline-content">
+        <h3>First Major Client</h3>
+        <p>Landed our first Fortune 500 engagement, a complete digital transformation project that put us on the map.</p>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <span class="timeline-year">2018</span>
+      <div class="timeline-content">
+        <h3>Expanded to Development</h3>
+        <p>Added a full in-house development team, enabling end-to-end digital product work from strategy through launch.</p>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <span class="timeline-year">2021</span>
+      <div class="timeline-content">
+        <h3>Remote-First</h3>
+        <p>Transitioned to a distributed team model, growing to 18 people across 6 time zones without losing culture.</p>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <span class="timeline-year">2024</span>
+      <div class="timeline-content">
+        <h3>Plugin Platform Launch</h3>
+        <p>Released our Squarespace plugin suite, bringing advanced interactions to thousands of creators worldwide.</p>
+      </div>
+    </div>
+  </section>
+  <div class="hint">Plugin renders items with animated vertical timeline layout</div>
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var u = new URL('https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/timeline/timeline.min.js');
+    u.searchParams.set('domain','anavo.tech');
+    u.searchParams.set('layout', g('layout','vertical'));
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>

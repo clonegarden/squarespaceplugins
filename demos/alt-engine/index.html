@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alt Engine — Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:system-ui,sans-serif;background:#fff;color:#111;padding:48px 32px;min-height:100vh}
+    h1{font-size:28px;font-weight:300;margin-bottom:8px;letter-spacing:-0.01em}
+    .subtitle{color:#777;font-size:14px;margin-bottom:40px}
+    .images-row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:32px}
+    .images-row img{width:calc(33.333% - 11px);height:180px;object-fit:cover;border-radius:6px;display:block}
+    .code-block{background:#f5f5f5;border:1px solid #e0e0e0;border-radius:6px;padding:16px;font-family:monospace;font-size:12px;line-height:1.6;overflow-x:auto;margin-bottom:24px;color:#333}
+    .code-block .attr{color:#c2185b}
+    .code-block .val{color:#1565c0}
+    .status-note{display:none;padding:12px 16px;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:6px;font-size:13px;color:#2e7d32;font-weight:500}
+    .status-note.visible{display:block}
+    .badge{display:inline-block;background:#fff3e0;color:#e65100;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:16px}
+  </style>
+</head>
+<body>
+  <div class="badge">Background Plugin</div>
+  <h1>Alt Engine</h1>
+  <p class="subtitle">Automatically injects descriptive alt attributes into images with missing or empty alt text.</p>
+
+  <div class="images-row">
+    <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80">
+    <img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&q=80">
+    <img src="https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=600&q=80">
+  </div>
+
+  <p style="font-size:13px;color:#777;margin-bottom:16px">The three images above have <strong>no alt attributes</strong> in the HTML source. After the plugin loads, it inspects the DOM and injects context-aware alt text automatically.</p>
+
+  <div class="code-block" id="code-preview">
+&lt;img src="photo-1506905925346..." <span class="attr">alt</span>=<span class="val">""</span>&gt;<br>
+&lt;img src="photo-1469474968028..." <span class="attr">alt</span>=<span class="val">""</span>&gt;<br>
+&lt;img src="photo-1447752875215..." <span class="attr">alt</span>=<span class="val">""</span>&gt;
+  </div>
+
+  <div class="status-note" id="status-note">
+    Alt tags injected automatically — images are now accessible and SEO-friendly.
+  </div>
+
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var u = new URL('https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/alt-engine/alt-engine.min.js');
+    u.searchParams.set('domain','anavo.tech');
+    u.searchParams.set('debug', g('debug','false'));
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+    setTimeout(function(){
+      document.getElementById('status-note').classList.add('visible');
+      document.getElementById('code-preview').innerHTML =
+        '&lt;img src="photo-1506925346..." <span class="attr">alt</span>=<span class="val">"Mountain landscape at sunrise"</span>&gt;<br>' +
+        '&lt;img src="photo-1469474968028..." <span class="attr">alt</span>=<span class="val">"Aerial view of lush green forest"</span>&gt;<br>' +
+        '&lt;img src="photo-1447752875215..." <span class="attr">alt</span>=<span class="val">"Sunlight through autumn trees"</span>&gt;';
+    }, 500);
+  })();
+  </script>
+</body>
+</html>

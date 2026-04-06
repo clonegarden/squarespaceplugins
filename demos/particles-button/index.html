@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Particles Button — Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;min-height:100vh;font-family:system-ui,sans-serif;background:#fff;color:#111}
+    .page{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:48px 32px;gap:40px;text-align:center}
+    .page-header h1{font-size:clamp(22px,3.5vw,36px);font-weight:300;letter-spacing:-0.01em;margin-bottom:8px}
+    .page-header p{color:#aaa;font-size:13px}
+    .btn-group{display:flex;flex-wrap:wrap;gap:16px;justify-content:center}
+    /* Primary */
+    button[data-anavo-pop].btn-primary{background:#111;color:#fff;border:none;padding:16px 36px;font-size:15px;font-weight:600;letter-spacing:0.04em;border-radius:3px;cursor:pointer;transition:background 0.2s}
+    button[data-anavo-pop].btn-primary:hover{background:#333}
+    /* Outlined */
+    button[data-anavo-pop].btn-outline{background:transparent;color:#111;border:1.5px solid #111;padding:15px 34px;font-size:15px;font-weight:600;letter-spacing:0.04em;border-radius:3px;cursor:pointer;transition:all 0.2s}
+    button[data-anavo-pop].btn-outline:hover{background:#111;color:#fff}
+    /* Accent */
+    button[data-anavo-pop].btn-accent{background:#4f46e5;color:#fff;border:none;padding:16px 36px;font-size:15px;font-weight:600;letter-spacing:0.04em;border-radius:3px;cursor:pointer;transition:background 0.2s}
+    button[data-anavo-pop].btn-accent:hover{background:#4338ca}
+    /* Ghost */
+    button[data-anavo-pop].btn-ghost{background:transparent;color:#4f46e5;border:1.5px solid #4f46e5;padding:15px 34px;font-size:15px;font-weight:600;letter-spacing:0.04em;border-radius:3px;cursor:pointer;transition:all 0.2s}
+    button[data-anavo-pop].btn-ghost:hover{background:#4f46e5;color:#fff}
+    /* Danger */
+    button[data-anavo-pop].btn-danger{background:#ef4444;color:#fff;border:none;padding:16px 36px;font-size:15px;font-weight:600;letter-spacing:0.04em;border-radius:3px;cursor:pointer;transition:background 0.2s}
+    button[data-anavo-pop].btn-danger:hover{background:#dc2626}
+    .hint{font-size:11px;color:#aaa}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="page-header">
+      <h1>Particles Button</h1>
+      <p>Click any button to trigger the confetti burst</p>
+    </div>
+    <div class="btn-group">
+      <button data-anavo-pop class="btn-primary">Get Started</button>
+      <button data-anavo-pop class="btn-outline">Learn More</button>
+      <button data-anavo-pop class="btn-accent">Upgrade Now</button>
+      <button data-anavo-pop class="btn-ghost">View Demo</button>
+      <button data-anavo-pop class="btn-danger">Delete Account</button>
+    </div>
+    <div class="hint">↑ Click any button to see particle burst</div>
+  </div>
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var u = new URL('https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/particles-button/particles-button.min.js');
+    u.searchParams.set('domain','anavo.tech');
+    u.searchParams.set('type', g('type','confetti'));
+    u.searchParams.set('count', g('count','30'));
+    u.searchParams.set('spread', g('spread','150'));
+    u.searchParams.set('duration', g('duration','800'));
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rotating Text — Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;min-height:100vh;font-family:system-ui,sans-serif;background:#fff;color:#111}
+    .hero{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:48px 32px;text-align:center;gap:24px}
+    .eyebrow{font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#aaa}
+    h1.sqs-block-content{font-size:clamp(28px,5vw,56px);font-weight:300;letter-spacing:-0.03em;line-height:1.15;max-width:700px}
+    h1.sqs-block-content span[data-rotating-text]{color:#111;font-weight:600;border-bottom:2px solid #111;padding-bottom:2px}
+    .sub{font-size:15px;color:#aaa;max-width:440px;line-height:1.6}
+    .cta-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+    .btn{padding:13px 28px;border-radius:3px;font-size:14px;font-weight:600;letter-spacing:0.04em;cursor:pointer;text-decoration:none;transition:all 0.2s}
+    .btn-primary{background:#111;color:#fff;border:none}
+    .btn-primary:hover{background:#333}
+    .btn-secondary{background:transparent;color:#111;border:1px solid #ddd}
+    .btn-secondary:hover{border-color:#111}
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <div class="eyebrow">Rotating Text Plugin</div>
+    <h1 class="sqs-block-content">We build <span data-rotating-text="beautiful|modern|powerful|fast">beautiful</span> websites.</h1>
+    <p class="sub">Watch the highlighted word cycle through different adjectives using a smooth typewriter animation.</p>
+    <div class="cta-row">
+      <a href="#" class="btn btn-primary">Get Started</a>
+      <a href="#" class="btn btn-secondary">View Work</a>
+    </div>
+  </div>
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var u = new URL('https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/rotating-text/rotating-text.min.js');
+    u.searchParams.set('domain','anavo.tech');
+    u.searchParams.set('animation', g('animation','typewriter'));
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>

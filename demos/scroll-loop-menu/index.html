@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scroll Loop Menu — Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;height:100vh;overflow:hidden;font-family:system-ui,sans-serif;background:#111111;color:#f0ede8}
+    .bg-hero{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;user-select:none}
+    .bg-hero h1{font-size:clamp(18px,3.5vw,36px);font-weight:200;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.15);margin-bottom:8px}
+    .bg-hero p{font-size:12px;color:rgba(255,255,255,0.1);letter-spacing:0.1em;text-transform:uppercase}
+    .hint{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);font-size:11px;color:#444;background:rgba(255,255,255,0.04);padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.08);pointer-events:none;z-index:9999}
+  </style>
+</head>
+<body>
+  <div class="bg-hero">
+    <h1>Scroll Loop Menu</h1>
+    <p>Infinite scroll navigation</p>
+  </div>
+  <div data-anavo-scroll-loop-menu></div>
+  <div class="hint">↑ Click trigger button to open menu</div>
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var u = new URL('https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/scroll-loop-menu/scroll-loop-menu.min.js');
+    u.searchParams.set('domain','anavo.tech');
+    u.searchParams.set('bgColor', g('bgColor','#111111'));
+    u.searchParams.set('textColor', g('textColor','#f0ede8'));
+    u.searchParams.set('hoverColor', g('hoverColor','#c0092b'));
+    u.searchParams.set('fontWeight', g('fontWeight','300'));
+    u.searchParams.set('items', g('items','Photography|Weddings|Editorial|About|Contact'));
+    u.searchParams.set('links', g('links','#|#|#|#|#'));
+    u.searchParams.set('showTrigger', g('showTrigger','true'));
+    u.searchParams.set('triggerPosition', g('triggerPosition','top-right'));
+    u.searchParams.set('triggerLabel', g('triggerLabel','Menu'));
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>

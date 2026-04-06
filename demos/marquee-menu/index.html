@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marquee Menu — Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;min-height:100vh;font-family:system-ui,sans-serif;background:#111111;color:#f0ede8}
+    .page-wrapper{display:flex;flex-direction:column;min-height:100vh}
+    .top-bar{padding:24px 40px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.08)}
+    .logo{font-size:15px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase}
+    .top-bar-nav{display:flex;gap:32px;list-style:none}
+    .top-bar-nav a{font-size:13px;color:rgba(255,255,255,0.5);text-decoration:none;letter-spacing:0.04em}
+    .nav-list{list-style:none;flex:1;display:flex;flex-direction:column;justify-content:center;padding:60px 48px}
+    .nav-list li{border-top:1px solid rgba(255,255,255,0.08)}
+    .nav-list li:last-child{border-bottom:1px solid rgba(255,255,255,0.08)}
+    .nav-list li[data-anavo-marquee]{cursor:pointer;overflow:hidden}
+    .nav-list li a{display:block;padding:24px 0;font-size:clamp(28px,5vw,64px);font-weight:200;letter-spacing:-0.01em;color:#f0ede8;text-decoration:none;transition:color 0.2s}
+    .nav-list li a:hover{color:rgba(255,255,255,0.5)}
+    .hint{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);font-size:11px;color:#555;background:rgba(255,255,255,0.05);padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);pointer-events:none;z-index:9999}
+  </style>
+</head>
+<body>
+  <div class="page-wrapper">
+    <div class="top-bar">
+      <span class="logo">Studio</span>
+      <ul class="top-bar-nav">
+        <li><a href="#">EN</a></li>
+        <li><a href="#">JP</a></li>
+      </ul>
+    </div>
+    <ul class="nav-list">
+      <li data-anavo-marquee><a href="#">Photography</a></li>
+      <li data-anavo-marquee><a href="#">Weddings</a></li>
+      <li data-anavo-marquee><a href="#">Editorial</a></li>
+      <li data-anavo-marquee><a href="#">About</a></li>
+      <li data-anavo-marquee><a href="#">Contact</a></li>
+    </ul>
+  </div>
+  <div class="hint">↑ Hover links to see marquee effect</div>
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var u = new URL('https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/marquee-menu/marquee-menu.min.js');
+    u.searchParams.set('domain','anavo.tech');
+    u.searchParams.set('bgColor', g('bgColor','#111111'));
+    u.searchParams.set('textColor', g('textColor','#f0ede8'));
+    u.searchParams.set('height', g('height','56'));
+    u.searchParams.set('separator', g('separator','•'));
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>

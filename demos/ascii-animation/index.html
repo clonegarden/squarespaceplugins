@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ASCII Animation — Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;height:100vh;overflow:hidden;font-family:monospace;background:#000000}
+    .hint{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);font-size:11px;color:#333;background:rgba(255,255,255,0.04);padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.08);pointer-events:none;z-index:9999}
+  </style>
+</head>
+<body>
+  <div data-anavo-ascii></div>
+  <div class="hint">↑ Click to trigger explosion — ASCII rain enabled</div>
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var u = new URL('https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/ascii-animation/ascii-animation.min.js');
+    u.searchParams.set('domain','anavo.tech');
+    u.searchParams.set('bgColor', g('bgColor','#000000'));
+    u.searchParams.set('fontColor', g('fontColor','#ffffff'));
+    u.searchParams.set('fontSize', g('fontSize','16'));
+    u.searchParams.set('colorWave', g('colorWave','false'));
+    u.searchParams.set('waveMode', g('waveMode','rainbow'));
+    u.searchParams.set('enableRain', g('enableRain','true'));
+    u.searchParams.set('enableExplosion', g('enableExplosion','true'));
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>

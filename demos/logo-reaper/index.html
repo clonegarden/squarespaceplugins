@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logo Reaper — Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;min-height:100vh;font-family:system-ui,sans-serif;background:#fff;color:#111}
+    .page-header{text-align:center;padding:56px 32px 32px}
+    .page-header h1{font-size:clamp(22px,3.5vw,38px);font-weight:300;letter-spacing:-0.01em;margin-bottom:8px}
+    .page-header p{color:#aaa;font-size:13px}
+    .logo-section{padding:0 32px 64px}
+    .logo-item{display:flex;align-items:center;justify-content:center;height:100%;font-size:clamp(18px,3vw,32px);font-weight:700;letter-spacing:0.05em;color:#111;text-transform:uppercase;opacity:0.7}
+    .hint{text-align:center;padding:0 0 24px;font-size:11px;color:#aaa}
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <h1>Logo Reaper</h1>
+    <p>Animated logo / client marquee strip</p>
+  </div>
+  <section class="logo-section" data-anavo-logo-reaper>
+    <div class="logo-item">Airbnb</div>
+    <div class="logo-item">Stripe</div>
+    <div class="logo-item">Notion</div>
+    <div class="logo-item">Figma</div>
+    <div class="logo-item">Linear</div>
+    <div class="logo-item">Vercel</div>
+  </section>
+  <div class="hint">Plugin animates logos into a looping marquee strip</div>
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var u = new URL('https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/logo-reaper/logo-reaper.min.js');
+    u.searchParams.set('domain','anavo.tech');
+    u.searchParams.set('height', g('height','220'));
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>

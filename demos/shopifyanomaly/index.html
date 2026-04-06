@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shopify Anomaly — Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;min-height:100vh;font-family:system-ui,sans-serif;background:#fff;color:#111;overflow:auto}
+    .product-page{max-width:960px;margin:0 auto;padding:48px 32px}
+    .breadcrumb{font-size:12px;color:#aaa;margin-bottom:32px}
+    .breadcrumb a{color:#aaa;text-decoration:none}
+    .breadcrumb span{margin:0 6px}
+    .product-layout{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
+    .product-image{background:#f5f5f5;border-radius:8px;overflow:hidden;aspect-ratio:4/5}
+    .product-image img{width:100%;height:100%;object-fit:cover;display:block}
+    .product-info{padding-top:8px}
+    .product-vendor{font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#aaa;margin-bottom:12px}
+    .product-title{font-size:clamp(22px,3vw,34px);font-weight:400;letter-spacing:-0.01em;margin-bottom:8px;line-height:1.2}
+    .product-price{font-size:22px;font-weight:300;color:#111;margin-bottom:24px}
+    .product-desc p{font-size:14px;color:#555;line-height:1.7;margin-bottom:12px}
+    .product-features{list-style:none;margin:20px 0;padding:0}
+    .product-features li{font-size:13px;color:#555;padding:8px 0;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:8px}
+    .product-features li::before{content:'✓';color:#111;font-weight:700;font-size:11px}
+    .size-label{font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#111;margin-bottom:12px}
+    .size-grid{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+    .size-btn{padding:10px 16px;border:1px solid #ddd;background:#fff;font-size:13px;cursor:pointer;border-radius:3px;transition:all 0.15s}
+    .size-btn:hover,.size-btn.active{border-color:#111;background:#111;color:#fff}
+    .add-to-cart{width:100%;padding:16px;background:#111;color:#fff;border:none;font-size:14px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;border-radius:3px;margin-bottom:16px;transition:background 0.2s}
+    .add-to-cart:hover{background:#333}
+    .wishlist-btn{width:100%;padding:14px;background:transparent;color:#111;border:1px solid #ddd;font-size:14px;cursor:pointer;border-radius:3px;transition:all 0.2s}
+    .wishlist-btn:hover{border-color:#111}
+    @media(max-width:640px){.product-layout{grid-template-columns:1fr}}
+    .hint{text-align:center;padding:32px;font-size:11px;color:#aaa;border-top:1px solid #eee;margin-top:40px}
+  </style>
+</head>
+<body>
+  <div class="product-page">
+    <div class="breadcrumb">
+      <a href="#">Home</a><span>/</span>
+      <a href="#">Apparel</a><span>/</span>
+      <span>Essential Oversized Tee</span>
+    </div>
+    <main>
+      <div class="product-layout">
+        <div class="product-image">
+          <img src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=600&h=750&fit=crop" alt="Essential Oversized Tee">
+        </div>
+        <div class="product-info">
+          <div class="product-vendor">Anavo Basics</div>
+          <h1 class="product-title">Essential Oversized Tee</h1>
+          <div class="product-price">$48.00</div>
+          <div class="product-desc">
+            <p>A modern take on the everyday tee. Crafted from 100% organic cotton with a relaxed fit that drapes beautifully.</p>
+            <p>Available in a full spectrum of season-less colors.</p>
+          </div>
+          <ul class="product-features">
+            <li>100% organic cotton</li>
+            <li>Relaxed oversized fit</li>
+            <li>Pre-washed for softness</li>
+            <li>Sustainable production</li>
+          </ul>
+          <div class="size-label">Size</div>
+          <div class="size-grid">
+            <button class="size-btn">XS</button>
+            <button class="size-btn active">S</button>
+            <button class="size-btn">M</button>
+            <button class="size-btn">L</button>
+            <button class="size-btn">XL</button>
+          </div>
+          <button class="add-to-cart">Add to Cart</button>
+          <button class="wishlist-btn">Save to Wishlist</button>
+        </div>
+      </div>
+    </main>
+    <div class="hint">Scroll the page — Shopify Anomaly adds subtle parallax anomaly to product elements</div>
+  </div>
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    // Set window.SFOS config before loading the plugin
+    window.SFOS = {
+      durationMs: parseInt(g('durationMs','700')),
+      distancePx: parseInt(g('distancePx','14')),
+      threshold: parseFloat(g('threshold','0.12'))
+    };
+    var u = new URL('https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/shopifyanomaly/shopifyanomaly.min.js');
+    u.searchParams.set('domain','anavo.tech');
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>
