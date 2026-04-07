@@ -28,7 +28,7 @@
   },
   "scripts": {
     "build": "npm run build:all",
-    "build:all":  "node scripts/build-all.js",
+    "build:all": "node scripts/build-all.js",
     "build:quotation-builder": "npm run minify quotation-builder/quotation-builder.js",
     "build:ascii-animation": "npm run minify ascii-animation/ascii-animation.js",
     "build:space-invaders": "npm run minify space-invaders/space-invaders.js",
@@ -48,8 +48,8 @@
     "lint": "eslint **/*.js --ignore-pattern '*. min.js'",
     "lint:fix": "eslint **/*.js --ignore-pattern '*. min.js' --fix",
     "format": "prettier --write '**/*.{js,json,md,html,css}'",
-    "format:check":  "prettier --check '**/*.{js,json,md,html,css}'",
-    "test":  "echo \"No tests yet\" && exit 0",
+    "format:check": "prettier --check '**/*.{js,json,md,html,css}'",
+    "test": "echo \"No tests yet\" && exit 0",
     "validate": "npm run lint && npm run format:check",
     "version": "node scripts/version-bump.js",
     "changelog": "node scripts/generate-changelog.js",
@@ -58,17 +58,18 @@
     "serve": "http-server -p 8080 -c-1",
     "check-licenses": "node scripts/check-licenses.js"
   },
-  "devDependencies":  {
-    "terser": "^5.36.0",
-    "eslint": "^8.57.0",
-    "prettier":  "^3.2.4",
-    "chokidar": "^3.5.3",
-    "http-server": "^14.1.1",
-    "fs-extra": "^11.2.0",
+  "devDependencies": {
     "chalk": "^5.3.0",
-    "ora": "^8.0.1",
+    "chokidar": "^3.5.3",
+    "eslint": "^8.57.0",
+    "fs-extra": "^11.2.0",
+    "glob": "^10.3.10",
+    "http-server": "^14.1.1",
     "inquirer": "^9.2.12",
-    "glob": "^10.3.10"
+    "ora": "^8.0.1",
+    "prettier": "^3.2.4",
+    "puppeteer": "^24.40.0",
+    "terser": "^5.36.0"
   },
   "prettier": {
     "semi": true,
@@ -82,12 +83,12 @@
     "env": {
       "browser": true,
       "es2021": true,
-      "node":  true
+      "node": true
     },
     "extends": "eslint:recommended",
     "parserOptions": {
       "ecmaVersion": "latest",
-      "sourceType":  "module"
+      "sourceType": "module"
     },
     "rules": {
       "no-console": "off",
