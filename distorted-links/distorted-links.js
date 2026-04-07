@@ -57,7 +57,7 @@
   var VERSION        = '1.0.0';
   var FILTER_ID_1    = 'anavo-dl-f1';
   var FILTER_ID_2    = 'anavo-dl-f2';
-  var _BYPASS        = ['anavo.tech', 'www.anavo.tech', 'localhost', '127.0.0.1'];
+  var _BYPASS        = ['anavo.tech', 'www.anavo.tech', 'pluginstore.anavo.tech', 'clonegarden.github.io', 'localhost', '127.0.0.1'];
 
   // ─────────────────────────────────────────────────────────────────
   // 1. SCRIPT REF + PARAM PARSING

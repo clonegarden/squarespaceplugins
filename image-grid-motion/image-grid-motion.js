@@ -101,7 +101,7 @@
   // 2. LICENSE CHECK — Supabase REST (non-blocking)
   // ─────────────────────────────────────────────────────────────────
 
-  var _BYPASS = ['anavo.tech', 'www.anavo.tech', 'localhost', '127.0.0.1'];
+  var _BYPASS = ['anavo.tech', 'www.anavo.tech', 'pluginstore.anavo.tech', 'clonegarden.github.io', 'localhost', '127.0.0.1'];
 
   function checkLicense() {
     try {

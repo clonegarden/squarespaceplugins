@@ -50,7 +50,7 @@
 
   var PLUGIN_ID      = 'ParticlesButton';
   var PLUGIN_VERSION = '1.0.0';
-  var BYPASS_DOMAINS = ['anavo.tech', 'localhost', '127.0.0.1'];
+  var BYPASS_DOMAINS = ['anavo.tech', 'www.anavo.tech', 'pluginstore.anavo.tech', 'clonegarden.github.io', 'localhost', '127.0.0.1'];
 
   /* ── Idempotency guard ──────────────────────────────────── */
   window.AnavoPluginState = window.AnavoPluginState || {};

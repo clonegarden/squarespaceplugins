@@ -45,7 +45,9 @@
       this.bypassDomains = [
         'shallot-cone-9wym.squarespace.com',
         'anavo.tech',
-        'www.anavo.tech'
+        'www.anavo.tech',
+        'pluginstore.anavo.tech',
+        'clonegarden.github.io'
       ];
     }
 

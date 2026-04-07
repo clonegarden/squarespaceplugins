@@ -20,7 +20,7 @@
   var DONE_ATTR      = 'data-anavo-nfx-done';
   var LINK_CLASS     = 'anavo-nfx-link';
 
-  var BYPASS_DOMAINS = ['anavo.tech', 'localhost', '127.0.0.1'];
+  var BYPASS_DOMAINS = ['anavo.tech', 'www.anavo.tech', 'pluginstore.anavo.tech', 'clonegarden.github.io', 'localhost', '127.0.0.1'];
 
   // ============================================================
   // 1. IDEMPOTENCY GUARD
