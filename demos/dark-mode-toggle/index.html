@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dark Mode Toggle — Anavo Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;min-height:100vh;font-family:system-ui,sans-serif;transition:background 0.4s,color 0.4s}
+    .page{max-width:800px;margin:0 auto;padding:100px 40px}
+    .eyebrow{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#00d4ff;margin-bottom:16px}
+    h1{font-size:clamp(32px,5vw,56px);font-weight:200;letter-spacing:-0.02em;margin-bottom:24px;line-height:1.1}
+    .sub{font-size:16px;opacity:0.5;max-width:480px;line-height:1.7;margin-bottom:48px}
+    .card{border:1px solid;border-radius:12px;padding:32px;margin-bottom:24px;transition:border-color 0.4s,background 0.4s}
+    body:not([data-anavo-dark]) .card{border-color:rgba(0,0,0,0.12);background:rgba(0,0,0,0.03)}
+    body[data-anavo-dark] .card{border-color:rgba(255,255,255,0.08);background:rgba(255,255,255,0.04)}
+    .card h2{font-size:20px;font-weight:600;margin-bottom:10px}
+    .card p{font-size:14px;opacity:0.55;line-height:1.7}
+    .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:0.08em;background:#00d4ff22;color:#00d4ff;margin-bottom:32px}
+    .hint{font-size:12px;opacity:0.3;margin-top:48px}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="eyebrow">Anavo Plugin Demo</div>
+    <span class="badge">Persistent via localStorage</span>
+    <h1>Dark Mode Toggle</h1>
+    <p class="sub">A floating button injects a sun/moon toggle that persists the user's preference and also respects their OS setting on first visit.</p>
+
+    <div class="card">
+      <h2>No dependencies</h2>
+      <p>Pure JS. Works with any Squarespace template. Toggle position is configurable: bottom-right, bottom-left, top-right, top-left.</p>
+    </div>
+    <div class="card">
+      <h2>CSS variable aware</h2>
+      <p>The plugin sets custom CSS variables on body. Your Squarespace CSS can reference them for further theming beyond just background and text.</p>
+    </div>
+    <div class="card">
+      <h2>OS preference detection</h2>
+      <p>On first visit, if no localStorage key is set, the plugin checks <code>prefers-color-scheme</code> and applies dark mode automatically if the user's OS is in dark mode.</p>
+    </div>
+
+    <p class="hint">Look for the toggle button in the bottom-right corner</p>
+  </div>
+
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var u = new URL('../../dark-mode-toggle/dark-mode-toggle.js', location.href);
+    u.searchParams.set('domain',    'anavo.tech');
+    u.searchParams.set('position',  g('position','bottom-right'));
+    u.searchParams.set('lightBg',   g('lightBg','#f5f4f0'));
+    u.searchParams.set('darkBg',    g('darkBg','#07070d'));
+    u.searchParams.set('lightText', g('lightText','#111111'));
+    u.searchParams.set('darkText',  g('darkText','#f0ede8'));
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>

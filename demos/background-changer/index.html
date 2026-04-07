@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Background Changer — Anavo Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;font-family:system-ui,sans-serif;transition:background-color 0.6s ease,color 0.6s ease}
+    .page{max-width:700px;margin:0 auto;padding:80px 40px 200px;position:relative;z-index:1}
+    .eyebrow{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#00d4ff;margin-bottom:16px}
+    h1{font-size:clamp(28px,4vw,48px);font-weight:200;letter-spacing:-0.02em;margin-bottom:16px}
+    .intro{font-size:15px;opacity:0.45;margin-bottom:80px;line-height:1.7}
+    section[data-anavo-bg]{min-height:80vh;display:flex;flex-direction:column;justify-content:center;padding:60px 0;border-bottom:1px solid rgba(128,128,128,0.12)}
+    section[data-anavo-bg] .s-num{font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:#00d4ff;margin-bottom:12px}
+    section[data-anavo-bg] h2{font-size:clamp(24px,3vw,40px);font-weight:200;margin-bottom:16px;line-height:1.2}
+    section[data-anavo-bg] p{font-size:15px;opacity:0.5;line-height:1.7;max-width:480px}
+    .hint{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);font-size:11px;opacity:0.3;letter-spacing:0.05em;pointer-events:none;z-index:999}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="eyebrow">Anavo Plugin Demo</div>
+    <h1>Background Changer</h1>
+    <p class="intro">Scroll down. Each section defines its own background colour (or image). As it crosses 50% of the viewport, the body background transitions smoothly.</p>
+
+    <section data-anavo-bg data-bg-color="#07070d">
+      <div class="s-num">01</div>
+      <h2>Deep Space — #07070d</h2>
+      <p>The default dark background. Perfect for luxury, tech, or creative brands that want a dramatic, immersive feel.</p>
+    </section>
+
+    <section data-anavo-bg data-bg-color="#0a1628">
+      <div class="s-num">02</div>
+      <h2>Midnight Blue — #0a1628</h2>
+      <p>A rich navy that evokes depth and trustworthiness. Popular in finance and professional services.</p>
+    </section>
+
+    <section data-anavo-bg data-bg-color="#1a0a2e">
+      <div class="s-num">03</div>
+      <h2>Deep Violet — #1a0a2e</h2>
+      <p>Bold and mysterious. A go-to for music, fashion, and nightlife brands. Pairs well with gold or cyan accents.</p>
+    </section>
+
+    <section data-anavo-bg data-bg-color="#0d1f0d">
+      <div class="s-num">04</div>
+      <h2>Forest — #0d1f0d</h2>
+      <p>Organic and grounded. Works beautifully for sustainability, wellness, and outdoor lifestyle brands.</p>
+    </section>
+
+    <section data-anavo-bg data-bg-color="#1f0a0a">
+      <div class="s-num">05</div>
+      <h2>Ember — #1f0a0a</h2>
+      <p>Intense and passionate. Reserve this for high-energy brands in food, sport, or fashion.</p>
+    </section>
+  </div>
+
+  <div class="hint">↓ Scroll to change background</div>
+
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var u = new URL('../../background-changer/background-changer.js', location.href);
+    u.searchParams.set('domain',     'anavo.tech');
+    u.searchParams.set('target',     g('target','body'));
+    u.searchParams.set('transition', g('transition','0.6s'));
+    u.searchParams.set('threshold',  g('threshold','0.5'));
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pricing Table — Anavo Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;min-height:100vh;font-family:system-ui,sans-serif;background:#07070d;color:#f0ede8}
+    .page{max-width:1100px;margin:0 auto;padding:80px 40px}
+    .eyebrow{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#00d4ff;margin-bottom:16px}
+    h1{font-size:clamp(28px,4vw,48px);font-weight:200;letter-spacing:-0.02em;margin-bottom:16px;text-align:center}
+    .sub{font-size:15px;color:rgba(255,255,255,0.4);margin-bottom:20px;line-height:1.7;text-align:center;max-width:500px;margin-left:auto;margin-right:auto}
+    .note{font-size:12px;color:rgba(255,255,255,0.2);text-align:center;margin-top:40px}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="eyebrow" style="text-align:center">Anavo Plugin Demo</div>
+    <h1>Pricing Table</h1>
+    <p class="sub">Transform simple data attributes into a polished pricing table. The highlighted plan is automatically scaled up and badged "Popular".</p>
+
+    <!-- Container: plugin reads data attrs and replaces with styled HTML -->
+    <div data-anavo-pricing>
+      <div data-anavo-plan
+           data-name="Starter"
+           data-price="$9"
+           data-period="/month"
+           data-features="5 pages|Custom domain|SSL certificate|Email support"
+           data-cta="Get Started"
+           data-link="#starter"></div>
+
+      <div data-anavo-plan
+           data-highlight="true"
+           data-name="Professional"
+           data-price="$29"
+           data-period="/month"
+           data-features="Unlimited pages|Custom domain|SSL certificate|Priority support|Analytics dashboard|A/B testing|Remove Anavo branding"
+           data-cta="Start Free Trial"
+           data-link="#pro"></div>
+
+      <div data-anavo-plan
+           data-name="Enterprise"
+           data-price="$79"
+           data-period="/month"
+           data-features="Everything in Pro|Dedicated account manager|SLA guarantee|Custom integrations|White-label option|Onboarding session"
+           data-cta="Contact Sales"
+           data-link="#enterprise"></div>
+    </div>
+
+    <p class="note">Colors, border radius, and accent configurable via URL params</p>
+  </div>
+
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var u = new URL('../../pricing-table/pricing-table.js', location.href);
+    u.searchParams.set('domain',         'anavo.tech');
+    u.searchParams.set('accentColor',    g('accentColor','#00d4ff'));
+    u.searchParams.set('bgColor',        g('bgColor','rgba(255,255,255,0.04)'));
+    u.searchParams.set('highlightBg',    g('highlightBg','#0d1020'));
+    u.searchParams.set('highlightColor', g('highlightColor','#f0ede8'));
+    u.searchParams.set('borderRadius',   g('borderRadius','16px'));
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>

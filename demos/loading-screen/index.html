@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loading Screen — Anavo Demo</title>
+  <!-- Load plugin in HEAD for earliest possible display -->
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var u = new URL('../../loading-screen/loading-screen.js', location.href);
+    u.searchParams.set('domain',      'anavo.tech');
+    u.searchParams.set('bg',          g('bg','#07070d'));
+    u.searchParams.set('color',       g('color','#00d4ff'));
+    u.searchParams.set('logo',        g('logo','ANAVO'));
+    u.searchParams.set('text',        g('text','Loading experience...'));
+    u.searchParams.set('duration',    g('duration','1500'));
+    u.searchParams.set('barHeight',   g('barHeight','3px'));
+    u.searchParams.set('minDisplay',  g('minDisplay','800'));
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.head.appendChild(s);
+  })();
+  </script>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;min-height:100vh;font-family:system-ui,sans-serif;background:#07070d;color:#f0ede8}
+    .page{max-width:800px;margin:0 auto;padding:100px 40px}
+    .eyebrow{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#00d4ff;margin-bottom:16px}
+    h1{font-size:clamp(28px,4vw,48px);font-weight:200;letter-spacing:-0.02em;margin-bottom:16px}
+    .sub{font-size:15px;color:rgba(255,255,255,0.4);margin-bottom:48px;line-height:1.7}
+    .card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:28px;margin-bottom:16px}
+    .card h2{font-size:16px;font-weight:600;margin-bottom:8px}
+    .card p{font-size:14px;color:rgba(255,255,255,0.4);line-height:1.7}
+    .refresh-btn{display:inline-block;margin-top:40px;padding:14px 28px;background:#00d4ff;color:#000;font-weight:700;font-size:13px;border-radius:8px;cursor:pointer;border:none;font-family:inherit;transition:opacity 0.2s}
+    .refresh-btn:hover{opacity:0.85}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="eyebrow">Anavo Plugin Demo</div>
+    <h1>Loading Screen</h1>
+    <p class="sub">A branded loading overlay shown on every page load. Includes a progress bar, optional logo, and waits for <code>window.load</code> plus a minimum display time before fading out.</p>
+
+    <div class="card">
+      <h2>Inject in HEAD</h2>
+      <p>For best results, add the script tag to Code Injection → HEADER so the overlay appears before any content renders, preventing flash of unstyled content.</p>
+    </div>
+    <div class="card">
+      <h2>Text or image logo</h2>
+      <p>Pass a URL to display your logo image, or pass plain text. The plugin auto-detects which one to render.</p>
+    </div>
+    <div class="card">
+      <h2>Respects minimum display time</h2>
+      <p>If the page loads in 200ms but minDisplay is 800ms, the overlay stays visible for at least 600 more ms. Prevents jarring flashes.</p>
+    </div>
+
+    <button class="refresh-btn" onclick="location.reload()">Reload page to see loading screen again</button>
+  </div>
+</body>
+</html>

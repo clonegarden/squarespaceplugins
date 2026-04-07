@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Hotspots — Anavo Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;min-height:100vh;font-family:system-ui,sans-serif;background:#07070d;color:#f0ede8}
+    .page{max-width:900px;margin:0 auto;padding:80px 40px}
+    .eyebrow{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#00d4ff;margin-bottom:16px}
+    h1{font-size:clamp(28px,4vw,48px);font-weight:200;letter-spacing:-0.02em;margin-bottom:16px}
+    .sub{font-size:15px;color:rgba(255,255,255,0.4);margin-bottom:48px;line-height:1.7}
+    .image-wrap{position:relative;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.06)}
+    .image-wrap img{width:100%;height:auto;display:block}
+    .hint{margin-top:24px;font-size:12px;color:rgba(255,255,255,0.25);text-align:center}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="eyebrow">Anavo Plugin Demo</div>
+    <h1>Image Hotspots</h1>
+    <p class="sub">Hover the pulsing pins to reveal tooltips. Works on any image — perfect for product photography, interior design, or interactive infographics.</p>
+
+    <div data-anavo-hotspots class="image-wrap">
+      <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=900&q=80" alt="Living room">
+
+      <!-- Pin 1: sofa -->
+      <span data-anavo-hotspot
+            data-x="28"
+            data-y="65"
+            data-title="Milano Sofa"
+            data-text="Italian leather, 3-seater. Available in 8 colourways. From $2,400.">
+      </span>
+
+      <!-- Pin 2: lamp -->
+      <span data-anavo-hotspot
+            data-x="72"
+            data-y="30"
+            data-title="Arc Floor Lamp"
+            data-text="Brushed brass with linen shade. Height 190cm. $680.">
+      </span>
+
+      <!-- Pin 3: coffee table -->
+      <span data-anavo-hotspot
+            data-x="48"
+            data-y="80"
+            data-title="Travertine Table"
+            data-text="Natural stone surface on powder-coated steel base. 120×60cm. $1,100.">
+      </span>
+    </div>
+
+    <p class="hint">Hover or click the pulsing pins &nbsp;·&nbsp; Switch to click trigger via ?trigger=click</p>
+  </div>
+
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var u = new URL('../../image-hotspots/image-hotspots.js', location.href);
+    u.searchParams.set('domain',       'anavo.tech');
+    u.searchParams.set('pinColor',     g('pinColor','#00d4ff'));
+    u.searchParams.set('tooltipBg',    g('tooltipBg','rgba(7,7,13,0.95)'));
+    u.searchParams.set('tooltipColor', g('tooltipColor','#f0ede8'));
+    u.searchParams.set('trigger',      g('trigger','hover'));
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>

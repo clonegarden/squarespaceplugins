@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fixed Footer Reveal — Anavo Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;font-family:system-ui,sans-serif;background:#07070d;color:#f0ede8}
+    .page{max-width:800px;margin:0 auto;padding:80px 40px}
+    .eyebrow{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#00d4ff;margin-bottom:16px}
+    h1{font-size:clamp(28px,4vw,48px);font-weight:200;letter-spacing:-0.02em;margin-bottom:16px}
+    .sub{font-size:15px;color:rgba(255,255,255,0.4);margin-bottom:48px;line-height:1.7}
+    .section{min-height:70vh;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;justify-content:center;padding:60px 0}
+    .section h2{font-size:clamp(24px,3vw,40px);font-weight:200;margin-bottom:16px}
+    .section p{font-size:15px;color:rgba(255,255,255,0.4);line-height:1.7;max-width:500px}
+    .section-num{font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:#00d4ff;margin-bottom:12px}
+    footer[data-anavo-footer]{
+      background:#111118;
+      border-top:1px solid rgba(255,255,255,0.08);
+      padding:40px 40px;
+      color:rgba(255,255,255,0.5);
+    }
+    .footer-inner{max-width:800px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr 1fr;gap:40px}
+    .footer-col h3{font-size:13px;font-weight:600;margin-bottom:12px;color:#f0ede8}
+    .footer-col p{font-size:13px;line-height:1.7}
+    .footer-bottom{max-width:800px;margin:24px auto 0;padding-top:24px;border-top:1px solid rgba(255,255,255,0.06);font-size:12px;color:rgba(255,255,255,0.25);display:flex;justify-content:space-between}
+    .scroll-hint{font-size:12px;color:rgba(255,255,255,0.2);text-align:center;margin-top:16px}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="eyebrow">Anavo Plugin Demo</div>
+    <h1>Fixed Footer Reveal</h1>
+    <p class="sub">The footer is hidden below the viewport and slides up when you scroll near the bottom of the page. Body padding is automatically added to accommodate it.</p>
+    <p class="scroll-hint">↓ Scroll to the bottom to see the footer reveal</p>
+
+    <div class="section">
+      <div class="section-num">01</div>
+      <h2>Main Content Area</h2>
+      <p>The plugin works with any footer element — native Squarespace footer, a custom footer section, or any element matching the selector. Keep scrolling.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-num">02</div>
+      <h2>No Layout Changes Required</h2>
+      <p>The plugin dynamically fixes the footer and adds bottom padding to the body so nothing overlaps. When you scroll back up, the footer hides again.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-num">03</div>
+      <h2>Configurable Trigger</h2>
+      <p>Adjust <code>triggerOffset</code> to control how many pixels from the bottom the reveal fires. Default is 200px. Works on all screen sizes.</p>
+    </div>
+  </div>
+
+  <!-- The footer to reveal -->
+  <footer data-anavo-footer>
+    <div class="footer-inner">
+      <div class="footer-col">
+        <h3>Company</h3>
+        <p>Building beautiful plugins for Squarespace since 2022. Based in Brazil &amp; USA.</p>
+      </div>
+      <div class="footer-col">
+        <h3>Products</h3>
+        <p>Marquee Menu · Logo Scroller · Dark Mode · Hotspots · Pricing Table and 20+ more.</p>
+      </div>
+      <div class="footer-col">
+        <h3>Get in touch</h3>
+        <p>hello@anavo.tech<br>pluginstore.anavo.tech</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 Anavo Tech. All rights reserved.</span>
+      <span>anavo.tech/plugins</span>
+    </div>
+  </footer>
+
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var u = new URL('../../fixed-footer-reveal/fixed-footer-reveal.js', location.href);
+    u.searchParams.set('domain',        'anavo.tech');
+    u.searchParams.set('selector',      g('selector','[data-anavo-footer]'));
+    u.searchParams.set('triggerOffset', g('triggerOffset','200'));
+    u.searchParams.set('transition',    g('transition','0.5s'));
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>

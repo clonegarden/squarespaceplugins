@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Highlight on Scroll — Anavo Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;font-family:system-ui,sans-serif;background:#07070d;color:#f0ede8}
+    .page{max-width:700px;margin:0 auto;padding:80px 40px 160px}
+    .eyebrow{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#00d4ff;margin-bottom:16px}
+    h1{font-size:clamp(28px,4vw,48px);font-weight:200;letter-spacing:-0.02em;margin-bottom:16px}
+    .intro{font-size:15px;color:rgba(255,255,255,0.4);margin-bottom:80px;line-height:1.7}
+    .block{margin-bottom:80px}
+    .block h2{font-size:clamp(20px,3vw,32px);font-weight:300;line-height:1.3;margin-bottom:20px}
+    .block p{font-size:16px;color:rgba(255,255,255,0.55);line-height:1.8}
+    mark{background:none;color:inherit}
+    [data-anavo-highlight]{color:inherit}
+    .scroll-hint{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);font-size:11px;color:rgba(255,255,255,0.2);letter-spacing:0.05em;pointer-events:none}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="eyebrow">Anavo Plugin Demo</div>
+    <h1>Highlight on Scroll</h1>
+    <p class="intro">Scroll down to see the highlight effect sweep across marked text as each element enters the viewport. Uses IntersectionObserver — no scroll listeners.</p>
+
+    <div class="block">
+      <h2>We believe that <mark>great design</mark> is the foundation of every successful brand.</h2>
+      <p>Our approach combines strategic thinking with <span data-anavo-highlight>pixel-perfect execution</span> to deliver results that matter. Every element is considered.</p>
+    </div>
+
+    <div class="block">
+      <h2>From concept to launch, <mark>we are with you</mark> at every step of the journey.</h2>
+      <p>We've worked with <span data-anavo-highlight>brands across five continents</span>, helping them communicate their values through beautiful, functional digital experiences.</p>
+    </div>
+
+    <div class="block">
+      <h2>Our work has generated <mark>over $2.4B in revenue</mark> for our clients.</h2>
+      <p>Results are not an accident. They come from <span data-anavo-highlight>rigorous process, proven frameworks,</span> and a relentless focus on what actually moves the needle.</p>
+    </div>
+
+    <div class="block">
+      <h2>The future belongs to those who <mark>build with intention.</mark></h2>
+      <p>Ready to create something <span data-anavo-highlight>remarkable together?</span> Let's talk about what's possible for your brand.</p>
+    </div>
+  </div>
+
+  <div class="scroll-hint">↓ Scroll to see highlights animate</div>
+
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var u = new URL('../../highlight-on-scroll/highlight-on-scroll.js', location.href);
+    u.searchParams.set('domain',   'anavo.tech');
+    u.searchParams.set('color',    g('color','#00d4ff'));
+    u.searchParams.set('opacity',  g('opacity','0.35'));
+    u.searchParams.set('height',   g('height','0.3em'));
+    u.searchParams.set('duration', g('duration','0.7s'));
+    u.searchParams.set('delay',    g('delay','0.1s'));
+    u.searchParams.set('once',     g('once','true'));
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>

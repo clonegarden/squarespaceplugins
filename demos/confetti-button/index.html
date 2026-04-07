@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confetti Button — Anavo Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;min-height:100vh;font-family:system-ui,sans-serif;background:#07070d;color:#f0ede8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0}
+    .page{text-align:center;padding:60px 40px;max-width:700px;width:100%}
+    .eyebrow{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#00d4ff;margin-bottom:16px}
+    h1{font-size:clamp(28px,4vw,52px);font-weight:200;letter-spacing:-0.02em;margin-bottom:16px}
+    .sub{font-size:15px;color:rgba(255,255,255,0.4);margin-bottom:60px;line-height:1.7}
+    .btn-row{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-bottom:60px}
+    .demo-btn{padding:18px 36px;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;transition:transform 0.15s,opacity 0.15s;letter-spacing:0.02em}
+    .demo-btn:hover{transform:scale(1.04);opacity:0.9}
+    .demo-btn:active{transform:scale(0.97)}
+    .btn-primary{background:#00d4ff;color:#000}
+    .btn-secondary{background:rgba(255,255,255,0.08);color:#f0ede8;border:1px solid rgba(255,255,255,0.12)}
+    .btn-accent{background:linear-gradient(135deg,#ff4136,#ff69b4);color:#fff}
+    .note{font-size:12px;color:rgba(255,255,255,0.2);letter-spacing:0.04em}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="eyebrow">Anavo Plugin Demo</div>
+    <h1>Confetti Button</h1>
+    <p class="sub">Click any button to fire a burst of canvas confetti. Pure JS — no external libraries. Each burst originates from the clicked button's center.</p>
+
+    <div class="btn-row">
+      <button class="demo-btn btn-primary" data-anavo-confetti>
+        Place Order 🎉
+      </button>
+      <button class="demo-btn btn-secondary" data-anavo-confetti>
+        Submit Form ✓
+      </button>
+      <button class="demo-btn btn-accent" data-anavo-confetti>
+        Unlock Reward ★
+      </button>
+    </div>
+
+    <p class="note">Colors, count, and spread configurable via URL params</p>
+  </div>
+
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var u = new URL('../../confetti-button/confetti-button.js', location.href);
+    u.searchParams.set('domain',   'anavo.tech');
+    u.searchParams.set('colors',   g('colors','#00d4ff,#ff4136,#2ecc40,#ffdc00,#ff69b4,#ffffff'));
+    u.searchParams.set('count',    g('count','100'));
+    u.searchParams.set('spread',   g('spread','80'));
+    u.searchParams.set('duration', g('duration','2200'));
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>
