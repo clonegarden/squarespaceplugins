@@ -7,59 +7,97 @@
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     html,body{width:100%;font-family:system-ui,sans-serif}
-    .header{position:relative;background:#fff;border-bottom:1px solid #eee;z-index:100}
-    .header-inner{padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:64px}
-    .header-title-text{font-weight:700;font-size:18px;color:#111;text-decoration:none;letter-spacing:0.05em}
-    .header-nav-list{display:flex;align-items:center;gap:32px;list-style:none}
-    .header-nav-item a{color:#111;text-decoration:none;font-size:14px;font-weight:500}
-    .header-nav-item.folder > a::after{content:' ▾';font-size:10px;opacity:0.6}
+    /* Squarespace 7.1 header structure — expanded-menu checks header-nav-item--folder */
+    [data-nc-group="header"]{position:relative;background:#fff;border-bottom:1px solid #eee;z-index:100}
+    .header-display-desktop{width:100%}
+    .header-inner{padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:64px;gap:32px}
+    .header-branding .logo-image{text-decoration:none}
+    .header-title-text{font-weight:700;font-size:18px;color:#111;letter-spacing:0.05em}
+    .header-nav{display:flex;flex:1}
+    .header-nav-inner{display:flex;align-items:center}
+    .header-nav-list{display:flex;align-items:center;gap:32px;list-style:none;margin:0;padding:0}
+    .header-nav-item{position:relative}
+    .header-nav-item--link{color:#111;text-decoration:none;font-size:14px;font-weight:500;display:block;padding:4px 0;line-height:1}
+    .header-nav-folder-title::after{content:' ▾';font-size:10px;opacity:0.6}
+    /* Folder dropdown — native fallback before plugin takes over */
+    .header-nav-folder-content{display:none;position:absolute;top:calc(100% + 8px);left:0;background:#fff;border:1px solid #eee;padding:6px 0;min-width:180px;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,0.08)}
+    .header-nav-item--folder:hover .header-nav-folder-content{display:block}
+    .header-nav-folder-content .header-nav-list{flex-direction:column;gap:0}
+    .header-nav-folder-content .header-nav-item--link{padding:9px 16px;color:#333}
+    .header-actions-inner{display:flex;align-items:center}
+    /* Page sections */
+    #page.Site-inner{display:block}
+    .sections{display:block}
     .page-section{min-height:100vh;display:flex;align-items:center;justify-content:center}
     .page-section:nth-child(odd){background:#f7f7f7}
     .page-section:nth-child(even){background:#fff}
-    .section-content{text-align:center;padding:80px 48px}
-    .section-content h1{font-size:clamp(32px,5vw,64px);font-weight:300;margin-bottom:20px;letter-spacing:-0.02em}
-    .section-content h2{font-size:clamp(24px,4vw,48px);font-weight:300;margin-bottom:16px}
-    .section-content p{color:#777;max-width:520px;margin:0 auto;line-height:1.6}
+    .content-wrapper{width:100%;max-width:1200px;margin:0 auto;padding:80px 48px}
+    .page-section-inner{text-align:center}
+    .page-section-inner h1{font-size:clamp(32px,5vw,64px);font-weight:300;margin-bottom:20px;letter-spacing:-0.02em}
+    .page-section-inner h2{font-size:clamp(24px,4vw,48px);font-weight:300;margin-bottom:16px}
+    .page-section-inner p{color:#777;max-width:520px;margin:0 auto;line-height:1.6}
     .hint{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);font-size:11px;color:#999;background:#f9f9f9;padding:6px 14px;border-radius:20px;border:1px solid #eee;pointer-events:none;z-index:9999}
   </style>
 </head>
 <body>
-  <header class="header" id="header">
-    <div class="header-inner">
-      <a href="#" class="logo-image logo-image--has-text">
+  <header data-nc-group="header">
+    <div class="header-display-desktop">
+      <div class="header-inner">
         <div class="header-branding">
-          <span class="header-title-text">DEMO SITE</span>
+          <a href="#" class="logo-image logo-image--has-text">
+            <div class="header-title-text">DEMO SITE</div>
+          </a>
         </div>
-      </a>
-      <nav class="header-nav">
-        <ul class="header-nav-list">
-          <li class="header-nav-item"><a href="#">Home</a></li>
-          <li class="header-nav-item"><a href="#">About</a></li>
-          <li class="header-nav-item folder"><a href="#">Services</a></li>
-          <li class="header-nav-item"><a href="#">Work</a></li>
-          <li class="header-nav-item"><a href="#">Contact</a></li>
-        </ul>
-      </nav>
+        <nav class="header-nav header-nav--primary" role="navigation">
+          <div class="header-nav-inner">
+            <ul class="header-nav-list">
+              <li class="header-nav-item"><a href="#" class="header-nav-item--link">Home</a></li>
+              <li class="header-nav-item"><a href="#" class="header-nav-item--link">About</a></li>
+              <li class="header-nav-item header-nav-item--folder">
+                <a href="#" class="header-nav-item--link header-nav-folder-title">Services</a>
+                <div class="header-nav-folder-content">
+                  <ul class="header-nav-list">
+                    <li class="header-nav-item"><a href="#" class="header-nav-item--link">Design</a></li>
+                    <li class="header-nav-item"><a href="#" class="header-nav-item--link">Development</a></li>
+                    <li class="header-nav-item"><a href="#" class="header-nav-item--link">Strategy</a></li>
+                  </ul>
+                </div>
+              </li>
+              <li class="header-nav-item"><a href="#" class="header-nav-item--link">Work</a></li>
+              <li class="header-nav-item"><a href="#" class="header-nav-item--link">Contact</a></li>
+            </ul>
+          </div>
+        </nav>
+        <div class="header-actions header-actions--right">
+          <div class="header-actions-inner"></div>
+        </div>
+      </div>
     </div>
   </header>
-  <main>
-    <article class="sections">
-      <section class="page-section" data-section-id="s1">
-        <div class="section-content">
-          <h1>Welcome to the Studio</h1>
-          <p>Scroll down — the menu expands with generous spacing as you move through the page.</p>
+  <main id="page" class="Site-inner">
+    <article id="sections" class="sections">
+      <section data-section-id="s1" data-section-type="banner-section" class="page-section">
+        <div class="content-wrapper">
+          <div class="page-section-inner">
+            <h1>Welcome to the Studio</h1>
+            <p>Scroll down — the menu expands with generous spacing as you move through the page.</p>
+          </div>
         </div>
       </section>
-      <section class="page-section" data-section-id="s2">
-        <div class="section-content">
-          <h2>Our Work</h2>
-          <p>Selected projects from 2020–2024. Strategy, design, and development.</p>
+      <section data-section-id="s2" data-section-type="blank-section" class="page-section">
+        <div class="content-wrapper">
+          <div class="page-section-inner">
+            <h2>Our Work</h2>
+            <p>Selected projects from 2020–2024. Strategy, design, and development.</p>
+          </div>
         </div>
       </section>
-      <section class="page-section" data-section-id="s3">
-        <div class="section-content">
-          <h2>About Us</h2>
-          <p>A small team with a big vision. Based in New York, working globally.</p>
+      <section data-section-id="s3" data-section-type="blank-section" class="page-section">
+        <div class="content-wrapper">
+          <div class="page-section-inner">
+            <h2>About Us</h2>
+            <p>A small team with a big vision. Based in New York, working globally.</p>
+          </div>
         </div>
       </section>
     </article>

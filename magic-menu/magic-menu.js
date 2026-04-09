@@ -67,7 +67,8 @@
   window.AnavoPluginState['MagicMenu'] = true;
 
   /* ── Param parsing ──────────────────────────────────────── */
-  var _src  = (document.currentScript && document.currentScript.src) || '';
+  var _cs   = document.currentScript || (function(){ var s = document.getElementsByTagName('script'); return s[s.length - 1]; })();
+  var _src  = (_cs && _cs.src) || '';
   var _qIdx = _src.indexOf('?');
   var _qs   = _qIdx !== -1 ? _src.slice(_qIdx + 1) : '';
 
