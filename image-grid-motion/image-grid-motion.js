@@ -198,8 +198,8 @@
         'align-items:center!important;' +
         'justify-content:center!important;' +
         'will-change:transform!important;' +
-        'opacity:0!important;' +                        /* start invisible */
-        'transform:scale(0.7)!important;' +             /* start scaled down */
+        'opacity:0;' +                                  /* start invisible — set via JS, no !important */
+        'transform:scale(0.7);' +                       /* start scaled down — set via JS, no !important */
         'transition:opacity ' + CFG.revealDuration + 'ms cubic-bezier(0.16,1,0.3,1),' +
                    'transform ' + CFG.revealDuration + 'ms cubic-bezier(0.16,1,0.3,1)!important;' +
       '}' +

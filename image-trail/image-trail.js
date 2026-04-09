@@ -106,7 +106,8 @@
   // 2. MOBILE GUARD — skip on narrow viewports (touch/mobile)
   // ─────────────────────────────────────────────────────────────────
 
-  if (window.innerWidth <= 800) return;
+  // Skip on real touch/mobile devices — but allow narrow desktop/iframe previews
+  if (window.innerWidth <= 800 && !window.matchMedia('(hover:hover)').matches) return;
 
   // ─────────────────────────────────────────────────────────────────
   // 3. IDEMPOTENCY GUARD
