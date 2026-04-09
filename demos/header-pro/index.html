@@ -6,20 +6,26 @@
   <title>Header Pro — Demo</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
-    html,body{width:100%;font-family:system-ui,sans-serif}
-    .header{position:relative;background:#fff;border-bottom:1px solid #eee;z-index:100}
+    html,body{width:100%;font-family:system-ui,sans-serif;overflow-x:hidden}
+    /* Header starts transparent so plugin preset is immediately visible over the hero */
+    .header{position:sticky;top:0;background:transparent;z-index:100}
     .header-inner{padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:64px}
-    .header-title-text{font-weight:700;font-size:18px;color:#111;text-decoration:none;letter-spacing:0.05em}
+    .header-title-text{font-weight:700;font-size:18px;color:#fff;text-decoration:none;letter-spacing:0.05em}
     .header-nav-list{display:flex;align-items:center;gap:32px;list-style:none}
-    .header-nav-item a{color:#111;text-decoration:none;font-size:14px;font-weight:500}
+    .header-nav-item a{color:#fff;text-decoration:none;font-size:14px;font-weight:500}
     .header-nav-item.folder > a::after{content:' ▾';font-size:10px;opacity:0.6}
-    .page-section{min-height:100vh;display:flex;align-items:center;justify-content:center}
-    .page-section:nth-child(odd){background:#f7f7f7}
+    /* Hero — vivid gradient so glassy/blur effect is immediately visible */
+    .page-hero{min-height:100vh;display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(135deg,#1a1a2e 0%,#16213e 40%,#0f3460 70%,#533483 100%);
+      margin-top:-64px;padding-top:64px}
+    .page-section{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f7f7f7}
     .page-section:nth-child(even){background:#fff}
     .section-content{text-align:center;padding:80px 48px}
-    .section-content h1{font-size:clamp(32px,5vw,64px);font-weight:300;margin-bottom:20px;letter-spacing:-0.02em}
+    .section-content h1{font-size:clamp(32px,5vw,64px);font-weight:300;margin-bottom:20px;letter-spacing:-0.02em;color:#fff}
     .section-content h2{font-size:clamp(24px,4vw,48px);font-weight:300;margin-bottom:16px}
-    .section-content p{color:#777;max-width:520px;margin:0 auto;line-height:1.6}
+    .section-content p{color:rgba(255,255,255,0.7);max-width:520px;margin:0 auto;line-height:1.6}
+    .section-content.dark p{color:#777}
+    .section-content.dark h2{color:#111}
     .hint{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);font-size:11px;color:#999;background:#f9f9f9;padding:6px 14px;border-radius:20px;border:1px solid #eee;pointer-events:none;z-index:9999}
   </style>
 </head>
@@ -44,34 +50,34 @@
   </header>
   <main>
     <article class="sections">
-      <section class="page-section" data-section-id="s1">
+      <section class="page-hero" data-section-id="s1">
         <div class="section-content">
           <h1>Welcome to the Studio</h1>
           <p>We craft digital experiences that move people. Scroll to see the header animate.</p>
         </div>
       </section>
       <section class="page-section" data-section-id="s2">
-        <div class="section-content">
+        <div class="section-content dark">
           <h2>Our Work</h2>
-          <p>Selected projects from 2020–2024. Strategy, design, and development.</p>
+          <p class="dark" style="color:#777">Selected projects from 2020–2024. Strategy, design, and development.</p>
         </div>
       </section>
       <section class="page-section" data-section-id="s3">
-        <div class="section-content">
+        <div class="section-content dark">
           <h2>About Us</h2>
-          <p>A small team with a big vision. Based in New York, working globally.</p>
+          <p style="color:#777">A small team with a big vision. Based in New York, working globally.</p>
         </div>
       </section>
     </article>
   </main>
-  <div class="hint">↑ Scroll to see header effect</div>
+  <div class="hint">↑ Scroll to see header animate over content</div>
   <script>
   (function(){
     var p = new URLSearchParams(location.search);
     var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
     var u = new URL('https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/header-pro/header-pro.min.js');
     u.searchParams.set('domain','anavo.tech');
-    u.searchParams.set('preset', g('preset','glassy'));
+    u.searchParams.set('preset', g('preset','default'));
     u.searchParams.set('ctaEnabled', g('ctaEnabled','false'));
     u.searchParams.set('paddingX', g('paddingX','32'));
     u.searchParams.set('paddingY', g('paddingY','14'));
