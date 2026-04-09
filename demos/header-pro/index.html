@@ -112,9 +112,10 @@
     u.searchParams.set('domain','anavo.tech');
     u.searchParams.set('preset', g('preset','default'));
     u.searchParams.set('ctaEnabled', g('ctaEnabled','false'));
-    u.searchParams.set('paddingX', g('paddingX','32px'));
-    u.searchParams.set('paddingY', g('paddingY','14px'));
-    u.searchParams.set('itemGap', g('itemGap','32px'));
+    var addPx = function(v){ return /px$/.test(v) ? v : v + 'px'; };
+    u.searchParams.set('paddingX', addPx(g('paddingX','32')));
+    u.searchParams.set('paddingY', addPx(g('paddingY','14')));
+    u.searchParams.set('itemGap', addPx(g('itemGap','32')));
     var s = document.createElement('script');
     s.src = u.toString();
     document.body.appendChild(s);

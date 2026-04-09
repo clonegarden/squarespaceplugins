@@ -44,7 +44,6 @@
     ) {
       return true;
     }
-    if (window.self !== window.top) return true;
     if (window.location.pathname.includes('/config')) return true;
     if (
       window.Static &&
