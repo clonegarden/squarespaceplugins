@@ -113,11 +113,10 @@
       "expires": null
     },
     "TabbedContent": {
-      "license_key": "lic_tabbed_content_demo",
-      "license_type": "trial",
+      "license_key": "lic_tabbed_content_001",
+      "license_type": "standard",
       "allowed_domains": [
-        "localhost",
-        "127.0.0.1"
+        "caper-dragonfly-2dch.squarespace.com"
       ],
       "features": [
         "customization",
