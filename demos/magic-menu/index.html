@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Magic Menu — Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;height:100vh;overflow:hidden;font-family:system-ui,sans-serif;background:#111}
+    .bg-content{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#555;text-align:center;pointer-events:none;user-select:none}
+    .bg-content h1{font-size:clamp(20px,4vw,40px);font-weight:200;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:12px;color:#333}
+    .bg-content p{font-size:13px;color:#444;letter-spacing:0.05em}
+    .hint{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);font-size:11px;color:#555;background:rgba(255,255,255,0.05);padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);pointer-events:none;z-index:9999}
+  </style>
+</head>
+<body>
+  <div class="bg-content">
+    <h1>Magic Menu</h1>
+    <p>Dock-style navigation for your site</p>
+  </div>
+  <div data-anavo-magic-menu></div>
+  <div class="hint">↑ Move mouse to interact with the menu</div>
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var u = new URL('https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/magic-menu/magic-menu.min.js');
+    u.searchParams.set('domain','anavo.tech');
+    u.searchParams.set('items', g('items','Home|About|Work|Contact'));
+    u.searchParams.set('icons', g('icons','home|user|image|mail'));
+    u.searchParams.set('links', g('links','#|#|#|#'));
+    u.searchParams.set('colors', g('colors','#f44336|#ffa117|#0fc70f|#2196f3'));
+    u.searchParams.set('barColor', g('barColor','#ffffff'));
+    u.searchParams.set('showLabels', g('showLabels','true'));
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>

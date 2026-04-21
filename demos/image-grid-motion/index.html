@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Grid Motion — Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;height:100vh;overflow:hidden;font-family:system-ui,sans-serif;background:#0c0c0c}
+    .hint{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);font-size:11px;color:#444;background:rgba(255,255,255,0.04);padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.08);pointer-events:none;z-index:9999}
+  </style>
+</head>
+<body>
+  <div data-anavo-image-grid></div>
+  <div class="hint">↑ Move mouse to animate the grid</div>
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var imgs = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600%26q=80%7Chttps://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600%26q=80%7Chttps://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=600%26q=80%7Chttps://images.unsplash.com/photo-1433838552652-f9a46b332c40?w=600%26q=80%7Chttps://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=600%26q=80%7Chttps://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600%26q=80%7Chttps://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=600%26q=80%7Chttps://images.unsplash.com/photo-1494790108755-2616b612b5ee?w=600%26q=80%7Chttps://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=600%26q=80';
+    var u = new URL('https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/image-grid-motion/image-grid-motion.min.js');
+    u.searchParams.set('domain','anavo.tech');
+    u.searchParams.set('bgColor', g('bgColor','#0c0c0c'));
+    u.searchParams.set('title', g('title','YOUR TITLE'));
+    u.searchParams.set('titleColor', g('titleColor','#ffffff'));
+    u.searchParams.set('amplitudeMax', g('amplitudeMax','60'));
+    u.searchParams.set('itemOpacity', g('itemOpacity','0.4'));
+    u.searchParams.set('images', p.has('images') ? p.get('images') : imgs);
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>

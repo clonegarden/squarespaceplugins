@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mouse Target Focus — Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;min-height:100vh;font-family:system-ui,sans-serif;background:#0d0d0d;color:#fff;cursor:none;overflow:hidden}
+    .page{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:32px;padding:48px 32px;text-align:center}
+    .eyebrow{font-size:11px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.3)}
+    h1{font-size:clamp(22px,4vw,40px);font-weight:200;letter-spacing:0.1em;color:rgba(255,255,255,0.7)}
+    .btn-row{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+    .btn{padding:14px 32px;border-radius:3px;font-size:13px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;cursor:none;border:none;transition:transform 0.15s}
+    .btn-a{background:#00ffcc;color:#000}
+    .btn-b{background:transparent;color:#fff;border:1px solid rgba(255,255,255,0.2)}
+    .btn-c{background:#ff1744;color:#fff}
+    .links-row{display:flex;gap:32px;flex-wrap:wrap;justify-content:center}
+    .links-row a{color:rgba(255,255,255,0.4);font-size:13px;text-decoration:none;letter-spacing:0.06em;cursor:none;transition:color 0.2s}
+    .links-row a:hover{color:#fff}
+    .hint{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);font-size:11px;color:#333;background:rgba(255,255,255,0.04);padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.08);pointer-events:none;z-index:9999;cursor:none}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="eyebrow">Mouse Target Focus</div>
+    <h1>Custom cursor that reacts to targets</h1>
+    <div class="btn-row">
+      <button class="btn btn-a">Primary Action</button>
+      <button class="btn btn-b">Secondary</button>
+      <button class="btn btn-c">Danger</button>
+    </div>
+    <div class="links-row">
+      <a href="#">Work</a>
+      <a href="#">About</a>
+      <a href="#">Services</a>
+      <a href="#">Contact</a>
+    </div>
+  </div>
+  <div class="hint">↑ Move mouse — cursor reacts on hover</div>
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var u = new URL('https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/mouse-target-focus/mouse-target-focus.min.js');
+    u.searchParams.set('domain','anavo.tech');
+    u.searchParams.set('shape', g('shape','circle'));
+    u.searchParams.set('size', g('size','48'));
+    u.searchParams.set('strokeColor', g('strokeColor','00ffcc'));
+    u.searchParams.set('fillOpacity', g('fillOpacity','0.08'));
+    u.searchParams.set('pulseOnHover', g('pulseOnHover','true'));
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>

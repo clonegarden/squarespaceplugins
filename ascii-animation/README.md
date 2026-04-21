@@ -39,6 +39,13 @@ Add parameters to the script URL:
 | `colorWave` | false | Enable animated color wave effect |
 | `waveMode` | rainbow | Color wave mode: `rainbow`, `gradient`, `pulse` |
 | `waveColors` | null | Custom colors (comma-separated hex, no #) |
+| `reveal` | false | Enable the cinematic reveal sequence |
+| `revealDelay` | 5 | Seconds before the reveal triggers (timer trigger only) |
+| `revealDuration` | 4 | Seconds the text stays fully visible |
+| `revealTrigger` | timer | What triggers the reveal: `timer`, `click`, `scroll`, `hover` |
+| `revealRepeat` | false | Cycle the reveal indefinitely |
+| `revealTitle` | null | Override title text (URL-encoded; defaults to `characters` + `explodeText`) |
+| `revealSubtitle` | null | Override subtitle text (URL-encoded; defaults to `secondaryText · tertiaryText`) |
 
 ## Examples
 
@@ -69,22 +76,52 @@ Add parameters to the script URL:
 
 ### Rainbow Wave
 ```html
-?colorWave=true&amp;waveMode=rainbow
+?colorWave=true&waveMode=rainbow
 ```
 
 ### Custom Gradient Wave
 ```html
-?colorWave=true&amp;waveMode=gradient&amp;waveColors=ff0000,ffff00,00ff00
+?colorWave=true&waveMode=gradient&waveColors=ff0000,ffff00,00ff00
 ```
 
 ### Pulse Effect
 ```html
-?colorWave=true&amp;waveMode=pulse&amp;waveColors=3b82f6
+?colorWave=true&waveMode=pulse&waveColors=3b82f6
 ```
 
 ### Dark Mode + Rainbow
 ```html
-?bgColor=000000&amp;colorWave=true&amp;waveMode=rainbow
+?bgColor=000000&colorWave=true&waveMode=rainbow
+```
+
+### Reveal — Auto-trigger after 5 s, hold 4 s
+```html
+?reveal=true&revealDelay=5&revealDuration=4
+```
+
+### Reveal — Click to trigger (replaces rain click)
+```html
+?reveal=true&revealTrigger=click&revealRepeat=true
+```
+
+### Reveal — Scroll into view
+```html
+?reveal=true&revealTrigger=scroll&revealDuration=5
+```
+
+### Reveal — Hover trigger
+```html
+?reveal=true&revealTrigger=hover&revealDuration=3
+```
+
+### Reveal — Custom title &amp; subtitle
+```html
+?reveal=true&revealTitle=WELCOME%20TO%0AOUR%20STUDIO&revealSubtitle=Design%20%C2%B7%20Code%20%C2%B7%20Create
+```
+
+### Reveal — Dark looping cinematic
+```html
+?bgColor=1a1a2e&fontColor=e0e0e0&reveal=true&revealDelay=8&revealDuration=5&revealRepeat=true
 ```
 
 ## Features
@@ -92,8 +129,9 @@ Add parameters to the script URL:
 - ✨ **Rotating Circles**: Multiple concentric circles of animated text
 - 🎯 **Hover Explosion**: Center hover triggers explosion animation
 - 🌧️ **Click Rain**: Click to trigger rain effect
+- 🎬 **Reveal Sequence**: Cinematic multi-phase text reveal (see below)
 - 📱 **Fully Responsive**: Auto-scales on mobile/tablet
-- 🎨 **Customizable**: 12+ parameters for full control
+- 🎨 **Customizable**: 20+ parameters for full control
 - ⚡ **Lightweight**: ~8KB minified
 - 🔒 **Licensed**: Commercial license included
 
@@ -104,6 +142,33 @@ Move your mouse to the center of the animation to trigger an explosion effect wh
 
 ### Rain (Click Anywhere)
 Click anywhere on the animation to trigger a rain effect where letters fall from top to bottom.
+
+### Reveal Sequence
+
+The reveal sequence is a **6-phase cinematic animation** that transforms the rotating circles into large, readable text and then returns to normal:
+
+| Phase | Duration | Description |
+|-------|----------|-------------|
+| `idle` | — | Normal rotating circle animation |
+| `explode-out` | ~0.8 s | All letters fly outward with ease-out cubic easing |
+| `form-text` | ~1.0 s | Letters converge to center; title/subtitle overlay fades in |
+| `hold` | `revealDuration` s | Title and subtitle displayed, large and centered |
+| `glitch-exit` | ~0.6 s | Overlay trembles and glitches while fading out |
+| `explode-back` | ~1.0 s | Letters smoothly reform into their original circle orbits |
+
+**Title** shows `characters` stacked over `explodeText` (or `revealTitle` override).  
+**Subtitle** shows `secondaryText · tertiaryText` (or `revealSubtitle` override).
+
+#### Trigger Modes
+
+| `revealTrigger` | When it fires |
+|-----------------|---------------|
+| `timer` | Automatically after `revealDelay` seconds |
+| `click` | On click (takes priority over the rain click) |
+| `scroll` | When >60% of the container is visible in the viewport |
+| `hover` | On `mouseenter` into the animation container |
+
+> **Note:** When `reveal=false` (the default), there is zero performance overhead — no overlay is created and no extra event listeners are attached.
 
 ## Browser Support
 

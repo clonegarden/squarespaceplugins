@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Horizontal Scroll — Anavo Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;font-family:system-ui,sans-serif;background:#07070d;color:#f0ede8}
+
+    .intro{max-width:700px;margin:0 auto;padding:100px 40px 60px;text-align:center}
+    .eyebrow{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#00d4ff;margin-bottom:16px}
+    h1{font-size:clamp(28px,4vw,52px);font-weight:200;letter-spacing:-0.02em;margin-bottom:16px}
+    .sub{font-size:15px;color:rgba(255,255,255,0.4);line-height:1.7;margin-bottom:16px}
+    .scroll-hint{font-size:12px;color:rgba(255,255,255,0.2);letter-spacing:0.05em;margin-bottom:0}
+
+    /* The horizontal scroll container */
+    [data-anavo-hscroll]{width:100%}
+
+    /* Individual panels — plugin adds .anavo-hs-panel class automatically */
+    .anavo-hs-panel{
+      font-size:clamp(14px,1.5vw,16px);
+    }
+    .panel-inner{
+      max-width:600px;
+      padding:0 60px;
+    }
+    .panel-num{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#00d4ff;margin-bottom:20px}
+    .panel-title{font-size:clamp(32px,4vw,64px);font-weight:200;letter-spacing:-0.02em;margin-bottom:20px;line-height:1.1}
+    .panel-body{font-size:16px;color:rgba(255,255,255,0.45);line-height:1.7}
+    .panel-bg-1{background:#07070d}
+    .panel-bg-2{background:#0a1020}
+    .panel-bg-3{background:#100a20}
+    .panel-bg-4{background:#0a200a}
+
+    .outro{max-width:700px;margin:0 auto;padding:100px 40px;text-align:center}
+    .outro p{font-size:15px;color:rgba(255,255,255,0.4);line-height:1.7}
+  </style>
+</head>
+<body>
+  <div class="intro">
+    <div class="eyebrow">Anavo Plugin Demo</div>
+    <h1>Horizontal Scroll</h1>
+    <p class="sub">Scroll vertically through the section below. The content moves horizontally — like Apple's chip showcase. Each panel takes up a full "scroll length".</p>
+    <p class="scroll-hint">↓ Scroll down to enter horizontal section</p>
+  </div>
+
+  <!-- Horizontal scroll container — children become panels -->
+  <div data-anavo-hscroll>
+    <div class="panel-bg-1">
+      <div class="panel-inner">
+        <div class="panel-num">01 / 04</div>
+        <h2 class="panel-title">Scroll horizontally</h2>
+        <p class="panel-body">You're scrolling vertically, but the content moves left. The plugin maps your vertical scroll position to a horizontal translation with smooth easing.</p>
+      </div>
+    </div>
+
+    <div class="panel-bg-2">
+      <div class="panel-inner">
+        <div class="panel-num">02 / 04</div>
+        <h2 class="panel-title">Zero JavaScript frameworks</h2>
+        <p class="panel-body">Pure vanilla JS. Uses sticky positioning and scroll event listeners with requestAnimationFrame. Works in every browser that supports CSS sticky.</p>
+      </div>
+    </div>
+
+    <div class="panel-bg-3">
+      <div class="panel-inner">
+        <div class="panel-num">03 / 04</div>
+        <h2 class="panel-title">Progress indicator</h2>
+        <p class="panel-body">The cyan bar at the bottom shows how far through the horizontal section you are. It's configurable and can be hidden entirely.</p>
+      </div>
+    </div>
+
+    <div class="panel-bg-4">
+      <div class="panel-inner">
+        <div class="panel-num">04 / 04</div>
+        <h2 class="panel-title">Squarespace ready</h2>
+        <p class="panel-body">Drop the script tag in Code Injection. Add <code>data-anavo-hscroll</code> to any section. The plugin handles everything else automatically.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="outro">
+    <p>You've exited the horizontal scroll section. Vertical scrolling resumes normally. Add as many horizontal scroll sections as you like on the same page.</p>
+  </div>
+
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var u = new URL('../../horizontal-scroll/horizontal-scroll.js', location.href);
+    u.searchParams.set('domain',    'anavo.tech');
+    u.searchParams.set('speed',     g('speed','1'));
+    u.searchParams.set('easing',    g('easing','true'));
+    u.searchParams.set('indicator', g('indicator','true'));
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>

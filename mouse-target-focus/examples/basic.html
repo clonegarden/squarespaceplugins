@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mouse Target Focus — Demo</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0f0f0f;
+      color: #eee;
+      min-height: 100vh;
+      cursor: none; /* hide native cursor for cleaner demo */
+    }
+
+    header {
+      background: #1a1a1a;
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid #2a2a2a;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    header h1 { font-size: 1.25rem; color: #00ffcc; }
+    header p  { font-size: 0.85rem; color: #888; }
+
+    .hero {
+      text-align: center;
+      padding: 6rem 2rem 4rem;
+    }
+
+    .hero h2 {
+      font-size: clamp(2rem, 6vw, 4rem);
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #00ffcc, #7b61ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 1.1rem;
+      color: #aaa;
+      max-width: 540px;
+      margin: 0 auto 2.5rem;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn {
+      padding: 0.7rem 1.6rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn:hover { transform: translateY(-2px); }
+
+    .btn-primary {
+      background: #00ffcc;
+      color: #0f0f0f;
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: #00ffcc;
+      border: 2px solid #00ffcc;
+    }
+
+    .btn-ghost {
+      background: #222;
+      color: #eee;
+      border: 1px solid #333;
+    }
+
+    /* Variant demos */
+    .variants {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 3rem 2rem 6rem;
+    }
+
+    .variants h3 {
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #555;
+      margin-bottom: 2rem;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      padding: 1.5rem 1.2rem;
+      transition: border-color 0.2s, transform 0.2s;
+      cursor: pointer;
+    }
+
+    .card:hover {
+      border-color: #00ffcc40;
+      transform: translateY(-3px);
+    }
+
+    .card-emoji { font-size: 2rem; margin-bottom: 0.75rem; }
+    .card-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.3rem; }
+    .card-desc  { font-size: 0.8rem; color: #777; }
+
+    .shape-switcher {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 2.5rem;
+    }
+
+    .shape-btn {
+      padding: 0.4rem 1rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      background: #222;
+      color: #aaa;
+      border: 1px solid #333;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    .shape-btn:hover,
+    .shape-btn.active {
+      background: #00ffcc;
+      color: #0f0f0f;
+      border-color: #00ffcc;
+    }
+
+    .note {
+      background: #1a1a1a;
+      border-left: 3px solid #00ffcc;
+      border-radius: 4px;
+      padding: 1rem 1.25rem;
+      font-size: 0.85rem;
+      color: #aaa;
+      margin-top: 3rem;
+    }
+
+    .note strong { color: #eee; }
+
+    input[type="text"],
+    input[type="email"] {
+      padding: 0.6rem 1rem;
+      border-radius: 6px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      color: #eee;
+      font-size: 0.9rem;
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+
+    input:focus { outline: 2px solid #00ffcc; border-color: transparent; }
+
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { font-size: 0.85rem; color: #888; }
+
+    .form-section {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      padding: 2rem;
+      max-width: 480px;
+      margin: 3rem auto 0;
+    }
+
+    .form-section h4 { margin-bottom: 1.5rem; color: #ccc; font-size: 1rem; }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      font-size: 0.75rem;
+      color: #444;
+      border-top: 1px solid #1f1f1f;
+    }
+
+    footer a { color: #00ffcc; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div>
+      <h1>🎯 Mouse Target Focus</h1>
+      <p>Anavo Tech — Squarespace Plugin Demo</p>
+    </div>
+  </header>
+
+  <section class="hero">
+    <h2>Your cursor, amplified.</h2>
+    <p>
+      A smooth, accessible targeting overlay that pulses on every
+      interactive element. Try hovering the buttons below!
+    </p>
+
+    <div class="btn-row">
+      <a href="#" class="btn btn-primary">Primary Action</a>
+      <button class="btn btn-outline">Secondary</button>
+      <button class="btn btn-ghost">Tertiary</button>
+    </div>
+  </section>
+
+  <section class="variants">
+
+    <!-- Shape switcher (dynamically reloads the plugin) -->
+    <h3>Switch Shape</h3>
+    <div class="shape-switcher" id="shapeSwitcher">
+      <button class="shape-btn active" data-shape="circle">Circle</button>
+      <button class="shape-btn" data-shape="circle-fill">Circle Fill</button>
+      <button class="shape-btn" data-shape="square">Square</button>
+      <button class="shape-btn" data-shape="crosshair">Crosshair</button>
+      <button class="shape-btn" data-shape="star">Star</button>
+    </div>
+
+    <!-- Interactive cards -->
+    <div class="cards">
+      <div class="card">
+        <div class="card-emoji">🎨</div>
+        <div class="card-title">5 Shapes</div>
+        <div class="card-desc">Circle, fill, square, crosshair, star</div>
+      </div>
+      <div class="card">
+        <div class="card-emoji">⚡</div>
+        <div class="card-title">Smooth Tracking</div>
+        <div class="card-desc">requestAnimationFrame + lerp smoothing</div>
+      </div>
+      <div class="card">
+        <div class="card-emoji">💡</div>
+        <div class="card-title">Hover Pulse</div>
+        <div class="card-desc">Scale + ripple on any clickable element</div>
+      </div>
+      <div class="card">
+        <div class="card-emoji">♿</div>
+        <div class="card-title">Accessible</div>
+        <div class="card-desc">aria-hidden, pointer-events: none, reduced-motion</div>
+      </div>
+      <a href="#" class="card">
+        <div class="card-emoji">🔗</div>
+        <div class="card-title">Link Card</div>
+        <div class="card-desc">Hover here to see the pulse on a link</div>
+      </a>
+      <div class="card">
+        <div class="card-emoji">⌨️</div>
+        <div class="card-title">Toggle Hotkey</div>
+        <div class="card-desc">Alt+T to toggle visibility</div>
+      </div>
+    </div>
+
+    <!-- Form example -->
+    <div class="form-section">
+      <h4>Form Inputs (hover to see pulse)</h4>
+      <div class="form-group">
+        <label for="demoName">Name</label>
+        <input type="text" id="demoName" placeholder="Your name" />
+      </div>
+      <div class="form-group">
+        <label for="demoEmail">Email</label>
+        <input type="email" id="demoEmail" placeholder="you@example.com" />
+      </div>
+      <button class="btn btn-primary" style="width:100%">Submit</button>
+    </div>
+
+    <div class="note">
+      <strong>Integration snippet:</strong><br />
+      <code>&lt;script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/mouse-target-focus/mouse-target-focus.min.js?shape=circle&amp;strokeColor=00ffcc&amp;toggleKey=t&amp;toggleMod=alt"&gt;&lt;/script&gt;</code>
+    </div>
+
+  </section>
+
+  <footer>
+    <p>Mouse Target Focus by <a href="https://anavo.tech" target="_blank">Anavo Tech</a> · <a href="https://github.com/clonegarden/squarespaceplugins" target="_blank">GitHub</a></p>
+  </footer>
+
+  <!-- Load the plugin from local source for this demo -->
+  <script src="../mouse-target-focus.js?shape=circle&strokeColor=00ffcc&size=48&toggleKey=t&toggleMod=alt&debug=true"></script>
+
+  <script>
+    // Shape switcher: restarts the plugin with the selected shape
+    (function () {
+      var switcher = document.getElementById('shapeSwitcher');
+      if (!switcher) return;
+
+      switcher.addEventListener('click', function (e) {
+        var btn = e.target.closest('.shape-btn');
+        if (!btn) return;
+
+        var shape = btn.dataset.shape;
+        switcher.querySelectorAll('.shape-btn').forEach(function (b) {
+          b.classList.toggle('active', b === btn);
+        });
+
+        // Remove old plugin instance
+        var oldTarget = document.getElementById('anavo-mouse-target-focus');
+        if (oldTarget) oldTarget.remove();
+        var oldStyle = document.getElementById('anavo-mouse-target-focus-styles');
+        if (oldStyle) oldStyle.remove();
+        window.__anavoMTF = false;
+
+        // Reload plugin with new shape
+        var colorMap = {
+          circle:       '00ffcc',
+          'circle-fill':'7b61ff',
+          square:       'ff6b6b',
+          crosshair:    'ffcc00',
+          star:         'ff9900',
+        };
+        var strokeColor = colorMap[shape] || '00ffcc';
+
+        var s = document.createElement('script');
+        var baseParams = 'toggleKey=t&toggleMod=alt&debug=true';
+        if (shape === 'circle-fill') {
+          s.src = '../mouse-target-focus.js?shape=' + shape + '&strokeColor=' + strokeColor + '&fillColor=' + strokeColor + '&fillOpacity=0.15&' + baseParams;
+        } else if (shape === 'star') {
+          s.src = '../mouse-target-focus.js?shape=' + shape + '&strokeColor=' + strokeColor + '&fillColor=' + strokeColor + '&fillOpacity=0.2&' + baseParams;
+        } else {
+          s.src = '../mouse-target-focus.js?shape=' + shape + '&strokeColor=' + strokeColor + '&' + baseParams;
+        }
+        document.body.appendChild(s);
+      });
+    })();
+  </script>
+
+</body>
+</html>

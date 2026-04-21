@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Testimonial Carousel — Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;min-height:100vh;font-family:system-ui,sans-serif;background:#f7f7f7;color:#111}
+    .page{max-width:760px;margin:0 auto;padding:60px 32px}
+    .section-label{font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#aaa;margin-bottom:12px;text-align:center}
+    h2.section-title{font-size:clamp(24px,4vw,40px);font-weight:300;letter-spacing:-0.02em;text-align:center;margin-bottom:48px;line-height:1.2}
+    /* Testimonial items — plugin will transform these */
+    .testimonial{background:#fff;border-radius:12px;padding:32px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+    .testimonial-text{font-size:15px;color:#444;line-height:1.7;margin-bottom:20px}
+    .testimonial-author{display:flex;align-items:center;gap:12px}
+    .testimonial-avatar{width:40px;height:40px;border-radius:50%;background:#e0e7ff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#4f46e5;flex-shrink:0}
+    .testimonial-name{font-size:14px;font-weight:600;color:#111}
+    .testimonial-role{font-size:12px;color:#aaa}
+    .testimonial-stars{color:#f59e0b;font-size:13px;margin-bottom:8px}
+    .hint{text-align:center;font-size:11px;color:#aaa;padding:16px 0 0}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="section-label">Client Stories</div>
+    <h2 class="section-title">Testimonials</h2>
+
+    <div class="testimonial">
+      <div class="testimonial-stars">★★★★★</div>
+      <p class="testimonial-text">"Working with this team transformed our online presence completely. The attention to detail and creative vision exceeded every expectation we had going in."</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">JM</div>
+        <div>
+          <div class="testimonial-name">Jessica Martinez</div>
+          <div class="testimonial-role">Founder, Bloom Studio</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="testimonial">
+      <div class="testimonial-stars">★★★★★</div>
+      <p class="testimonial-text">"The new Squarespace site they built for us generates three times more leads than before. Professional, fast, and genuinely great to work with."</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">TK</div>
+        <div>
+          <div class="testimonial-name">Thomas Klein</div>
+          <div class="testimonial-role">CEO, Klein Architecture</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="testimonial">
+      <div class="testimonial-stars">★★★★★</div>
+      <p class="testimonial-text">"From the first call to launch day, the process was smooth and collaborative. Our bookings doubled in the first month post-launch."</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">SR</div>
+        <div>
+          <div class="testimonial-name">Sophie Ramirez</div>
+          <div class="testimonial-role">Owner, SR Photography</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hint">Plugin transforms these into an animated carousel</div>
+  </div>
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var u = new URL('https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/testimonial-carousel-slider/testimonial-carousel-slider.min.js');
+    u.searchParams.set('domain','anavo.tech');
+    u.searchParams.set('accentColor', g('accentColor','#0066cc'));
+    u.searchParams.set('bgColor', g('bgColor','#ffffff'));
+    u.searchParams.set('textColor', g('textColor','#333333'));
+    u.searchParams.set('autoplay', g('autoplay','true'));
+    u.searchParams.set('interval', g('interval','5000'));
+    u.searchParams.set('showStars', g('showStars','true'));
+    u.searchParams.set('cardRadius', g('cardRadius','12'));
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>

@@ -2,9 +2,15 @@
  * =======================================
  * FLOATING HEADER - Squarespace Plugin
  * =======================================
- * @version 1.0.8
+ * @version 1.0.9
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
+ *
+ * ADDED v1.0.9:
+ * - NEW: stickyBottom parameter (default false)
+ *   - stickyBottom=false: header sticks at top of viewport (existing behavior)
+ *   - stickyBottom=true: header sticks at bottom of viewport
+ *   - Works with both teleport=true (fixed positioning) and teleport=false (sticky positioning)
  *
  * ADDED v1.0.8:
  * - NEW: fade parameter (default false)
@@ -32,7 +38,7 @@
 (function() {
   'use strict';
 
-  const PLUGIN_VERSION = '1.0.8';
+  const PLUGIN_VERSION = '1.0.9';
   const PLUGIN_NAME = 'FloatingHeader';
   
   console.log(`🎈 ${PLUGIN_NAME} v${PLUGIN_VERSION} - Loading...`);
@@ -104,6 +110,7 @@
       adjustSectionHeight: params.get('adjustSectionHeight') !== 'false',
       sectionMinHeight: params.get('sectionMinHeight') || '90vh',
       teleport: params.get('teleport') !== 'false',
+      stickyBottom: params.get('stickyBottom') === 'true',
       fade: params.get('fade') === 'true',
       noTransition: params.get('noTransition') === 'true',
       
@@ -439,22 +446,35 @@
 
     positionAtTop() {
       this.wrapper.style.position = 'fixed';
-      this.wrapper.style.top = '0px';
-      this.wrapper.style.bottom = 'auto';
+
+      if (config.stickyBottom) {
+        this.wrapper.style.bottom = '0px';
+        this.wrapper.style.top = 'auto';
+      } else {
+        this.wrapper.style.top = '0px';
+        this.wrapper.style.bottom = 'auto';
+      }
       
       this.isSticky = true;
 
-      if (config.debug) console.log('📍 TOP (sticky)');
+      if (config.debug) console.log(`📍 ${config.stickyBottom ? 'BOTTOM' : 'TOP'} (sticky)`);
     }
 
     positionSticky() {
       this.wrapper.style.position = 'sticky';
-      this.wrapper.style.top = '0px';
-      this.wrapper.style.marginTop = 'auto';
 
+      if (config.stickyBottom) {
+        this.wrapper.style.bottom = '0px';
+        this.wrapper.style.top = 'auto';
+      } else {
+        this.wrapper.style.top = '0px';
+        this.wrapper.style.bottom = 'auto';
+      }
+
+      this.wrapper.style.marginTop = 'auto';
       this.isSticky = true;
 
-      if (config.debug) console.log('📍 STICKY (natural scroll mode)');
+      if (config.debug) console.log(`📍 STICKY (${config.stickyBottom ? 'bottom' : 'top'})`);
     }
 
     handleScroll() {
@@ -600,6 +620,7 @@
       console.log(`✅ ${PLUGIN_NAME} v${PLUGIN_VERSION} Active!`);
       console.log('   Mode:', config.teleport ? 'Teleport (absolute → fixed)' : 'Natural Sticky');
       console.log('   Start Position:', config.startAtBottom ? 'Bottom of Section 1' : 'Top (Sticky)');
+      console.log('   Sticky Position:', config.stickyBottom ? 'Bottom of viewport' : 'Top of viewport');
       console.log('   Section Height:', config.adjustSectionHeight ? config.sectionMinHeight : 'Not adjusted');
       console.log('   Transition:', config.noTransition ? 'None (instant)' : config.fade ? 'Fade' : 'Slide');
 

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Trail — Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;height:100vh;overflow:hidden;font-family:system-ui,sans-serif;background:#0a0a0a;color:#fff}
+    .center-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;user-select:none;gap:12px}
+    .center-label h1{font-size:clamp(16px,3vw,28px);font-weight:200;letter-spacing:0.25em;text-transform:uppercase;color:rgba(255,255,255,0.2)}
+    .center-label p{font-size:12px;color:rgba(255,255,255,0.15);letter-spacing:0.12em;text-transform:uppercase}
+    .hint{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);font-size:11px;color:#444;background:rgba(255,255,255,0.04);padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.08);pointer-events:none;z-index:9999}
+  </style>
+</head>
+<body>
+  <div class="center-label">
+    <h1>Image Trail</h1>
+    <p>Move your cursor</p>
+  </div>
+  <div data-anavo-image-trail></div>
+  <div class="hint">↑ Move mouse to leave an image trail</div>
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var imgs = 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&h=500&fit=crop%7Chttps://images.unsplash.com/photo-1494790108755-2616b612b5ee?w=400&h=500&fit=crop%7Chttps://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=500&fit=crop%7Chttps://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=500&fit=crop%7Chttps://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&h=500&fit=crop';
+    var addPx = function(v){ return /px$/.test(v) ? v : v + 'px'; };
+    var u = new URL('https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/image-trail/image-trail.min.js');
+    u.searchParams.set('domain','anavo.tech');
+    u.searchParams.set('images', p.has('images') ? p.get('images') : imgs);
+    u.searchParams.set('trailCount', g('trailCount','8'));
+    u.searchParams.set('imageWidth', addPx(g('imageWidth','280')));
+    u.searchParams.set('perspective', g('perspective','100'));
+    u.searchParams.set('cycleDistance', g('cycleDistance','120'));
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>

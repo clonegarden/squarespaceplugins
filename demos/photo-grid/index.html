@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Photo Grid — Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;font-family:system-ui,sans-serif;background:#fff;color:#111}
+    .page-header{padding:48px 40px 32px;text-align:center}
+    .page-header h1{font-size:clamp(24px,4vw,48px);font-weight:300;letter-spacing:-0.02em;margin-bottom:12px}
+    .page-header p{color:#777;font-size:14px}
+    .gallery-section{padding:0 16px 48px}
+    .gallery-section img{display:none}
+    .hint{text-align:center;padding:16px;font-size:11px;color:#aaa}
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <h1>Photo Grid</h1>
+    <p>Justified gallery layout with responsive columns</p>
+  </div>
+  <section class="gallery-section" data-anavo-photo-grid>
+    <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80" alt="Mountain landscape at sunrise">
+    <img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&q=80" alt="Aerial forest view">
+    <img src="https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=600&q=80" alt="Sunlight through trees">
+    <img src="https://images.unsplash.com/photo-1433838552652-f9a46b332c40?w=600&q=80" alt="Ocean waves at dusk">
+    <img src="https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=600&q=80" alt="Desert sand dunes">
+    <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80" alt="Abstract blue texture">
+    <img src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=600&q=80" alt="Portrait in natural light">
+    <img src="https://images.unsplash.com/photo-1494790108755-2616b612b5ee?w=600&q=80" alt="Woman smiling outdoors">
+    <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=600&q=80" alt="Candid portrait close-up">
+  </section>
+  <div class="hint">Plugin renders justified grid from above images</div>
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var u = new URL('https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/photo-grid/photogrid.min.js');
+    u.searchParams.set('domain','anavo.tech');
+    u.searchParams.set('layout', g('layout','justified'));
+    u.searchParams.set('columns', g('columns','3'));
+    u.searchParams.set('gutter', g('gutter','4'));
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>

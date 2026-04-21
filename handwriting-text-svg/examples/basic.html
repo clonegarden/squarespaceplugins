@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Handwriting Text SVG — Examples</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Georgia, serif;
+      background: #faf8f5;
+      color: #222;
+    }
+    header {
+      background: #fff;
+      border-bottom: 1px solid #e0ddd8;
+      padding: 16px 32px;
+    }
+    header h1 { margin: 0; font-size: 18px; font-weight: 400; letter-spacing: 0.04em; }
+
+    .demo-section {
+      max-width: 960px;
+      margin: 48px auto;
+      padding: 0 24px;
+    }
+    .demo-section h2 {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #888;
+      margin: 0 0 8px 0;
+    }
+    .demo-section p {
+      font-size: 14px;
+      color: #555;
+      margin: 0 0 16px 0;
+    }
+    .demo-box {
+      background: #fff;
+      border: 1px solid #e0ddd8;
+      border-radius: 4px;
+      padding: 32px 24px;
+      margin-bottom: 12px;
+      min-height: 120px;
+    }
+    .demo-box.dark {
+      background: #1a1a1a;
+      border-color: #333;
+    }
+    .code-snippet {
+      background: #f4f2ef;
+      border-radius: 4px;
+      padding: 12px 16px;
+      font-size: 12px;
+      font-family: 'Courier New', monospace;
+      color: #444;
+      overflow-x: auto;
+      white-space: pre;
+      margin: 0 0 40px 0;
+    }
+    footer {
+      text-align: center;
+      padding: 32px;
+      font-size: 12px;
+      color: #aaa;
+      border-top: 1px solid #e0ddd8;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>✍️ Handwriting Text SVG &mdash; Plugin Examples</h1>
+</header>
+
+<!-- ============================================================
+     EXAMPLE 1 — ink preset (default)
+     ============================================================ -->
+<div class="demo-section">
+  <h2>Example 1 — Preset: ink</h2>
+  <p>
+    Thin 2px stroke with a subtle SVG ink-texture filter.
+    Fill reveals after the stroke finishes.
+  </p>
+
+  <div class="demo-box" id="demo-ink"></div>
+
+  <div class="code-snippet">&lt;script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/handwriting-text-svg/handwriting-text-svg.min.js?text=Hello%20World&amp;preset=ink&amp;targetId=demo-ink&amp;width=880&amp;height=180&amp;fontSize=90&amp;duration=3&amp;fillReveal=true"&gt;&lt;/script&gt;</div>
+</div>
+
+<!-- ============================================================
+     EXAMPLE 2 — marker preset
+     ============================================================ -->
+<div class="demo-section">
+  <h2>Example 2 — Preset: marker</h2>
+  <p>
+    Thick 6px rounded stroke — a broad marker or brush feel.
+    Different font and left-aligned.
+  </p>
+
+  <div class="demo-box" id="demo-marker"></div>
+
+  <div class="code-snippet">&lt;script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/handwriting-text-svg/handwriting-text-svg.min.js?text=Creative%20Studio&amp;preset=marker&amp;targetId=demo-marker&amp;width=880&amp;height=180&amp;fontSize=80&amp;align=left&amp;padding=32&amp;duration=2&amp;fillReveal=true&amp;strokeColor=222222&amp;fillColor=222222"&gt;&lt;/script&gt;</div>
+</div>
+
+<!-- ============================================================
+     EXAMPLE 3 — repeat loop, no fill reveal
+     ============================================================ -->
+<div class="demo-section">
+  <h2>Example 3 — Repeat loop, stroke only</h2>
+  <p>
+    The stroke draws continuously in a loop. Fill reveal is off so only
+    the stroke is visible — like a neon sign being re-traced.
+  </p>
+
+  <div class="demo-box dark" id="demo-loop"></div>
+
+  <div class="code-snippet">&lt;script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/handwriting-text-svg/handwriting-text-svg.min.js?text=Always%20Writing&amp;preset=ink&amp;targetId=demo-loop&amp;width=880&amp;height=180&amp;fontSize=80&amp;strokeColor=ffffff&amp;fillColor=ffffff&amp;fillReveal=false&amp;repeat=true&amp;repeatDelay=1&amp;duration=2.5"&gt;&lt;/script&gt;</div>
+</div>
+
+<!-- ============================================================
+     EXAMPLE 4 — position targeting (no targetId)
+     ============================================================ -->
+<div class="demo-section">
+  <h2>Example 4 — Squarespace position targeting</h2>
+  <p>
+    In production you don't need a <code>targetId</code>. The plugin
+    auto-inserts before the first page section (default), after the header,
+    or before the footer.
+  </p>
+
+  <div class="code-snippet">
+&lt;!-- Insert before first Squarespace section --&gt;
+&lt;script src="...handwriting-text-svg.min.js?text=Welcome&amp;preset=ink&amp;position=first-section"&gt;&lt;/script&gt;
+
+&lt;!-- Insert after the site header --&gt;
+&lt;script src="...handwriting-text-svg.min.js?text=Our%20Story&amp;preset=marker&amp;position=after-header"&gt;&lt;/script&gt;
+
+&lt;!-- Insert just above the footer --&gt;
+&lt;script src="...handwriting-text-svg.min.js?text=Thank%20You&amp;preset=ink&amp;position=before-footer"&gt;&lt;/script&gt;
+  </div>
+</div>
+
+<!-- ============================================================
+     Scripts — load all demo instances
+     ============================================================ -->
+<script src="../handwriting-text-svg.js?text=Hello%20World&preset=ink&targetId=demo-ink&width=880&height=180&fontSize=90&duration=3&fillReveal=true"></script>
+<script src="../handwriting-text-svg.js?text=Creative%20Studio&preset=marker&targetId=demo-marker&width=880&height=180&fontSize=80&align=left&padding=32&duration=2&fillReveal=true&strokeColor=222222&fillColor=222222"></script>
+<script src="../handwriting-text-svg.js?text=Always%20Writing&preset=ink&targetId=demo-loop&width=880&height=180&fontSize=80&strokeColor=ffffff&fillColor=ffffff&fillReveal=false&repeat=true&repeatDelay=1&duration=2.5"></script>
+
+<footer>
+  Handwriting Text SVG &mdash; by <a href="https://anavo.tech" target="_blank">Anavo Tech</a>
+</footer>
+
+</body>
+</html>

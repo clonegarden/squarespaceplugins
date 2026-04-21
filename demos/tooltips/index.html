@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tooltips — Anavo Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;min-height:100vh;font-family:system-ui,sans-serif;background:#07070d;color:#f0ede8}
+    .page{max-width:800px;margin:0 auto;padding:100px 40px}
+    .eyebrow{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#00d4ff;margin-bottom:16px}
+    h1{font-size:clamp(28px,4vw,52px);font-weight:200;letter-spacing:-0.02em;margin-bottom:16px}
+    .sub{font-size:15px;color:rgba(255,255,255,0.4);margin-bottom:60px;line-height:1.7}
+    .demo-block{margin-bottom:48px}
+    .demo-block h2{font-size:18px;font-weight:600;margin-bottom:20px;color:rgba(255,255,255,0.7)}
+    .flow{font-size:17px;line-height:2.4;color:rgba(255,255,255,0.7)}
+    .tt{color:#00d4ff;cursor:default;border-bottom:1px dashed rgba(0,212,255,0.4);transition:color 0.2s}
+    .tt:hover{color:#fff}
+    .icon-row{display:flex;gap:24px;flex-wrap:wrap;margin-top:8px}
+    .icon-item{display:flex;flex-direction:column;align-items:center;gap:8px;cursor:default}
+    .icon{width:56px;height:56px;border-radius:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:24px;transition:background 0.2s}
+    .icon:hover{background:rgba(0,212,255,0.1)}
+    .icon-label{font-size:11px;color:rgba(255,255,255,0.3);letter-spacing:0.05em}
+    .btn-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
+    .demo-btn{padding:12px 20px;border:1px solid rgba(255,255,255,0.1);border-radius:8px;background:rgba(255,255,255,0.04);color:#f0ede8;font-family:inherit;font-size:14px;cursor:default}
+    .hint{font-size:12px;color:rgba(255,255,255,0.2);margin-top:48px;text-align:center}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="eyebrow">Anavo Plugin Demo</div>
+    <h1>Tooltips</h1>
+    <p class="sub">Hover anything with <code>data-anavo-tooltip</code> or a <code>title</code> attribute for a styled, auto-positioned tooltip. The arrow flips to avoid viewport edges.</p>
+
+    <!-- Demo 1: Inline text -->
+    <div class="demo-block">
+      <h2>Inline text tooltips</h2>
+      <p class="flow">
+        Our team uses
+        <span class="tt" data-anavo-tooltip="React, TypeScript, Vite, Tailwind CSS, Supabase">modern stack</span>
+        to build products that scale. We specialise in
+        <span class="tt" data-anavo-tooltip="Squarespace, Webflow, and custom builds">no-code + code hybrid</span>
+        delivery, bringing
+        <span class="tt" data-anavo-tooltip="Average 4.2× ROI measured across 80+ client projects in 2024">measurable results</span>
+        to every project.
+      </p>
+    </div>
+
+    <!-- Demo 2: Icon grid with title attrs -->
+    <div class="demo-block">
+      <h2>Icons with title attribute</h2>
+      <div class="icon-row">
+        <div class="icon-item">
+          <div class="icon" title="React — UI library for building interactive interfaces">⚛️</div>
+          <span class="icon-label">React</span>
+        </div>
+        <div class="icon-item">
+          <div class="icon" title="TypeScript — Typed superset of JavaScript for safer code">🔷</div>
+          <span class="icon-label">TypeScript</span>
+        </div>
+        <div class="icon-item">
+          <div class="icon" title="Supabase — Open source Firebase alternative with PostgreSQL">🗄️</div>
+          <span class="icon-label">Supabase</span>
+        </div>
+        <div class="icon-item">
+          <div class="icon" title="Vercel — Edge-first deployment platform with zero config">▲</div>
+          <span class="icon-label">Vercel</span>
+        </div>
+        <div class="icon-item">
+          <div class="icon" title="Vite — Next-generation frontend build tool with HMR">⚡</div>
+          <span class="icon-label">Vite</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Demo 3: Buttons -->
+    <div class="demo-block">
+      <h2>Action buttons</h2>
+      <div class="btn-row">
+        <div class="demo-btn" data-anavo-tooltip="Creates a new project from a template. You can change the name later.">New Project</div>
+        <div class="demo-btn" data-anavo-tooltip="Imports an existing project from GitHub, GitLab, or Bitbucket.">Import Repo</div>
+        <div class="demo-btn" data-anavo-tooltip="Deploys your current branch to a preview URL shared only with your team.">Preview Deploy</div>
+      </div>
+    </div>
+
+    <p class="hint">Tooltips auto-position to stay within the viewport · Configurable delay, bg, font size, arrow</p>
+  </div>
+
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var u = new URL('../../tooltips/tooltips.js', location.href);
+    u.searchParams.set('domain',       'anavo.tech');
+    u.searchParams.set('bg',           g('bg','rgba(10,10,20,0.96)'));
+    u.searchParams.set('color',        g('color','#f0ede8'));
+    u.searchParams.set('fontSize',     g('fontSize','13px'));
+    u.searchParams.set('padding',      g('padding','10px 14px'));
+    u.searchParams.set('borderRadius', g('borderRadius','8px'));
+    u.searchParams.set('delay',        g('delay','150'));
+    u.searchParams.set('arrow',        g('arrow','true'));
+    u.searchParams.set('maxWidth',     g('maxWidth','280px'));
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>

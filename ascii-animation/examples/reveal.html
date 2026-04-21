@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ASCII Animation - Reveal Sequence Demo</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+    }
+
+    .info {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: rgba(0, 0, 0, 0.75);
+      border: 1px solid rgba(224, 224, 224, 0.2);
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 320px;
+      z-index: 999999;
+    }
+
+    .info h3 {
+      margin-top: 0;
+      font-size: 18px;
+      color: #e0e0e0;
+    }
+
+    .info p {
+      font-size: 13px;
+      line-height: 1.6;
+      color: #aaa;
+      margin: 0 0 12px;
+    }
+
+    .info ul {
+      padding-left: 18px;
+      margin: 0;
+    }
+
+    .info li {
+      margin: 8px 0;
+      font-size: 13px;
+      color: #ccc;
+    }
+
+    .info code {
+      background: rgba(255,255,255,0.1);
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(224, 224, 224, 0.15);
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Info Panel -->
+  <div class="info">
+    <span class="badge">🎬 REVEAL SEQUENCE</span>
+    <h3>ASCII Animation v1.2.0</h3>
+    <p>
+      After <strong>3 seconds</strong>, the circles explode outward, text
+      converges to the center as large readable type, holds for
+      <strong>4 seconds</strong>, then glitches and reforms — looping forever.
+    </p>
+    <ul>
+      <li><code>reveal=true</code> — feature enabled</li>
+      <li><code>revealDelay=3</code> — triggers after 3 s</li>
+      <li><code>revealDuration=4</code> — holds for 4 s</li>
+      <li><code>revealRepeat=true</code> — loops indefinitely</li>
+      <li><code>revealTrigger=timer</code> — auto-fires on load</li>
+    </ul>
+  </div>
+
+  <!-- ASCII Animation Plugin — dark reveal demo -->
+  <script src="../ascii-animation.js?characters=ANAVOTECH&explodeText=DESIGNCREATEINNOVATE&secondaryText=TECHNOLOGYANDART&tertiaryText=CREATIONINNOVATIONART&bgColor=1a1a2e&fontColor=e0e0e0&reveal=true&revealDelay=3&revealDuration=4&revealRepeat=true&revealTrigger=timer"></script>
+
+  <!-- Additional Content -->
+  <div style="padding: 60px 40px; text-align: center; background: #12122a;">
+    <h2 style="color:#e0e0e0;">Scroll down for more content</h2>
+    <p style="color:#888;">The reveal sequence runs on a loop above. Refresh to restart.</p>
+  </div>
+
+</body>
+</html>

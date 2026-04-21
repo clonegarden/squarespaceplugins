@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cookie Banner — Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;min-height:100vh;font-family:system-ui,sans-serif;background:#fff;color:#111}
+    .page{max-width:680px;margin:0 auto;padding:60px 32px 120px}
+    .badge{display:inline-block;background:#e8f4fd;color:#1565c0;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:24px}
+    h1{font-size:clamp(24px,4vw,40px);font-weight:300;letter-spacing:-0.02em;margin-bottom:20px;line-height:1.2}
+    p{color:#555;line-height:1.7;margin-bottom:16px;font-size:15px}
+    .divider{border:none;border-top:1px solid #eee;margin:32px 0}
+    .hint{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);font-size:11px;color:#999;background:#f9f9f9;padding:6px 14px;border-radius:20px;border:1px solid #eee;pointer-events:none;z-index:1}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="badge">Cookie Banner</div>
+    <h1>We value your privacy.</h1>
+    <p>This plugin displays a GDPR/CCPA-compliant cookie consent banner with customizable colors, position, and expiry settings.</p>
+    <hr class="divider">
+    <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
+    <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
+    <hr class="divider">
+    <p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident.</p>
+    <p>Nam libero tempore cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus.</p>
+  </div>
+  <div class="hint">Cookie banner appears at bottom of page</div>
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var u = new URL('https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/cookie-banner/cookie-banner.min.js');
+    u.searchParams.set('domain','anavo.tech');
+    u.searchParams.set('bgColor', g('bgColor','#1a1a2e'));
+    u.searchParams.set('textColor', g('textColor','#ffffff'));
+    u.searchParams.set('accentColor', g('accentColor','#4f8ef7'));
+    u.searchParams.set('position', g('position','bottom'));
+    u.searchParams.set('expiryDays', g('expiryDays','365'));
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Space Invaders — Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;height:100vh;overflow:hidden;font-family:system-ui,sans-serif;background:#000000}
+    .hint{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);font-size:11px;color:#333;background:rgba(255,255,255,0.04);padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.08);pointer-events:none;z-index:9999}
+  </style>
+</head>
+<body>
+  <div data-anavo-space-invaders></div>
+  <div class="hint">↑ Arrow keys to move — Space to shoot</div>
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var u = new URL('https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/space-invaders/space-invaders.min.js');
+    u.searchParams.set('domain','anavo.tech');
+    u.searchParams.set('bgColor', g('bgColor','#000000'));
+    u.searchParams.set('shooterIcon', g('shooterIcon','▲'));
+    u.searchParams.set('autoStart', g('autoStart','true'));
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>

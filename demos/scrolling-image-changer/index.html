@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scrolling Image Changer — Anavo Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;font-family:system-ui,sans-serif;background:#07070d;color:#f0ede8}
+    .layout{display:grid;grid-template-columns:1fr 1fr;min-height:100vh}
+    .sticky-panel{position:sticky;top:0;height:100vh;overflow:hidden}
+    [data-anavo-image-changer]{width:100%;height:100%}
+    .label-overlay{position:absolute;top:24px;left:24px;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,255,255,0.4);background:rgba(0,0,0,0.5);padding:6px 12px;border-radius:4px;backdrop-filter:blur(4px)}
+    .sections{padding:0}
+    section[data-anavo-image]{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:80px 60px;border-bottom:1px solid rgba(255,255,255,0.05)}
+    .section-num{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#00d4ff;margin-bottom:16px}
+    .section-title{font-size:clamp(28px,3vw,44px);font-weight:200;letter-spacing:-0.01em;margin-bottom:20px;line-height:1.2}
+    .section-body{font-size:15px;color:rgba(255,255,255,0.45);line-height:1.7;max-width:360px}
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- LEFT: sticky image panel -->
+    <div class="sticky-panel">
+      <div data-anavo-image-changer></div>
+      <div class="label-overlay">Image Changer</div>
+    </div>
+
+    <!-- RIGHT: scrollable sections -->
+    <div class="sections">
+      <section data-anavo-image="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80">
+        <div class="section-num">01</div>
+        <h2 class="section-title">Mountains &amp; Peaks</h2>
+        <p class="section-body">Scroll down to see the sticky panel's background image change smoothly as each section enters the viewport.</p>
+      </section>
+      <section data-anavo-image="https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=800&q=80">
+        <div class="section-num">02</div>
+        <h2 class="section-title">Ocean Depths</h2>
+        <p class="section-body">Each section can have a different image or colour. The transition mode is configurable — fade or slide.</p>
+      </section>
+      <section data-anavo-image="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80">
+        <div class="section-num">03</div>
+        <h2 class="section-title">Forest Light</h2>
+        <p class="section-body">IntersectionObserver watches at 50% threshold. When a section crosses the midpoint, the image switches.</p>
+      </section>
+      <section data-anavo-image="https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80">
+        <div class="section-num">04</div>
+        <h2 class="section-title">Urban Architecture</h2>
+        <p class="section-body">Zero dependencies. No GSAP. Works on any Squarespace site with a single script tag in Code Injection.</p>
+      </section>
+    </div>
+  </div>
+
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var u = new URL('../../scrolling-image-changer/scrolling-image-changer.js', location.href);
+    u.searchParams.set('domain',     'anavo.tech');
+    u.searchParams.set('transition', g('transition','fade'));
+    u.searchParams.set('duration',   g('duration','0.5s'));
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>

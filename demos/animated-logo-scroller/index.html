@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animated Logo Scroller — Anavo Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;min-height:100vh;font-family:system-ui,sans-serif;background:#07070d;color:#f0ede8}
+    .page{max-width:1100px;margin:0 auto;padding:80px 40px}
+    .eyebrow{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#00d4ff;margin-bottom:16px}
+    h1{font-size:clamp(32px,5vw,56px);font-weight:200;letter-spacing:-0.02em;margin-bottom:24px;line-height:1.1}
+    .sub{font-size:16px;color:rgba(255,255,255,0.45);max-width:480px;line-height:1.7;margin-bottom:64px}
+    .scroller-wrap{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:40px 0;overflow:hidden}
+    .logo-placeholder{width:120px;height:40px;background:rgba(255,255,255,0.12);border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.3)}
+    .hint{margin-top:40px;font-size:11px;color:rgba(255,255,255,0.25);text-align:center;letter-spacing:0.05em}
+    .controls{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:32px}
+    .ctrl{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#f0ede8;padding:8px 16px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;transition:background 0.2s}
+    .ctrl:hover{background:rgba(0,212,255,0.1);border-color:#00d4ff;color:#00d4ff}
+    .section-label{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-bottom:20px}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="eyebrow">Anavo Plugin Demo</div>
+    <h1>Animated Logo Scroller</h1>
+    <p class="sub">Seamless infinite horizontal marquee for client logos. No GSAP. Pure CSS animation with pause-on-hover.</p>
+
+    <div class="section-label">Variant: Left scroll (default)</div>
+    <div class="scroller-wrap">
+      <div data-anavo-logo-scroller id="logo-row-1">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='40'%3E%3Crect width='120' height='40' rx='4' fill='%23ffffff18'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23fff' font-size='11' font-family='system-ui' letter-spacing='1'%3EAcme Corp%3C/text%3E%3C/svg%3E" alt="Acme Corp" style="height:40px">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='40'%3E%3Crect width='120' height='40' rx='4' fill='%23ffffff18'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23fff' font-size='11' font-family='system-ui' letter-spacing='1'%3ENovaTech%3C/text%3E%3C/svg%3E" alt="NovaTech" style="height:40px">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='40'%3E%3Crect width='120' height='40' rx='4' fill='%23ffffff18'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23fff' font-size='11' font-family='system-ui' letter-spacing='1'%3EBridgeCo%3C/text%3E%3C/svg%3E" alt="BridgeCo" style="height:40px">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='40'%3E%3Crect width='120' height='40' rx='4' fill='%23ffffff18'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23fff' font-size='11' font-family='system-ui' letter-spacing='1'%3EStarkMD%3C/text%3E%3C/svg%3E" alt="StarkMD" style="height:40px">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='40'%3E%3Crect width='120' height='40' rx='4' fill='%23ffffff18'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23fff' font-size='11' font-family='system-ui' letter-spacing='1'%3EVault Labs%3C/text%3E%3C/svg%3E" alt="Vault Labs" style="height:40px">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='40'%3E%3Crect width='120' height='40' rx='4' fill='%23ffffff18'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23fff' font-size='11' font-family='system-ui' letter-spacing='1'%3EPixelWave%3C/text%3E%3C/svg%3E" alt="PixelWave" style="height:40px">
+      </div>
+    </div>
+
+    <div class="hint">Hover to pause &nbsp;·&nbsp; Adjust speed, gap and direction via URL params</div>
+  </div>
+
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
+    var u = new URL('../../animated-logo-scroller/animated-logo-scroller.js', location.href);
+    u.searchParams.set('domain',       'anavo.tech');
+    u.searchParams.set('speed',        g('speed','30s'));
+    u.searchParams.set('gap',          g('gap','60px'));
+    u.searchParams.set('direction',    g('direction','left'));
+    u.searchParams.set('pauseOnHover', g('pauseOnHover','true'));
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>
