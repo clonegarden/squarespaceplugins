@@ -290,6 +290,9 @@
   }
 
   const config = getScriptParams();
+  const reducedMotionMq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const MOBILE_COUNTER_MIN_TABS = 5;
+  const MOBILE_SWIPE_THRESHOLD = 45;
 
   function dbg(...args) {
     if (config.debug) console.log(`[${PLUGIN_NAME}]`, ...args);
@@ -474,7 +477,7 @@
     const styleId = 'anavo-tabbed-content-styles';
     if (document.getElementById(styleId)) return;
 
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const prefersReducedMotion = reducedMotionMq.matches;
     const speed = prefersReducedMotion ? 0 : config.animationSpeed;
 
     const imageFlexOrder = config.imagePosition === 'right' ? 2 : 1;
@@ -1009,7 +1012,7 @@ ${config.animationType === 'slide' ? `
     if (config.mobileCounter === 'always') return true;
     const tablist = wrapper.querySelector('.anavo-tc-tablist');
     if (!tablist) return false;
-    return tabCount >= 5 && tablist.scrollWidth > tablist.clientWidth;
+    return tabCount >= MOBILE_COUNTER_MIN_TABS && tablist.scrollWidth > tablist.clientWidth;
   }
 
   function getActiveTabIndex(wrapper) {
@@ -1068,7 +1071,7 @@ ${config.animationType === 'slide' ? `
   function activateTab(wrapper, index) {
     const tabs = wrapper.querySelectorAll('.anavo-tc-tab');
     const panels = wrapper.querySelectorAll('.anavo-tc-panel');
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const prefersReducedMotion = reducedMotionMq.matches;
 
     tabs.forEach((tab, i) => {
       const active = i === index;
@@ -1099,8 +1102,9 @@ ${config.animationType === 'slide' ? `
       updateMobileCounter(wrapper);
     }
 
-    if (isMobileViewport() && config.mobileMode !== 'scroll') {
-      tabs[index]?.scrollIntoView({
+    const activeTab = tabs[index];
+    if (isMobileViewport() && config.mobileMode !== 'scroll' && activeTab) {
+      activeTab.scrollIntoView({
         behavior: prefersReducedMotion ? 'auto' : 'smooth',
         inline: 'center',
         block: 'nearest',
@@ -1170,11 +1174,10 @@ ${config.animationType === 'slide' ? `
     });
 
     if (config.mobileMode === 'tap') {
-      const swipeThreshold = 45;
       const tabCount = tabs.length;
 
       const goRelative = delta => {
-        if (window.innerWidth > 768 || !tabCount) return;
+        if (!isMobileViewport() || !tabCount) return;
         const currentIndex = getActiveTabIndex(wrapper);
         const nextIndex = (currentIndex + delta + tabCount) % tabCount;
         activateTab(wrapper, nextIndex);
@@ -1192,7 +1195,7 @@ ${config.animationType === 'slide' ? `
         });
 
         imgWrap.addEventListener('keydown', e => {
-          if (window.innerWidth > 768) return;
+          if (!isMobileViewport()) return;
           if (e.key !== 'Enter' && e.key !== ' ') return;
           e.preventDefault();
           goRelative(1);
@@ -1206,12 +1209,15 @@ ${config.animationType === 'slide' ? `
         }, { passive: true });
 
         imgWrap.addEventListener('touchend', e => {
-          if (window.innerWidth > 768) return;
+          if (!isMobileViewport()) return;
           const touch = e.changedTouches[0];
           if (!touch) return;
           const dx = touch.clientX - touchStartX;
           const dy = touch.clientY - touchStartY;
-          if (Math.abs(dx) < swipeThreshold || Math.abs(dx) < Math.abs(dy)) return;
+          const horizontalDistance = Math.abs(dx);
+          const verticalDistance = Math.abs(dy);
+          if (horizontalDistance < MOBILE_SWIPE_THRESHOLD) return;
+          if (horizontalDistance < verticalDistance) return;
           if (dx < 0) goRelative(1);
           else goRelative(-1);
         }, { passive: true });
