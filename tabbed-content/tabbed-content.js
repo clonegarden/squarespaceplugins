@@ -2,7 +2,7 @@
  * =======================================
  * TABBED CONTENT - Squarespace Plugin
  * =======================================
- * @version 1.3.0
+ * @version 1.4.0
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
@@ -39,11 +39,13 @@
  *
  * CONTENT PANEL PARAMETERS:
  * ?contentPadding=60   - Content area padding in px
- * ?imagePosition=left  - Image position: left / right
- * ?imageWidth=45       - Image column width in % (also: photoSize)
- * ?photoSize=45        - Alias for imageWidth
- * ?imageAspect=auto    - Image aspect: auto / square / 4:3 / 3:2 / 16:9
- * ?imagePadding=16     - Padding around the image in px
+ * ?imagePosition=left        - Image position: left / right
+ * ?imageWidth=45             - Image column width in % (also: photoSize)
+ * ?photoSize=45              - Alias for imageWidth
+ * ?imageAspect=auto          - Image aspect: auto / square / 4:3 / 3:2 / 16:9
+ * ?imagePadding=16           - Padding around the image in px
+ * ?imageObjectPosition=center - Image focal point: center / top / bottom / left / right
+ * ?contentAlign=left         - Content text alignment: left / center / right
  * ?headingTag=h2       - Heading tag: h2 / h3
  * ?headingSize=28      - Heading font size in px (also: titleFontSize)
  * ?titleFontSize=28    - Alias for headingSize
@@ -59,20 +61,24 @@
  * ?animationType=fade - Animation: fade / slide / none
  * ?animationSpeed=400 - Animation duration in ms
  *
+ * MOBILE PARAMETERS:
+ * ?mobileMode=scroll  - Mobile behavior: scroll (swipe carousel, default) / stack (column layout)
+ *
  * SECTION PARAMETERS:
  * ?sectionBorder=false     - Show outer border (default: false)
  * ?sectionBorderColor=cccccc - Outer border color hex
  * ?sectionRadius=0         - Outer border radius in px
  *
  * MISC PARAMETERS:
- * ?debug=false        - Enable verbose console logging
+ * ?linkText=Learn+More - CTA button label (default: "Learn More")
+ * ?debug=false         - Enable verbose console logging
  * =======================================
  */
 
 (function () {
   'use strict';
 
-  const PLUGIN_VERSION = '1.3.0';
+  const PLUGIN_VERSION = '1.4.0';
   const PLUGIN_NAME = 'TabbedContent';
 
   console.log(`📁 ${PLUGIN_NAME} v${PLUGIN_VERSION} - Loading...`);
@@ -147,6 +153,20 @@
       sectionBorderColor: '#d4c9b8',
       fontFamily: '"Cormorant Garamond", "Cormorant", Georgia, serif',
       contentFont: '"Cormorant Garamond", "Cormorant", Georgia, serif',
+      contentAlign: 'center',
+    },
+    photography: {
+      bgColor: '#FAF5EF',
+      activeColor: '#4a3f35',
+      inactiveColor: '#b0a090',
+      tabStyle: 'browser',
+      tabBorder: true,
+      tabBorderColor: '#d4c9b8',
+      sectionBorder: false,
+      sectionBorderColor: '#d4c9b8',
+      fontFamily: '"Cormorant Garamond", "Cormorant", Georgia, serif',
+      contentFont: '"Cormorant Garamond", "Cormorant", Georgia, serif',
+      contentAlign: 'center',
     },
     bold: {
       bgColor: '#1a1a1a',
@@ -235,9 +255,16 @@
       descFontColor: fixColor(params.get('descFontColor') || '') || null,
       descFontFamily: params.get('descFontFamily') || null,
 
+      // Content
+      contentAlign: params.get('contentAlign') || preset.contentAlign || 'left',
+      imageObjectPosition: params.get('imageObjectPosition') || 'center',
+
       // Animation
       animationType: params.get('animationType') || 'fade',
       animationSpeed: parseInt(params.get('animationSpeed') || '400', 10),
+
+      // Mobile
+      mobileMode: params.get('mobileMode') || 'scroll',
 
       // Section
       sectionBorder: getBool('sectionBorder', preset.sectionBorder),
@@ -247,6 +274,9 @@
           preset.sectionBorderColor.replace('#', '')
       ),
       sectionRadius: parseInt(params.get('sectionRadius') || '0', 10),
+
+      // Misc
+      linkText: params.get('linkText') || 'Learn More',
 
       // Debug
       debug: getBool('debug', false),
@@ -625,6 +655,7 @@ ${config.animationType === 'slide' ? `
 
 .anavo-tc-image-wrap img {
   ${imageInnerStyles}
+  object-position: ${config.imageObjectPosition};
 }
 
 .anavo-tc-image-placeholder {
@@ -649,6 +680,8 @@ ${config.animationType === 'slide' ? `
   flex-direction: column;
   justify-content: center;
   font-family: ${config.contentFont};
+  text-align: ${config.contentAlign};
+  align-items: ${config.contentAlign === 'center' ? 'center' : config.contentAlign === 'right' ? 'flex-end' : 'flex-start'};
 }
 
 .anavo-tc-content-col .anavo-tc-heading {
@@ -719,6 +752,52 @@ ${config.animationType === 'slide' ? `
     padding: 8px 14px;
     font-size: ${Math.max(config.tabFontSize - 1, 11)}px;
   }
+
+  ${config.mobileMode === 'scroll' ? `
+  /* Scroll-snap carousel mode */
+  .anavo-tc-panels {
+    display: flex !important;
+    overflow-x: scroll;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .anavo-tc-panels::-webkit-scrollbar { display: none; }
+  .anavo-tc-panel {
+    display: flex !important;
+    flex: 0 0 100%;
+    min-width: 100%;
+    scroll-snap-align: start;
+    flex-direction: column;
+  }
+  .anavo-tc-panel[hidden] {
+    display: flex !important;
+  }
+  .anavo-tc-image-col {
+    flex: 0 0 100%;
+    max-width: 100%;
+    order: 1;
+  }
+  .anavo-tc-image-wrap {
+    padding-top: 60%;
+    position: relative;
+  }
+  .anavo-tc-image-wrap img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: ${config.imageObjectPosition};
+  }
+  .anavo-tc-content-col {
+    order: 2;
+    flex: 0 0 auto;
+    max-width: 100%;
+    padding: ${Math.round(config.contentPadding * 0.5)}px;
+  }
+  ` : `
+  /* Stack mode */
   .anavo-tc-panel.anavo-tc-panel--active {
     flex-direction: column;
   }
@@ -737,6 +816,7 @@ ${config.animationType === 'slide' ? `
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: ${config.imageObjectPosition};
   }
   .anavo-tc-content-col {
     order: 2;
@@ -744,6 +824,7 @@ ${config.animationType === 'slide' ? `
     max-width: 100%;
     padding: ${Math.round(config.contentPadding * 0.5)}px;
   }
+  `}
 }
 
 /* ---- Responsive: Small Mobile ---- */
@@ -866,7 +947,7 @@ ${config.animationType === 'slide' ? `
         const link = document.createElement('a');
         link.className = 'anavo-tc-link';
         link.href = item.link;
-        link.textContent = 'Learn More';
+        link.textContent = config.linkText;
         contentCol.appendChild(link);
       }
 
@@ -885,6 +966,10 @@ ${config.animationType === 'slide' ? `
   // TAB ACTIVATION
   // ========================================
 
+  function isMobileScroll() {
+    return config.mobileMode === 'scroll' && window.innerWidth <= 768;
+  }
+
   function activateTab(wrapper, index) {
     const tabs = wrapper.querySelectorAll('.anavo-tc-tab');
     const panels = wrapper.querySelectorAll('.anavo-tc-panel');
@@ -895,16 +980,24 @@ ${config.animationType === 'slide' ? `
       tab.setAttribute('tabindex', active ? '0' : '-1');
     });
 
-    panels.forEach((panel, i) => {
-      const active = i === index;
-      if (active) {
-        panel.removeAttribute('hidden');
-        panel.classList.add('anavo-tc-panel--active');
-      } else {
-        panel.setAttribute('hidden', '');
-        panel.classList.remove('anavo-tc-panel--active');
-      }
-    });
+    if (isMobileScroll()) {
+      // In scroll mode all panels stay in DOM; just scroll the target into view
+      panels[index]?.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
+      panels.forEach((panel, i) => {
+        panel.classList.toggle('anavo-tc-panel--active', i === index);
+      });
+    } else {
+      panels.forEach((panel, i) => {
+        const active = i === index;
+        if (active) {
+          panel.removeAttribute('hidden');
+          panel.classList.add('anavo-tc-panel--active');
+        } else {
+          panel.setAttribute('hidden', '');
+          panel.classList.remove('anavo-tc-panel--active');
+        }
+      });
+    }
   }
 
   // ========================================
