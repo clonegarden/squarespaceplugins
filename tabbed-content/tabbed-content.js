@@ -2,7 +2,7 @@
  * =======================================
  * TABBED CONTENT - Squarespace Plugin
  * =======================================
- * @version 1.5.0
+ * @version 1.6.0
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
@@ -62,7 +62,8 @@
  * ?animationSpeed=400 - Animation duration in ms
  *
  * MOBILE PARAMETERS:
- * ?mobileMode=scroll  - Mobile behavior: scroll (swipe carousel, default) / stack (column layout)
+ * ?mobileMode=tap     - Mobile behavior: tap (stack + image tap/swipe, default) / stack (column layout) / scroll (swipe carousel)
+ * ?mobileCounter=auto - Mobile image counter: auto / always / never
  *
  * SECTION PARAMETERS:
  * ?sectionBorder=false     - Show outer border (default: false)
@@ -80,7 +81,7 @@
 (function () {
   'use strict';
 
-  const PLUGIN_VERSION = '1.5.0';
+  const PLUGIN_VERSION = '1.6.0';
   const PLUGIN_NAME = 'TabbedContent';
 
   console.log(`📁 ${PLUGIN_NAME} v${PLUGIN_VERSION} - Loading...`);
@@ -266,7 +267,8 @@
       animationSpeed: parseInt(params.get('animationSpeed') || '400', 10),
 
       // Mobile
-      mobileMode: params.get('mobileMode') || 'scroll',
+      mobileMode: params.get('mobileMode') || 'tap',
+      mobileCounter: params.get('mobileCounter') || 'auto',
 
       // Section
       sectionBorder: getBool('sectionBorder', preset.sectionBorder),
@@ -288,6 +290,9 @@
   }
 
   const config = getScriptParams();
+  const reducedMotionMq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const MOBILE_COUNTER_MIN_TABS = 5;
+  const MOBILE_SWIPE_THRESHOLD = 45;
 
   function dbg(...args) {
     if (config.debug) console.log(`[${PLUGIN_NAME}]`, ...args);
@@ -472,7 +477,7 @@
     const styleId = 'anavo-tabbed-content-styles';
     if (document.getElementById(styleId)) return;
 
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const prefersReducedMotion = reducedMotionMq.matches;
     const speed = prefersReducedMotion ? 0 : config.animationSpeed;
 
     const imageFlexOrder = config.imagePosition === 'right' ? 2 : 1;
@@ -808,7 +813,7 @@ ${config.animationType === 'slide' ? `
     padding: ${Math.round(config.contentPadding * 0.5)}px;
   }
   ` : `
-  /* Stack mode */
+  /* Stack/Tap mode */
   .anavo-tc-panel.anavo-tc-panel--active {
     flex-direction: column;
   }
@@ -834,6 +839,22 @@ ${config.animationType === 'slide' ? `
     flex: 0 0 100%;
     max-width: 100%;
     padding: ${Math.round(config.contentPadding * 0.5)}px;
+  }
+  .anavo-tc-image-wrap[role="button"] {
+    cursor: pointer;
+  }
+  .anavo-tc-mobile-counter {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    line-height: 1;
+    pointer-events: none;
   }
   `}
 }
@@ -981,9 +1002,76 @@ ${config.animationType === 'slide' ? `
     return config.mobileMode === 'scroll' && window.innerWidth <= 768;
   }
 
+  function isMobileViewport() {
+    return window.innerWidth <= 768;
+  }
+
+  function shouldUseMobileCounter(wrapper, tabCount) {
+    if (!isMobileViewport()) return false;
+    if (config.mobileCounter === 'never') return false;
+    if (config.mobileCounter === 'always') return true;
+    const tablist = wrapper.querySelector('.anavo-tc-tablist');
+    if (!tablist) return false;
+    return tabCount >= MOBILE_COUNTER_MIN_TABS && tablist.scrollWidth > tablist.clientWidth;
+  }
+
+  function getActiveTabIndex(wrapper) {
+    const tabs = Array.from(wrapper.querySelectorAll('.anavo-tc-tab'));
+    const activeIndex = tabs.findIndex(tab => tab.getAttribute('aria-selected') === 'true');
+    return activeIndex >= 0 ? activeIndex : 0;
+  }
+
+  function updateMobileCounter(wrapper) {
+    if (config.mobileMode === 'scroll') return;
+
+    const tabs = wrapper.querySelectorAll('.anavo-tc-tab');
+    const counters = wrapper.querySelectorAll('.anavo-tc-mobile-counter');
+    if (!tabs.length || !counters.length) return;
+
+    const activeIndex = getActiveTabIndex(wrapper);
+    const showCounter = shouldUseMobileCounter(wrapper, tabs.length);
+    const text = `${activeIndex + 1} / ${tabs.length}`;
+
+    counters.forEach(counter => {
+      counter.textContent = text;
+      counter.hidden = !showCounter;
+    });
+  }
+
+  function setupMobileCounter(wrapper) {
+    if (config.mobileMode === 'scroll') return;
+
+    wrapper.querySelectorAll('.anavo-tc-image-wrap').forEach(imgWrap => {
+      if (imgWrap.querySelector('.anavo-tc-mobile-counter')) return;
+      const counter = document.createElement('div');
+      counter.className = 'anavo-tc-mobile-counter';
+      counter.setAttribute('aria-hidden', 'true');
+      imgWrap.appendChild(counter);
+    });
+
+    updateMobileCounter(wrapper);
+  }
+
+  function syncMobileImageA11y(wrapper) {
+    if (config.mobileMode !== 'tap') return;
+    const isMobile = isMobileViewport();
+    wrapper.querySelectorAll('.anavo-tc-image-wrap').forEach(imgWrap => {
+      if (isMobile) {
+        imgWrap.setAttribute('role', 'button');
+        imgWrap.setAttribute('aria-label', 'Next tab');
+        imgWrap.setAttribute('tabindex', '0');
+      } else {
+        imgWrap.removeAttribute('role');
+        imgWrap.removeAttribute('aria-label');
+        imgWrap.removeAttribute('tabindex');
+      }
+    });
+  }
+
   function activateTab(wrapper, index) {
     const tabs = wrapper.querySelectorAll('.anavo-tc-tab');
     const panels = wrapper.querySelectorAll('.anavo-tc-panel');
+    const prefersReducedMotion = reducedMotionMq.matches;
 
     tabs.forEach((tab, i) => {
       const active = i === index;
@@ -1009,6 +1097,19 @@ ${config.animationType === 'slide' ? `
         }
       });
     }
+
+    if (!isMobileScroll()) {
+      updateMobileCounter(wrapper);
+    }
+
+    const activeTab = tabs[index];
+    if (isMobileViewport() && config.mobileMode !== 'scroll' && activeTab) {
+      activeTab.scrollIntoView({
+        behavior: prefersReducedMotion ? 'auto' : 'smooth',
+        inline: 'center',
+        block: 'nearest',
+      });
+    }
   }
 
   // ========================================
@@ -1017,6 +1118,7 @@ ${config.animationType === 'slide' ? `
 
   function initEvents(wrapper) {
     const tabs = wrapper.querySelectorAll('.anavo-tc-tab');
+    const panels = wrapper.querySelectorAll('.anavo-tc-panel');
 
     const desktopMq = window.matchMedia('(min-width: 769px)');
 
@@ -1070,6 +1172,73 @@ ${config.animationType === 'slide' ? `
         tabsArr[newIndex].focus();
       });
     });
+
+    if (config.mobileMode === 'tap') {
+      const tabCount = tabs.length;
+
+      const goRelative = delta => {
+        if (!isMobileViewport() || !tabCount) return;
+        const currentIndex = getActiveTabIndex(wrapper);
+        const nextIndex = (currentIndex + delta + tabCount) % tabCount;
+        activateTab(wrapper, nextIndex);
+      };
+
+      panels.forEach(panel => {
+        const imgWrap = panel.querySelector('.anavo-tc-image-wrap');
+        if (!imgWrap) return;
+
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        imgWrap.addEventListener('click', () => {
+          goRelative(1);
+        });
+
+        imgWrap.addEventListener('keydown', e => {
+          if (!isMobileViewport()) return;
+          if (e.key !== 'Enter' && e.key !== ' ') return;
+          e.preventDefault();
+          goRelative(1);
+        });
+
+        imgWrap.addEventListener('touchstart', e => {
+          const touch = e.touches[0];
+          if (!touch) return;
+          touchStartX = touch.clientX;
+          touchStartY = touch.clientY;
+        }, { passive: true });
+
+        imgWrap.addEventListener('touchend', e => {
+          if (!isMobileViewport()) return;
+          const touch = e.changedTouches[0];
+          if (!touch) return;
+          const dx = touch.clientX - touchStartX;
+          const dy = touch.clientY - touchStartY;
+          const horizontalDistance = Math.abs(dx);
+          const verticalDistance = Math.abs(dy);
+          if (horizontalDistance < MOBILE_SWIPE_THRESHOLD) return;
+          if (horizontalDistance < verticalDistance) return;
+          if (dx < 0) goRelative(1);
+          else goRelative(-1);
+        }, { passive: true });
+      });
+    }
+
+    const refreshMobileState = () => {
+      syncMobileImageA11y(wrapper);
+      updateMobileCounter(wrapper);
+    };
+
+    if (config.mobileMode !== 'scroll') {
+      const mobileMq = window.matchMedia('(max-width: 768px)');
+      if (typeof mobileMq.addEventListener === 'function') {
+        mobileMq.addEventListener('change', refreshMobileState);
+      } else if (typeof mobileMq.addListener === 'function') {
+        mobileMq.addListener(refreshMobileState);
+      }
+      window.addEventListener('resize', refreshMobileState);
+      refreshMobileState();
+    }
   }
 
   // ========================================
@@ -1115,11 +1284,13 @@ ${config.animationType === 'slide' ? `
       injectStyles();
 
       const ui = buildUI(items);
-      initEvents(ui);
 
       // Hide original element and insert UI after it
       target.style.display = 'none';
       target.parentNode.insertBefore(ui, target.nextSibling);
+
+      setupMobileCounter(ui);
+      initEvents(ui);
 
       loadLicensing();
 

@@ -6,6 +6,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.6.0] — 2026-04-22
+
+### Added
+
+- `mobileMode=tap` default mode with vertical stack layout and image tap-to-advance behavior.
+- Mobile image swipe gestures: swipe left for next tab, swipe right for previous tab (both with wrap-around).
+- Mobile image accessibility for `tap` mode: `role="button"`, `aria-label="Next tab"`, and keyboard `Enter`/`Space`.
+- Mobile counter indicator (`2 / N`) with `mobileCounter` parameter (`auto` / `always` / `never`).
+
+### Changed
+
+- `mobileMode` default changed from `scroll` to `tap`.
+- Mobile layout defaults to vertical stack (`tap`/`stack`), while `scroll` remains available for backward compatibility.
+
+---
+
 ## [1.3.0] — 2026-03-13
 
 ### Added
@@ -162,6 +178,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+[1.6.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/tabbed-content-v1.6.0
 [1.3.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/tabbed-content-v1.3.0
 [1.2.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/tabbed-content-v1.2.0
 [1.1.0]: https://github.com/clonegarden/squarespaceplugins/releases/tag/tabbed-content-v1.1.0

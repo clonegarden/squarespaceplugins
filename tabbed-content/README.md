@@ -181,6 +181,13 @@ Then:
 | `animationType` | `fade` | Panel transition: `fade` / `slide` / `none` |
 | `animationSpeed` | `400` | Animation duration in ms |
 
+### Mobile
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `mobileMode` | `tap` | Mobile behavior: `tap` (vertical stack + image tap/swipe), `stack` (vertical stack, no image interactivity), `scroll` (legacy horizontal carousel) |
+| `mobileCounter` | `auto` | Mobile image counter: `auto` (show only when there are 5+ tabs and tab bar overflows), `always`, `never` |
+
 ### Section Border
 
 | Parameter | Default | Description |
@@ -194,6 +201,16 @@ Then:
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `debug` | `false` | Enable verbose console logging |
+
+---
+
+## 📱 Mobile Behavior
+
+- On mobile (`≤768px`), default `mobileMode=tap` shows one panel at a time in a vertical stack (image on top, content below).
+- The tab bar remains horizontally scrollable for overflow tabs.
+- Tapping the panel image goes to the next tab (with wrap-around). Swiping left/right goes next/previous.
+- Image tap/swipe advances tabs only; the optional Learn More button still handles `data-link` navigation.
+- Counter pill (`2 / 7`) appears only when helpful by default (`mobileCounter=auto`): 5+ tabs and tablist overflow.
 
 ---
 
@@ -238,7 +255,7 @@ Then:
 3. It scans the target for recognizable item patterns (Summary Block, List Section, heading groups, or `<ul data-*>` items).
 4. It builds the tabbed UI: a `role="tablist"` tab bar and `role="tabpanel"` content panels.
 5. The original element is hidden (`display: none`), and the new UI is inserted as its next sibling.
-6. Tab switching fires on **hover** and **click**. Full keyboard navigation is supported.
+6. Tab switching fires on **hover** and **click** (plus image tap/swipe on mobile when `mobileMode=tap`). Full keyboard navigation is supported.
 7. A non-blocking licensing check runs 1.5 seconds after load.
 
 ---
