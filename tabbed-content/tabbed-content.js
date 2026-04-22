@@ -70,7 +70,8 @@
  * ?sectionRadius=0         - Outer border radius in px
  *
  * MISC PARAMETERS:
- * ?hoverActivate=false - Activate tab on hover (default: false — click only)
+ * ?hoverActivate=false  - Activate tab on hover everywhere (default: false — click only)
+ * ?hoverDesktop=false  - Hover on desktop (>768px), click on mobile (default: false)
  * ?linkText=Learn+More - CTA button label (default: "Learn More")
  * ?debug=false         - Enable verbose console logging
  * =======================================
@@ -278,6 +279,7 @@
 
       // Misc
       hoverActivate: getBool('hoverActivate', false),
+      hoverDesktop: getBool('hoverDesktop', false),
       linkText: params.get('linkText') || 'Learn More',
 
       // Debug
@@ -1016,10 +1018,18 @@ ${config.animationType === 'slide' ? `
   function initEvents(wrapper) {
     const tabs = wrapper.querySelectorAll('.anavo-tc-tab');
 
+    const desktopMq = window.matchMedia('(min-width: 769px)');
+
     tabs.forEach((tab, i) => {
-      // Hover (opt-in only)
+      // hoverActivate: hover everywhere
       if (config.hoverActivate) {
         tab.addEventListener('mouseenter', () => activateTab(wrapper, i));
+      }
+      // hoverDesktop: single listener, fires only when viewport is desktop
+      if (config.hoverDesktop) {
+        tab.addEventListener('mouseenter', () => {
+          if (desktopMq.matches) activateTab(wrapper, i);
+        });
       }
 
       // Click

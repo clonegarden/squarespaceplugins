@@ -6,62 +6,130 @@
   <title>Tabbed Content — Demo</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
-    html,body{width:100%;min-height:100vh;font-family:system-ui,sans-serif;background:#fff;color:#111}
-    /* Section 0 - intro */
-    .intro-section{padding:56px 40px 48px;text-align:center;background:#f7f7f7}
-    .intro-section h1{font-size:clamp(22px,3.5vw,36px);font-weight:300;letter-spacing:-0.01em;margin-bottom:8px}
-    .intro-section p{color:#aaa;font-size:13px}
-    /* Section 1 - the tab source section (index 1) */
-    .tab-source-section{padding:40px;max-width:800px;margin:0 auto}
-    .tab-source-section ul{list-style:none}
-    .tab-source-section ul li{padding:24px 0;border-bottom:1px solid #f0f0f0}
-    .tab-source-section ul li:last-child{border-bottom:none}
-    .tab-source-section ul li h3{font-size:17px;font-weight:600;margin-bottom:8px;color:#111}
-    .tab-source-section ul li p{font-size:14px;color:#666;line-height:1.6}
-    .hint{text-align:center;padding:24px;font-size:11px;color:#aaa;background:#fafafa;border-top:1px solid #f0f0f0}
+    html,body{width:100%;min-height:100vh;font-family:system-ui,sans-serif;background:#FAF5EF;color:#111}
+
+    .page-header{padding:56px 40px 40px;text-align:center}
+    .page-header h1{font-size:clamp(22px,3.5vw,38px);font-weight:300;letter-spacing:-0.01em;margin-bottom:8px;color:#2a2218}
+    .page-header p{color:#999;font-size:13px;letter-spacing:0.05em}
+
+    .demo-section{max-width:1100px;margin:0 auto;padding:0 24px 64px}
+
+    /* The source list — hidden by plugin after init */
+    .tab-source{list-style:none}
+    .tab-source li{padding:20px 0;border-bottom:1px solid #e8ddd0}
+    .tab-source li:last-child{border-bottom:none}
+    .tab-source li h3{font-size:16px;font-weight:600;margin-bottom:6px;color:#2a2218}
+    .tab-source li p{font-size:14px;color:#777;line-height:1.7}
+    .tab-source li span{display:block;font-size:11px;color:#b0a090;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:4px}
+
+    .hint{text-align:center;padding:20px;font-size:11px;color:#b0a090;letter-spacing:0.08em;text-transform:uppercase}
+
+    @media(max-width:768px){
+      .page-header{padding:36px 20px 28px}
+      .demo-section{padding:0 16px 48px}
+    }
   </style>
 </head>
 <body>
-  <!-- Section index 0 -->
-  <section class="intro-section page-section">
-    <h1>Tabbed Content</h1>
-    <p>The list below will be transformed into an interactive tab interface</p>
-  </section>
 
-  <!-- Section index 1 — this is the target for sectionIndex:2 (1-based, 2nd section) -->
-  <section class="tab-source-section page-section">
-    <ul>
-      <li>
-        <h3>Design</h3>
-        <p>We create visual identities that communicate your brand's values at a glance. From logo systems to full design languages, we build brands that last.</p>
+  <div class="page-header">
+    <h1>Tabbed Content</h1>
+    <p>Photography services — scroll / click to explore</p>
+  </div>
+
+  <section class="demo-section page-section">
+    <ul class="tab-source" id="tc-demo">
+      <li
+        data-title="Elopements"
+        data-subtitle="Intimate &amp; Adventurous"
+        data-image="https://images.unsplash.com/photo-1529636798458-92182e662485?w=900&auto=format&fit=crop&q=80"
+        data-link="https://anavo.tech/plugins"
+      >
+        <span>Starting at $1 800</span>
+        <p>Your elopement is one of the most intimate moments of your life — and it deserves to be documented beautifully. We travel anywhere, from mountain peaks to coastal cliffs, to capture your story.</p>
       </li>
-      <li>
-        <h3>Development</h3>
-        <p>Custom Squarespace builds with advanced plugin functionality. We go beyond templates to deliver performant, accessible, conversion-focused websites.</p>
+      <li
+        data-title="Weddings"
+        data-subtitle="Timeless Celebration"
+        data-image="https://images.unsplash.com/photo-1519741347686-c1e0aadf4611?w=900&auto=format&fit=crop&q=80"
+        data-link="https://anavo.tech/plugins"
+      >
+        <span>Packages starting at $3 400</span>
+        <p>Every wedding is a unique love story. We work quietly in the background, capturing the laughter, the tears, and all the beautiful in-between moments that make your wedding day unforgettable.</p>
       </li>
-      <li>
-        <h3>Strategy</h3>
-        <p>SEO research, content planning, and competitive analysis. We help you understand your audience and build a roadmap for sustainable digital growth.</p>
+      <li
+        data-title="Couples"
+        data-subtitle="Love Sessions"
+        data-image="https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=900&auto=format&fit=crop&q=80"
+        data-link="https://anavo.tech/plugins"
+      >
+        <span>Starting at $650</span>
+        <p>Couples sessions are the perfect way to celebrate your relationship. Relaxed, fun, and full of connection — these sessions result in images you'll treasure for a lifetime.</p>
       </li>
-      <li>
-        <h3>Support</h3>
-        <p>Ongoing maintenance, plugin updates, and priority support. We stay with you after launch to ensure your site performs and evolves with your business.</p>
+      <li
+        data-title="Portraits"
+        data-subtitle="Personal &amp; Professional"
+        data-image="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=900&auto=format&fit=crop&q=80"
+        data-link="https://anavo.tech/plugins"
+      >
+        <span>Starting at $450</span>
+        <p>Whether you need personal branding photos, headshots, or a creative portrait session, we create images that reflect your personality and tell your story with authenticity.</p>
+      </li>
+      <li
+        data-title="Branding"
+        data-subtitle="Visual Identity"
+        data-image="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=900&auto=format&fit=crop&q=80"
+        data-link="https://anavo.tech/plugins"
+      >
+        <span>Starting at $900</span>
+        <p>Your brand deserves imagery that speaks to your ideal client. We create cohesive, on-brand photo and video content that elevates your online presence and attracts your dream audience.</p>
+      </li>
+      <li
+        data-title="Film"
+        data-subtitle="Cinematic Stories"
+        data-image="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=900&auto=format&fit=crop&q=80"
+        data-link="https://anavo.tech/plugins"
+      >
+        <span>Add-on from $1 200</span>
+        <p>Cinematic wedding films that capture not just the events of your day, but the feeling of it. Emotional, timeless, and beautifully edited — these films will move you every time you watch them.</p>
+      </li>
+      <li
+        data-title="Super 8"
+        data-subtitle="Vintage &amp; Nostalgic"
+        data-image="https://images.unsplash.com/photo-1617791160536-598cf32026fb?w=900&auto=format&fit=crop&q=80"
+        data-link="https://anavo.tech/plugins"
+      >
+        <span>Add-on from $600</span>
+        <p>Super 8 film adds a nostalgic, dream-like quality to your wedding or portrait session. Warm tones, natural grain, and the gentle flicker of film create footage that feels like a beautiful memory.</p>
       </li>
     </ul>
   </section>
 
-  <div class="hint">Plugin transforms the list above into clickable tabs</div>
+  <div class="hint">hover on desktop &nbsp;·&nbsp; tap on mobile</div>
+
   <script>
   (function(){
     var p = new URLSearchParams(location.search);
     var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
     var u = new URL('https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/tabbed-content/tabbed-content.min.js');
-    u.searchParams.set('domain','anavo.tech');
-    u.searchParams.set('sectionIndex', g('sectionIndex','2'));
+    u.searchParams.set('domain', 'anavo.tech');
+    u.searchParams.set('ulId',              g('ulId',              'tc-demo'));
+    u.searchParams.set('preset',            g('preset',            'photography'));
+    u.searchParams.set('contentAlign',      g('contentAlign',      'center'));
+    u.searchParams.set('imageObjectPosition', g('imageObjectPosition', 'top'));
+    u.searchParams.set('imageWidth',        g('imageWidth',        '45'));
+    u.searchParams.set('tabStyle',          g('tabStyle',          'browser'));
+    u.searchParams.set('tabFontSize',       g('tabFontSize',       '12'));
+    u.searchParams.set('tabLetterSpacing',  g('tabLetterSpacing',  '0.18em'));
+    u.searchParams.set('hoverDesktop',      g('hoverDesktop',      'true'));
+    u.searchParams.set('mobileMode',        g('mobileMode',        'scroll'));
+    u.searchParams.set('animationType',     g('animationType',     'fade'));
+    u.searchParams.set('linkText',          g('linkText',          'View Details →'));
     var s = document.createElement('script');
     s.src = u.toString();
     document.body.appendChild(s);
   })();
   </script>
+
 </body>
 </html>
