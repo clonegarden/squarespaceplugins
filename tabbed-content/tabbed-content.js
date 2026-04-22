@@ -2,7 +2,7 @@
  * =======================================
  * TABBED CONTENT - Squarespace Plugin
  * =======================================
- * @version 1.4.0
+ * @version 1.5.0
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
@@ -70,6 +70,7 @@
  * ?sectionRadius=0         - Outer border radius in px
  *
  * MISC PARAMETERS:
+ * ?hoverActivate=false - Activate tab on hover (default: false — click only)
  * ?linkText=Learn+More - CTA button label (default: "Learn More")
  * ?debug=false         - Enable verbose console logging
  * =======================================
@@ -78,7 +79,7 @@
 (function () {
   'use strict';
 
-  const PLUGIN_VERSION = '1.4.0';
+  const PLUGIN_VERSION = '1.5.0';
   const PLUGIN_NAME = 'TabbedContent';
 
   console.log(`📁 ${PLUGIN_NAME} v${PLUGIN_VERSION} - Loading...`);
@@ -229,7 +230,7 @@
       tabTransform: params.get('tabTransform') || 'uppercase',
       tabLetterSpacing: params.get('tabLetterSpacing') || '0.15em',
       tabBorder: getBool('tabBorder', preset.tabBorder),
-      tabBorderColor: fixColor(params.get('tabBorderColor') || preset.tabBorderColor.replace('#', '')),
+      tabBorderColor: fixColor(params.get('tabBorderColor') || params.get('borderColor') || preset.tabBorderColor.replace('#', '')),
 
       // Content panel
       contentPadding: parseInt(params.get('contentPadding') || '60', 10),
@@ -276,6 +277,7 @@
       sectionRadius: parseInt(params.get('sectionRadius') || '0', 10),
 
       // Misc
+      hoverActivate: getBool('hoverActivate', false),
       linkText: params.get('linkText') || 'Learn More',
 
       // Debug
@@ -492,35 +494,39 @@
       : '';
 
     // Tab border/background/radius per style
+    // For concrete/browser: all tabs carry border-bottom: transparent so every tab has identical
+    // height. The tablist gets margin-bottom: -1px so panels overlap by 1px (proper folder-tab
+    // alignment). Active tab's border-bottom-color switches to contentBgColor, covering the
+    // panel's top border and creating the open-folder illusion.
     let tabBorderCSS, activeTabBorderCSS;
     if (config.tabStyle === 'browser') {
       tabBorderCSS = `
-  border: 1px solid ${config.tabBorderColor};
+  border: 1px solid ${config.tabBorderColor} !important;
+  border-bottom: 1px solid transparent !important;
   border-radius: 6px 6px 0 0;
-  margin-bottom: -1px;
-  background: transparent;
+  background: transparent !important;
   z-index: 2;`;
       activeTabBorderCSS = `
-  border-bottom-color: ${contentBgColor};
-  background: ${contentBgColor};
+  border-bottom-color: ${contentBgColor} !important;
+  background: ${contentBgColor} !important;
   z-index: 3;`;
     } else if (config.tabStyle === 'minimal') {
       tabBorderCSS = `
-  border: none;
-  border-bottom: 2px solid transparent;
-  background: transparent;`;
+  border: none !important;
+  border-bottom: 2px solid transparent !important;
+  background: transparent !important;`;
       activeTabBorderCSS = `
-  border-bottom-color: ${config.activeColor};`;
+  border-bottom-color: ${config.activeColor} !important;`;
     } else {
       // concrete (default)
       tabBorderCSS = `
-  border: 1px solid ${config.tabBorderColor};
-  margin-bottom: -1px;
-  background: transparent;
+  border: 1px solid ${config.tabBorderColor} !important;
+  border-bottom: 1px solid transparent !important;
+  background: transparent !important;
   z-index: 2;`;
       activeTabBorderCSS = `
-  border-bottom-color: ${contentBgColor};
-  background: ${contentBgColor};
+  border-bottom-color: ${contentBgColor} !important;
+  background: ${contentBgColor} !important;
   z-index: 3;`;
     }
 
@@ -529,8 +535,8 @@
 
     // Content panel border + background — concrete/browser use the panel's top border to create the folder-tab line
     const panelsBorderCSS = isConcreteOrBrowser
-      ? `border: 1px solid ${config.tabBorderColor};
-  background: ${contentBgColor};
+      ? `border: 1px solid ${config.tabBorderColor} !important;
+  background: ${contentBgColor} !important;
   z-index: 1;`
       : '';
 
@@ -553,15 +559,16 @@
 
 /* ---- Tab Bar ---- */
 .anavo-tc-tablist {
-  display: flex;
+  display: flex !important;
   overflow-x: auto;
   flex-wrap: nowrap;
   scrollbar-width: none;
-  list-style: none;
-  margin: 0;
-  padding: 0;
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  ${isConcreteOrBrowser ? 'margin-bottom: -1px !important;' : ''}
   gap: ${config.tabGap}px;
-  background: transparent;
+  background: transparent !important;
   justify-content: ${config.tabAlign === 'center' ? 'center' : config.tabAlign === 'right' ? 'flex-end' : 'flex-start'};
   position: relative;
   z-index: 2;
@@ -601,6 +608,8 @@
 /* ---- Panels ---- */
 .anavo-tc-panels {
   position: relative;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
   ${panelsBorderCSS}
 }
 
@@ -1008,8 +1017,10 @@ ${config.animationType === 'slide' ? `
     const tabs = wrapper.querySelectorAll('.anavo-tc-tab');
 
     tabs.forEach((tab, i) => {
-      // Hover
-      tab.addEventListener('mouseenter', () => activateTab(wrapper, i));
+      // Hover (opt-in only)
+      if (config.hoverActivate) {
+        tab.addEventListener('mouseenter', () => activateTab(wrapper, i));
+      }
 
       // Click
       tab.addEventListener('click', () => {
