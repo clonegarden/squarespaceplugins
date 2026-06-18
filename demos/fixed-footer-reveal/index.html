@@ -79,12 +79,11 @@
   <script>
   (function(){
     var p = new URLSearchParams(location.search);
-    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
     var u = new URL('../../fixed-footer-reveal/fixed-footer-reveal.js', location.href);
-    u.searchParams.set('domain',        'anavo.tech');
-    u.searchParams.set('selector',      g('selector','[data-anavo-footer]'));
-    u.searchParams.set('triggerOffset', g('triggerOffset','200'));
-    u.searchParams.set('transition',    g('transition','0.5s'));
+    u.searchParams.set('domain', 'anavo.tech');
+    var PX_PARAMS = { triggerOffset:1 };
+    var addPx = function(v){ return /px$|%$|em$|rem$|vw$/.test(v) ? v : v + 'px'; };
+    p.forEach(function(val, key){ if (PX_PARAMS[key]) val = addPx(val); u.searchParams.set(key, val); });
     var s = document.createElement('script');
     s.src = u.toString();
     document.body.appendChild(s);

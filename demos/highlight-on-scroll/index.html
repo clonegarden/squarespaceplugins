@@ -51,15 +51,11 @@
   <script>
   (function(){
     var p = new URLSearchParams(location.search);
-    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
     var u = new URL('../../highlight-on-scroll/highlight-on-scroll.js', location.href);
-    u.searchParams.set('domain',   'anavo.tech');
-    u.searchParams.set('color',    g('color','#00d4ff'));
-    u.searchParams.set('opacity',  g('opacity','0.35'));
-    u.searchParams.set('height',   g('height','0.3em'));
-    u.searchParams.set('duration', g('duration','0.7s'));
-    u.searchParams.set('delay',    g('delay','0.1s'));
-    u.searchParams.set('once',     g('once','true'));
+    u.searchParams.set('domain', 'anavo.tech');
+    var PX_PARAMS = { height:1, offset:1 };
+    var addPx = function(v){ return /px$|%$|em$|rem$|vw$/.test(v) ? v : v + 'px'; };
+    p.forEach(function(val, key){ if (PX_PARAMS[key]) val = addPx(val); u.searchParams.set(key, val); });
     var s = document.createElement('script');
     s.src = u.toString();
     document.body.appendChild(s);

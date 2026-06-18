@@ -54,14 +54,11 @@
   <script>
   (function(){
     var p = new URLSearchParams(location.search);
-    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
     var u = new URL('../../pricing-table/pricing-table.js', location.href);
-    u.searchParams.set('domain',         'anavo.tech');
-    u.searchParams.set('accentColor',    g('accentColor','#00d4ff'));
-    u.searchParams.set('bgColor',        g('bgColor','rgba(255,255,255,0.04)'));
-    u.searchParams.set('highlightBg',    g('highlightBg','#0d1020'));
-    u.searchParams.set('highlightColor', g('highlightColor','#f0ede8'));
-    u.searchParams.set('borderRadius',   g('borderRadius','16px'));
+    u.searchParams.set('domain', 'anavo.tech');
+    var PX_PARAMS = { borderRadius:1 };
+    var addPx = function(v){ return /px$|%$|em$|rem$|vw$/.test(v) ? v : v + 'px'; };
+    p.forEach(function(val, key){ if (PX_PARAMS[key]) val = addPx(val); u.searchParams.set(key, val); });
     var s = document.createElement('script');
     s.src = u.toString();
     document.body.appendChild(s);

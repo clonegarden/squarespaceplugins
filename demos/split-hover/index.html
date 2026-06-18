@@ -16,17 +16,11 @@
   <script>
   (function(){
     var p = new URLSearchParams(location.search);
-    var g = function(k,d){ return p.has(k) ? p.get(k) : d; };
     var u = new URL('https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/split-hover/split-hover.min.js');
-    u.searchParams.set('domain','anavo.tech');
-    u.searchParams.set('noun1', g('noun1','FASHION'));
-    u.searchParams.set('noun2', g('noun2','EDITORIAL'));
-    u.searchParams.set('color1', g('color1','#1a1a1a'));
-    u.searchParams.set('color2', g('color2','#f5f0e8'));
-    u.searchParams.set('fontColor', g('fontColor','#ffffff'));
-    u.searchParams.set('separator', g('separator','/'));
-    u.searchParams.set('image1', g('image1','https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&h=600&fit=crop'));
-    u.searchParams.set('image2', g('image2','https://images.unsplash.com/photo-1494790108755-2616b612b5ee?w=400&h=600&fit=crop'));
+    u.searchParams.set('domain', 'anavo.tech');
+    var PX_PARAMS = { cursorSize:1, fontSize:1, letterSpacing:1 };
+    var addPx = function(v){ return /px$|%$|em$|rem$|vw$/.test(v) ? v : v + 'px'; };
+    p.forEach(function(val, key){ if (PX_PARAMS[key]) val = addPx(val); u.searchParams.set(key, val); });
     var s = document.createElement('script');
     s.src = u.toString();
     document.body.appendChild(s);
