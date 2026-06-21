@@ -530,8 +530,8 @@
       'display:flex; align-items:center; justify-content:center;' +
       '}' +
       '\n.anavo-hp-nav-list {' +
-      'display:flex; align-items:center;' +
-      'gap:' + config.itemGap + ';' +
+      'display:flex !important; align-items:center;' +
+      'gap:' + config.itemGap + ' !important;' +
       'list-style:none; margin:0; padding:0;' +
       '}' +
       '\n.anavo-hp-nav-link {' +
@@ -810,7 +810,17 @@
         a.classList.add('anavo-hp-nav-link');
       }
     });
-    dbg('Nav links marked:', navLinks.length);
+    // Tag the nav-list container so the itemGap rule (.anavo-hp-nav-list) applies.
+    // Without this the gap CSS matched nothing — itemGap had no visible effect.
+    var navList = headerEl.querySelector('.header-nav-list');
+    if (!navList && navLinks.length) {
+      var firstTop = Array.prototype.filter.call(navLinks, function (a) {
+        return !a.closest('.anavo-hp-dropdown');
+      })[0];
+      if (firstTop) navList = firstTop.closest('ul, nav');
+    }
+    if (navList) navList.classList.add('anavo-hp-nav-list');
+    dbg('Nav links marked:', navLinks.length, 'nav-list tagged:', !!navList);
   }
 
   // ========================================
