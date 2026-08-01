@@ -3,11 +3,16 @@
  * ANAVO TECH - UNIVERSAL LICENSING SYSTEM
  * =======================================+
  * Used by ALL Anavo Tech Squarespace plugins
- * @version 1.5.0
+ * @version 1.6.0
  * @author Anavo Tech
  * @copyright 2026 Anavo Tech. All rights reserved.
  *
  * CDN: https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licensing.min.js
+ *
+ * CHANGELOG v1.6.0:
+ * - ✅ CHANGE: the DB (api.anavo.tech) is now the source of truth and is checked
+ *   first; licenses.json became the fallback. A grant from either source wins,
+ *   and the unlicensed notice requires BOTH to answer and BOTH to say no.
  *
  * CHANGELOG v1.5.0:
  * - ✅ FIX: "Get License" now points to https://plugins.anavo.tech
@@ -195,7 +200,11 @@
     }
 
     // ========================================
-    // FALLBACK CHAIN: static JSON → DB API → last-known-good → fail open
+    // CHAIN: DB (source of truth) → licenses.json (fallback)
+    //        → last-known-good → fail open
+    //
+    // A grant from EITHER source wins. The unlicensed notice needs both sources
+    // to answer and both to say no — anything less is an unknown, not a verdict.
     // ========================================
 
     async checkLicense() {
@@ -212,7 +221,17 @@
         return cached;
       }
 
-      // 2. Try static licenses.json
+      // 2. The DB is the source of truth — every sale writes there.
+      const dbResult = await this._checkDb();
+      if (dbResult.licensed) {
+        this._setCache(dbResult);
+        this._setLastKnownGood(dbResult);
+        return dbResult;
+      }
+
+      // 3. licenses.json is the fallback. It still carries the dev/preview
+      //    whitelist and hand-issued licenses that predate the DB, so a DB miss
+      //    is not the end of the story.
       const staticResult = await this._checkStatic();
       if (staticResult.licensed) {
         this._setCache(staticResult);
@@ -220,37 +239,20 @@
         return staticResult;
       }
 
-      // 3. Static could not be read at all (CDN blocked / VPN / AV / DNS filter).
-      //    Probe the DB endpoint: if that answers, only jsDelivr is blocked.
-      if (staticResult.type === 'offline') {
-        const probe = await this._checkDb();
-        if (probe.licensed) {
-          this._setCache(probe);
-          this._setLastKnownGood(probe);
-          return probe;
-        }
-        return this._recover(probe.type === 'offline' ? 'network' : 'cdn-blocked');
-      }
+      // 4. Neither granted. Did they actually ANSWER? An unreachable source is
+      //    not a denial — a VPN, ad blocker or antivirus must never be able to
+      //    turn a paying client into a pirate.
+      const dbAnswered     = dbResult.type     !== 'offline';
+      const staticAnswered = staticResult.type !== 'offline';
 
-      // 4. Static loaded and this domain is not in it — ask the DB.
-      if (staticResult.type === 'none') {
-        const dbResult = await this._checkDb();
-        if (dbResult.licensed) {
-          this._setCache(dbResult);
-          this._setLastKnownGood(dbResult);
-          return dbResult;
-        }
-        // DB unreachable is NOT a verdict — a client whose license lives only in
-        // the DB must not be accused because their network ate the request.
-        if (dbResult.type === 'offline') return this._recover('api-unreachable');
+      if (!dbAnswered && !staticAnswered) return this._recover('network');
+      if (!staticAnswered)                return this._recover('cdn-blocked');
+      if (!dbAnswered)                    return this._recover('api-unreachable');
 
-        this._setCache(dbResult);
-        return dbResult; // confirmed negative
-      }
-
-      // 5. Static returned a definite verdict (expired) — trust it
-      this._setCache(staticResult);
-      return staticResult;
+      // 5. Both answered, both said no. That is a verdict.
+      const verdict = staticResult.type === 'expired' ? staticResult : dbResult;
+      this._setCache(verdict);
+      return verdict;
     }
 
     /** Try last-known-good before giving up; otherwise stay enabled. */
