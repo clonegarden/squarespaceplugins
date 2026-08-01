@@ -4,7 +4,7 @@
  * ============================================================
  * @version  1.0.0
  * @author   Anavo Tech
- * @license  Commercial — anavo.tech/plugins
+ * @license  Commercial — plugins.anavo.tech
  *
  * EFFECT:
  *   Full-screen overlay menu that loops infinitely when
@@ -130,7 +130,7 @@
       'padding:6px 10px', 'border-radius:4px',
       'font-family:monospace', 'opacity:0.85', 'pointer-events:none'
     ].join(';');
-    n.textContent = 'Anavo Plugin: ' + PLUGIN_ID + ' — unlicensed. Visit anavo.tech/plugins';
+    n.textContent = 'Anavo Plugin: ' + PLUGIN_ID + ' — unlicensed. Visit plugins.anavo.tech';
     document.body.appendChild(n);
   }
 

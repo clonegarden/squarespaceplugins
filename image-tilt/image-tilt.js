@@ -5,7 +5,7 @@
  * @plugin_id  ImageTilt
  * @version    1.0.0
  * @author     Anavo Tech
- * @license    Commercial — anavo.tech/plugins
+ * @license    Commercial — plugins.anavo.tech
  *
  * EFFECT:
  *   Hover parallax tilt on images. When the mouse enters an
@@ -170,9 +170,9 @@
     );
     el.innerHTML =
       '<strong style="display:block;margin-bottom:4px;font-family:monospace">Anavo ImageTilt — Unlicensed</strong>' +
-      '<a href="https://anavo.tech/plugins" target="_blank" rel="noopener" ' +
+      '<a href="https://plugins.anavo.tech" target="_blank" rel="noopener" ' +
       'style="color:#ffd700;text-decoration:none;font-family:monospace">' +
-      'Get a license → anavo.tech/plugins</a>';
+      'Get a license → plugins.anavo.tech</a>';
     document.body.appendChild(el);
   }
 

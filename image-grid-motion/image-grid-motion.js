@@ -4,7 +4,7 @@
  * ============================================================
  * @version  1.0.0
  * @author   Anavo Tech
- * @license  Commercial — anavo.tech/plugins
+ * @license  Commercial — plugins.anavo.tech
  *
  * EFFECT:
  *   Full-viewport background grid of images that move
@@ -144,9 +144,15 @@
       'font-size:12px;z-index:999999;pointer-events:auto;line-height:1.6'
     );
     el.innerHTML = '<strong style="display:block;margin-bottom:4px">⚠️ Unlicensed Plugin</strong>' +
-      '<a href="https://anavo.tech/plugins" target="_blank" rel="noopener" ' +
+      '<a href="https://plugins.anavo.tech" target="_blank" rel="noopener" ' +
       'style="color:#ffd700;text-decoration:none">Get ImageGridMotion license →</a>';
     document.body.appendChild(el);
+    // anavo-auto-dismiss: never leave a notice sitting on a client site
+    setTimeout(function () {
+      el.style.transition = 'opacity .4s ease';
+      el.style.opacity = '0';
+      setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 450);
+    }, 5000);
   }
 
   // ─────────────────────────────────────────────────────────────────

@@ -4,7 +4,7 @@
  * ============================================================
  * @version  1.0.0
  * @author   Anavo Tech
- * @license  Commercial — anavo.tech/plugins
+ * @license  Commercial — plugins.anavo.tech
  *
  * EFFECT:
  *   On click, a burst of particles explodes outward from the
@@ -107,7 +107,7 @@
   function _showNotice() {
     var n = document.createElement('div');
     n.style.cssText = 'position:fixed;bottom:12px;left:12px;z-index:99999;background:#111;color:#fff;font-size:11px;padding:6px 10px;border-radius:4px;font-family:monospace;opacity:0.85;pointer-events:none;';
-    n.textContent = 'Anavo Plugin: ' + PLUGIN_ID + ' — unlicensed. Visit anavo.tech/plugins';
+    n.textContent = 'Anavo Plugin: ' + PLUGIN_ID + ' — unlicensed. Visit plugins.anavo.tech';
     document.body.appendChild(n);
   }
 

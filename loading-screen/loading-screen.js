@@ -4,7 +4,7 @@
  * ============================================================
  * @version  1.0.0
  * @author   Anavo Tech
- * @license  Commercial — anavo.tech/plugins
+ * @license  Commercial — plugins.anavo.tech
  *
  * EFFECT:
  *   Shows a branded loading overlay on page load. Has logo +

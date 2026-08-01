@@ -4,7 +4,7 @@
  * ============================================================
  * @version  1.0.0
  * @author   Anavo Tech
- * @license  Commercial — anavo.tech/plugins
+ * @license  Commercial — plugins.anavo.tech
  *
  * EFFECT:
  *   Fixed bottom navigation bar (mobile app dock style).
@@ -148,7 +148,7 @@
   function _showNotice() {
     var n = document.createElement('div');
     n.style.cssText = 'position:fixed!important;bottom:12px!important;left:12px!important;z-index:99999!important;background:#111!important;color:#fff!important;font-size:11px!important;padding:6px 10px!important;border-radius:4px!important;font-family:monospace!important;opacity:0.85!important;pointer-events:none!important;';
-    n.textContent = 'Anavo Plugin: ' + PLUGIN_ID + ' — unlicensed. Visit anavo.tech/plugins';
+    n.textContent = 'Anavo Plugin: ' + PLUGIN_ID + ' — unlicensed. Visit plugins.anavo.tech';
     document.body.appendChild(n);
   }
 

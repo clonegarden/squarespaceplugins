@@ -11,7 +11,7 @@
  *
  * CHANGELOG v1.5.0:
  * - ✅ FIX: "Get License" now points to https://plugins.anavo.tech
- *   (anavo.tech/plugins is a Coming Soon placeholder)
+ *   (the old anavo.tech/plugins path serves a Coming Soon placeholder)
  * - ✅ NEW: Hosts are normalized (case, port, trailing dot, leading www.) and a
  *   licensed apex domain now also covers its subdomains — no more misses from
  *   www./staging./m. variants. Non-exact matches are recorded for a future
