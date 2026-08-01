@@ -135,6 +135,9 @@
   }
 
   function _licenseNotice() {
+    // Manual override — see _shared/licensing.js header
+    if (window.ANAVO_LICENSE_OVERRIDE === true) return;
+    if (document.querySelector('[data-anavo-license-override]')) return;
     if (document.getElementById('anavo-igm-notice')) return;
     var el = document.createElement('div');
     el.id = 'anavo-igm-notice';

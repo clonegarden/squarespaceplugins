@@ -3,11 +3,25 @@
  * ANAVO TECH - UNIVERSAL LICENSING SYSTEM
  * =======================================+
  * Used by ALL Anavo Tech Squarespace plugins
- * @version 1.6.0
+ * @version 1.7.0
  * @author Anavo Tech
  * @copyright 2026 Anavo Tech. All rights reserved.
  *
  * CDN: https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licensing.min.js
+ *
+ * MANUAL OVERRIDE — kill the notice on a fringe client without a code change.
+ * Any ONE of these marks the site licensed and suppresses every notice:
+ *
+ *   1. Site-wide (Squarespace > Code Injection > Header), the usual choice:
+ *        <script>window.ANAVO_LICENSE_OVERRIDE = true;</script>
+ *   2. Markup:      <div data-anavo-license-override></div>
+ *   3. Per browser: visit the page once with ?anavo-license-override=1
+ *                   (persists in localStorage for that visitor only)
+ *   4. In code:     new AnavoLicenseManager(name, ver, { forceLicensed: true })
+ *
+ * CHANGELOG v1.7.0:
+ * - ✅ NEW: manual override (see above) for fringe cases where the gate is wrong
+ *   and waiting on a CDN purge is not acceptable
  *
  * CHANGELOG v1.6.0:
  * - ✅ CHANGE: the DB (api.anavo.tech) is now the source of truth and is checked
@@ -68,6 +82,7 @@
       this.showUI = options.showUI !== false;
       this.storeUrl = options.storeUrl || STORE_URL;
       this.noticeTimeout = options.noticeTimeout || 5000; // auto-dismiss
+      this.forceLicensed = options.forceLicensed === true; // manual override
       this.cachedLicense = null;
       this.isLicensed = false;
       this.licenseType = null;
@@ -85,8 +100,34 @@
       ];
     }
 
+    /**
+     * Manual escape hatch. See the MANUAL OVERRIDE block in the file header.
+     * Returns the source of the override, or null.
+     */
+    _overrideReason() {
+      try {
+        if (this.forceLicensed) return 'option';
+        if (window.ANAVO_LICENSE_OVERRIDE === true) return 'window-flag';
+        if (document.querySelector('[data-anavo-license-override]')) return 'data-attribute';
+        if (localStorage.getItem('anavo_license_override') === '1') return 'localstorage';
+        if (window.location.search.indexOf('anavo-license-override') > -1) {
+          try { localStorage.setItem('anavo_license_override', '1'); } catch (_) {}
+          return 'url-param';
+        }
+      } catch (_) {}
+      return null;
+    }
+
     async init() {
       console.log(`🔐 ${this.pluginName} v${this.version} - Checking license...`);
+
+      const override = this._overrideReason();
+      if (override) {
+        console.log(`🔓 License override active (${override}) - Full access granted`);
+        this.isLicensed = true;
+        this.licenseType = 'override';
+        return { licensed: true, type: 'override', source: override };
+      }
 
       if (this.isBypassDomain()) {
         console.log('🔓 Bypass domain - Full access granted');

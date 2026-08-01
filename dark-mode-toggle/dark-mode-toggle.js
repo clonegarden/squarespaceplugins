@@ -113,6 +113,9 @@
   }
 
   function _licenseNotice() {
+    // Manual override — see _shared/licensing.js header
+    if (window.ANAVO_LICENSE_OVERRIDE === true) return;
+    if (document.querySelector('[data-anavo-license-override]')) return;
     var nid = 'anavo-dmt-license-notice';
     if (document.getElementById(nid)) return;
     var el = document.createElement('div');
