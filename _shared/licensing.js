@@ -3,11 +3,27 @@
  * ANAVO TECH - UNIVERSAL LICENSING SYSTEM
  * =======================================+
  * Used by ALL Anavo Tech Squarespace plugins
- * @version 1.4.0
+ * @version 1.5.0
  * @author Anavo Tech
  * @copyright 2026 Anavo Tech. All rights reserved.
  *
  * CDN: https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licensing.min.js
+ *
+ * CHANGELOG v1.5.0:
+ * - ✅ FIX: "Get License" now points to https://plugins.anavo.tech
+ *   (anavo.tech/plugins is a Coming Soon placeholder)
+ * - ✅ NEW: Hosts are normalized (case, port, trailing dot, leading www.) and a
+ *   licensed apex domain now also covers its subdomains — no more misses from
+ *   www./staging./m. variants. Non-exact matches are recorded for a future
+ *   anti-abuse audit: see getFuzzyMatches() / window.AnavoLicenseAudit
+ * - ✅ NEW: FAIL-OPEN. Only a confirmed server response saying "not licensed"
+ *   shows the unlicensed notice. Any network failure (VPN, antivirus TLS proxy,
+ *   ad blocker, DNS filter, offline) keeps the plugin fully enabled and shows a
+ *   neutral connectivity notice instead of accusing a paying client.
+ * - ✅ NEW: Last-known-good license cached in localStorage (30d) as offline fallback
+ * - ✅ NEW: Both notices auto-dismiss after 5s
+ * - ✅ FIX: Removed the window.location.reload() on license-status change — a flaky
+ *   network could reload a live client site under its visitors
  *
  * CHANGELOG v1.4.0:
  * - ✅ FIX: global_whitelist hits now return licensed:true (type 'development')
@@ -34,6 +50,9 @@
 (function(window) {
   'use strict';
 
+  var STORE_URL = 'https://plugins.anavo.tech';
+  var LKG_TTL   = 30 * 24 * 3600 * 1000; // 30 days
+
   class AnavoLicenseManager {
     constructor(pluginName, version, options = {}) {
       this.pluginName = pluginName;
@@ -42,15 +61,20 @@
       this.dbLicenseServer = options.dbLicenseServer || 'https://api.anavo.tech/api/licenses/check';
       this.checkInterval = options.checkInterval || 3600000; // 1 hour
       this.showUI = options.showUI !== false;
+      this.storeUrl = options.storeUrl || STORE_URL;
+      this.noticeTimeout = options.noticeTimeout || 5000; // auto-dismiss
       this.cachedLicense = null;
       this.isLicensed = false;
       this.licenseType = null;
+      this.degradedReason = null;
+      this.fuzzyMatches = [];
 
       // 🔓 BYPASS DOMAINS - No license check needed
       this.bypassDomains = [
         'shallot-cone-9wym.squarespace.com',
         'anavo.tech',
         'www.anavo.tech',
+        'plugins.anavo.tech',
         'pluginstore.anavo.tech',
         'clonegarden.github.io'
       ];
@@ -69,8 +93,13 @@
       const result = await this.checkLicense();
 
       if (result.licensed) {
-        console.log(`✅ License verified - ${result.type} license`);
-        this.setupPeriodicCheck();
+        if (result.type === 'grace') {
+          console.warn(`⚠️ ${this.pluginName}: license unverifiable (${result.reason}) — running enabled`);
+          if (this.showUI && result.reason !== 'offline') this.showConnectivityNotice(result.reason);
+        } else {
+          console.log(`✅ License verified - ${result.type} license`);
+          this.setupPeriodicCheck();
+        }
       } else {
         console.warn('⚠️ No valid license - Running in limited mode');
         if (this.showUI) this.showLicenseNotice();
@@ -79,12 +108,27 @@
       return result;
     }
 
+    // ========================================
+    // HOST NORMALIZATION + MATCHING
+    // ========================================
+
+    _normalizeHost(host) {
+      return String(host || '')
+        .trim()
+        .toLowerCase()
+        .replace(/^https?:\/\//, '')
+        .split('/')[0]
+        .split(':')[0]
+        .replace(/\.$/, '')
+        .replace(/^www\./, '');
+    }
+
     isBypassDomain() {
-      const hostname = window.location.hostname.toLowerCase();
-      return this.bypassDomains.some(domain =>
-        hostname === domain.toLowerCase() ||
-        hostname.endsWith('.' + domain.toLowerCase())
-      );
+      const host = this._normalizeHost(window.location.hostname);
+      return this.bypassDomains.some(domain => {
+        const d = this._normalizeHost(domain);
+        return host === d || host.endsWith('.' + d);
+      });
     }
 
     isDevelopment() {
@@ -96,11 +140,70 @@
       });
     }
 
+    /**
+     * Records a match that was NOT a clean exact hit.
+     * TODO: ship these to api.anavo.tech so we can review whether any domain is
+     * riding someone else's license via a wildcard.
+     */
+    _recordFuzzy(host, pattern, kind) {
+      const entry = { plugin: this.pluginName, host, pattern, kind, ts: Date.now() };
+      this.fuzzyMatches.push(entry);
+      window.AnavoLicenseAudit = window.AnavoLicenseAudit || [];
+      window.AnavoLicenseAudit.push(entry);
+      console.debug(`🔎 Anavo license: ${kind} match — ${host} via ${pattern}`);
+    }
+
+    getFuzzyMatches() {
+      return this.fuzzyMatches.slice();
+    }
+
+    matchesDomain(current, allowedList) {
+      if (!allowedList) return false;
+      const host = this._normalizeHost(current);
+
+      return allowedList.some(pattern => {
+        const p = String(pattern || '').trim().toLowerCase();
+        if (!p) return false;
+
+        // Bare global wildcard
+        if (p === '*') {
+          this._recordFuzzy(host, p, 'global-wildcard');
+          return true;
+        }
+
+        // *.example.com — apex and any subdomain
+        if (p.startsWith('*.')) {
+          const base = this._normalizeHost(p.slice(2));
+          if (host === base) { this._recordFuzzy(host, p, 'wildcard-apex'); return true; }
+          if (host.endsWith('.' + base)) { this._recordFuzzy(host, p, 'wildcard-sub'); return true; }
+          return false;
+        }
+
+        // Embedded wildcard — escape regex metachars, then expand *
+        if (p.indexOf('*') > -1) {
+          const rx = new RegExp('^' + p.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '$');
+          if (rx.test(host)) { this._recordFuzzy(host, p, 'regex'); return true; }
+          return false;
+        }
+
+        // Plain domain: exact after normalization, or a subdomain of it
+        const base = this._normalizeHost(p);
+        if (host === base) return true;
+        if (host.endsWith('.' + base)) { this._recordFuzzy(host, p, 'subdomain'); return true; }
+        return false;
+      });
+    }
+
     // ========================================
-    // FALLBACK CHAIN: static JSON → DB API
+    // FALLBACK CHAIN: static JSON → DB API → last-known-good → fail open
     // ========================================
 
     async checkLicense() {
+      // 0. Never nag a visitor who is plainly offline
+      if (window.navigator && window.navigator.onLine === false) {
+        return this._failOpen('offline');
+      }
+
       // 1. Check sessionStorage cache first
       const cached = this._getCached();
       if (cached) {
@@ -113,21 +216,60 @@
       const staticResult = await this._checkStatic();
       if (staticResult.licensed) {
         this._setCache(staticResult);
+        this._setLastKnownGood(staticResult);
         return staticResult;
       }
 
-      // 3. If static missed entirely, try DB.
-      //    'development' no longer lands here — since v1.4.0 whitelist hits
-      //    short-circuit above as licensed.
-      if (staticResult.type === 'none') {
-        const dbResult = await this._checkDb();
-        this._setCache(dbResult);
-        return dbResult;
+      // 3. Static could not be read at all (CDN blocked / VPN / AV / DNS filter).
+      //    Probe the DB endpoint: if that answers, only jsDelivr is blocked.
+      if (staticResult.type === 'offline') {
+        const probe = await this._checkDb();
+        if (probe.licensed) {
+          this._setCache(probe);
+          this._setLastKnownGood(probe);
+          return probe;
+        }
+        return this._recover(probe.type === 'offline' ? 'network' : 'cdn-blocked');
       }
 
-      // 4. Static returned expired or offline — trust it
+      // 4. Static loaded and this domain is not in it — ask the DB.
+      if (staticResult.type === 'none') {
+        const dbResult = await this._checkDb();
+        if (dbResult.licensed) {
+          this._setCache(dbResult);
+          this._setLastKnownGood(dbResult);
+          return dbResult;
+        }
+        // DB unreachable is NOT a verdict — a client whose license lives only in
+        // the DB must not be accused because their network ate the request.
+        if (dbResult.type === 'offline') return this._recover('api-unreachable');
+
+        this._setCache(dbResult);
+        return dbResult; // confirmed negative
+      }
+
+      // 5. Static returned a definite verdict (expired) — trust it
       this._setCache(staticResult);
       return staticResult;
+    }
+
+    /** Try last-known-good before giving up; otherwise stay enabled. */
+    _recover(reason) {
+      const lkg = this._getLastKnownGood();
+      if (lkg) {
+        console.warn(`⚠️ ${this.pluginName}: using cached license (${reason})`);
+        this.isLicensed = true;
+        this.licenseType = lkg.type;
+        return { licensed: true, type: lkg.type, features: lkg.features || [], source: 'lkg' };
+      }
+      return this._failOpen(reason);
+    }
+
+    _failOpen(reason) {
+      this.isLicensed = true;
+      this.licenseType = 'grace';
+      this.degradedReason = reason;
+      return { licensed: true, type: 'grace', reason: reason, source: 'fail-open' };
     }
 
     async _checkStatic() {
@@ -149,7 +291,7 @@
 
     async _checkDb() {
       try {
-        const domain = window.location.hostname.toLowerCase().replace(/^www\./, '');
+        const domain = this._normalizeHost(window.location.hostname);
         const url = `${this.dbLicenseServer}?domain=${encodeURIComponent(domain)}&plugin=${encodeURIComponent(this.pluginName)}`;
 
         const response = await fetch(url, {
@@ -202,6 +344,30 @@
     }
 
     // ========================================
+    // LAST-KNOWN-GOOD (survives the browser session)
+    // ========================================
+
+    _lkgKey() {
+      return `anavo_lkg_${this.pluginName}`;
+    }
+
+    _setLastKnownGood(result) {
+      try {
+        localStorage.setItem(this._lkgKey(), JSON.stringify({ result, ts: Date.now() }));
+      } catch (_) {}
+    }
+
+    _getLastKnownGood() {
+      try {
+        const raw = localStorage.getItem(this._lkgKey());
+        if (!raw) return null;
+        const { result, ts } = JSON.parse(raw);
+        if (Date.now() - ts > LKG_TTL) return null;
+        return result && result.licensed ? result : null;
+      } catch (_) { return null; }
+    }
+
+    // ========================================
     // VALIDATE (static JSON shape)
     // ========================================
 
@@ -239,50 +405,69 @@
       return { licensed: false, type: 'none', source: 'static' };
     }
 
-    matchesDomain(current, allowedList) {
-      if (!allowedList) return false;
-      return allowedList.some(pattern => {
-        if (pattern === current) return true;
-        if (pattern.startsWith('*.')) {
-          const base = pattern.slice(2);
-          return current.endsWith(base) || current === base;
-        }
-        if (pattern.includes('*')) {
-          return new RegExp('^' + pattern.replace(/\*/g, '.*') + '$').test(current);
-        }
-        return false;
-      });
-    }
-
     setupPeriodicCheck() {
       setInterval(() => {
         if (this.isBypassDomain()) return;
         // Clear cache so next check hits the server
         try { sessionStorage.removeItem(this._cacheKey()); } catch (_) {}
         this.checkLicense().then(result => {
+          // No reload: a flaky network must never refresh a live client site.
           if (!result.licensed && this.isLicensed) {
             console.warn('⚠️ License status changed');
-            window.location.reload();
+            this.isLicensed = false;
+            if (this.showUI) this.showLicenseNotice();
           }
         });
       }, this.checkInterval);
     }
 
-    showLicenseNotice() {
-      if (document.getElementById('anavo-license-notice')) return;
+    // ========================================
+    // UI
+    // ========================================
+
+    _shell(id, html) {
+      if (document.getElementById(id)) return null;
       const notice = document.createElement('div');
-      notice.id = 'anavo-license-notice';
-      notice.innerHTML = `
-        <div style="position:fixed;bottom:20px;right:20px;background:rgba(0,0,0,0.9);color:#fff;padding:15px 20px;border-radius:8px;font-family:system-ui,sans-serif;font-size:13px;z-index:999999;box-shadow:0 4px 12px rgba(0,0,0,0.3);max-width:300px">
-          <div style="font-weight:700;margin-bottom:8px">⚠️ Unlicensed Plugin</div>
-          <div style="margin-bottom:12px;line-height:1.4">
-            The <strong>${this.pluginName}</strong> plugin requires a license.
-          </div>
-          <a href="https://anavo.tech/plugins" target="_blank" style="display:inline-block;background:#fff;color:#000;padding:8px 16px;border-radius:4px;text-decoration:none;font-weight:600;font-size:12px">
-            Get License →
-          </a>
-        </div>`;
+      notice.id = id;
+      notice.setAttribute('style',
+        'position:fixed;bottom:20px;right:20px;background:rgba(0,0,0,0.9);color:#fff;' +
+        'padding:15px 20px;border-radius:8px;font-family:system-ui,sans-serif;font-size:13px;' +
+        'z-index:999999;box-shadow:0 4px 12px rgba(0,0,0,0.3);max-width:300px;' +
+        'opacity:1;transition:opacity .4s ease'
+      );
+      notice.innerHTML = html;
       document.body.appendChild(notice);
+      this._autoDismiss(notice);
+      return notice;
+    }
+
+    _autoDismiss(el) {
+      if (!el || !this.noticeTimeout) return;
+      setTimeout(() => {
+        el.style.opacity = '0';
+        setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 450);
+      }, this.noticeTimeout);
+    }
+
+    showLicenseNotice() {
+      this._shell('anavo-license-notice',
+        '<div style="font-weight:700;margin-bottom:8px">⚠️ Unlicensed Plugin</div>' +
+        '<div style="margin-bottom:12px;line-height:1.4">The <strong>' + this.pluginName + '</strong> plugin requires a license.</div>' +
+        '<a href="' + this.storeUrl + '" target="_blank" rel="noopener" style="display:inline-block;background:#fff;color:#000;padding:8px 16px;border-radius:4px;text-decoration:none;font-weight:600;font-size:12px">Get License →</a>'
+      );
+    }
+
+    /**
+     * Shown when we could not REACH the license servers — never an accusation.
+     * A VPN, corporate proxy, DNS filter, ad blocker or antivirus doing TLS
+     * inspection is the usual cause. The plugin keeps working regardless.
+     */
+    showConnectivityNotice(reason) {
+      const target = reason === 'api-unreachable' ? 'api.anavo.tech' : 'jsDelivr (CDN)';
+      this._shell('anavo-connectivity-notice',
+        '<div style="font-weight:700;margin-bottom:8px">⚠️ This plugin needs access to ' + target + ' to work</div>' +
+        '<div style="line-height:1.4;opacity:.85">A VPN, ad blocker or antivirus may be blocking the request.</div>'
+      );
     }
 
     createWatermark() {
@@ -311,8 +496,10 @@
       return {
         licensed:   this.isLicensed,
         type:       this.licenseType,
+        reason:     this.degradedReason,
         pluginName: this.pluginName,
         version:    this.version,
+        fuzzy:      this.fuzzyMatches.length,
         features:   this.cachedLicense?.licenses?.[this.pluginName]?.features || []
       };
     }
