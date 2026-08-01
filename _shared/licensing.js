@@ -3,11 +3,16 @@
  * ANAVO TECH - UNIVERSAL LICENSING SYSTEM
  * =======================================+
  * Used by ALL Anavo Tech Squarespace plugins
- * @version 1.3.0
+ * @version 1.4.0
  * @author Anavo Tech
  * @copyright 2026 Anavo Tech. All rights reserved.
  *
  * CDN: https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licensing.min.js
+ *
+ * CHANGELOG v1.4.0:
+ * - ✅ FIX: global_whitelist hits now return licensed:true (type 'development')
+ *   Previously they returned licensed:false, so a client visiting their own
+ *   *.squarespace.com preview URL got the unlicensed notice + watermark.
  *
  * CHANGELOG v1.3.0:
  * - ✅ NEW: Database license check via dbLicenseServer option
@@ -111,8 +116,10 @@
         return staticResult;
       }
 
-      // 3. If static missed (type 'none' or 'development'), try DB
-      if (staticResult.type === 'none' || staticResult.type === 'development') {
+      // 3. If static missed entirely, try DB.
+      //    'development' no longer lands here — since v1.4.0 whitelist hits
+      //    short-circuit above as licensed.
+      if (staticResult.type === 'none') {
         const dbResult = await this._checkDb();
         this._setCache(dbResult);
         return dbResult;
@@ -220,10 +227,13 @@
         }
       }
 
+      // Development / preview hosts (localhost, *.sqsp.com, *.squarespace.com).
+      // Treated as licensed: a client opening their own Squarespace preview URL
+      // must never see the unlicensed notice or the watermark.
       if (this.matchesDomain(currentDomain, licenseData.global_whitelist)) {
-        this.isLicensed = false;
+        this.isLicensed = true;
         this.licenseType = 'development';
-        return { licensed: false, type: 'development', source: 'static' };
+        return { licensed: true, type: 'development', source: 'static' };
       }
 
       return { licensed: false, type: 'none', source: 'static' };
