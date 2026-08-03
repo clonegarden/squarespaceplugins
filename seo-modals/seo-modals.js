@@ -2,11 +2,25 @@
  * =======================================
  * SEO MODALS - Squarespace Plugin
  * =======================================
- * @version 1.0.0
+ * @version 2.0.0
  * @author Anavo Tech
  * @license Commercial - See LICENSE.md
  *
  * Onassis Signature System: "+" Quick Info + "?" FAQ modals for every page.
+ *
+ * v2.0.0 — BREAKING: brought in line with the copy-paste widget standard
+ * (01-SEO-Clients/WIDGETS-SHARED.md v3, /seo skill §3.4-3.6):
+ *   - namespace is now seo-anavo-* / seoAnavo*, never bare anavo-* (which
+ *     collides with client-installed anavo-* plugins and froze AB Social)
+ *   - panels are full-height right-hand drawers with an overlay, not cards
+ *   - z-index 2147483001 / 2147483000 / 2147482000, above sticky headers
+ *   - the three hardening rules: [hidden] honoured, idempotent teardown,
+ *     foreign-id guard on open
+ *   - WCAG-safe style extraction (no more washed-out or white-on-white text)
+ *   - dofollow .secret-link credit in the panel footer
+ * Schema stays OUT of scope on purpose: FAQ JSON-LD is still injected here for
+ * back-compat, but speakable and the rest belong in the static pasted blocks,
+ * because JS-injected JSON-LD is unreliable for Google.
  * Reads client config from Anavo API (api.anavo.tech) based on current domain.
  * Auto-extracts site fonts and colors for seamless style matching.
  *
@@ -18,7 +32,7 @@
 (function () {
   'use strict';
 
-  const PLUGIN_VERSION = '1.0.0';
+  const PLUGIN_VERSION = '2.0.0';
   const PLUGIN_NAME = 'SeoModals';
 
   console.log(`📊 ${PLUGIN_NAME} v${PLUGIN_VERSION} - Loading...`);
@@ -79,29 +93,57 @@
   // 2. STYLE EXTRACTION
   // ========================================
 
+  // WCAG-safe extraction (WIDGETS-SHARED v3 behaviour).
+  // A colour lifted off the page is only trusted if it actually contrasts with
+  // the panel background. Copying body.color blindly is what produced washed-out
+  // and white-on-white panel text on sites whose body text sits over a dark hero.
   function extractSiteStyles() {
     try {
       const body   = document.body;
       const h1     = document.querySelector('h1') || body;
-      const anchor = document.querySelector('a')  || body;
       const bs     = getComputedStyle(body);
       const h1s    = getComputedStyle(h1);
-      const as_    = getComputedStyle(anchor);
+      const root   = document.documentElement;
+
+      function toRGB(s) {
+        const m = (s || '').match(/rgba?\(([^)]+)\)/);
+        if (!m) return null;
+        const p = m[1].split(',').map(parseFloat);
+        if (p.length >= 4 && p[3] === 0) return null; // fully transparent
+        return { r: p[0], g: p[1], b: p[2] };
+      }
+      function lum(c) {
+        const a = [c.r, c.g, c.b].map(v => {
+          v /= 255;
+          return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+        });
+        return 0.2126 * a[0] + 0.7152 * a[1] + 0.0722 * a[2];
+      }
+      function ratio(x, y) {
+        const L1 = lum(x), L2 = lum(y);
+        return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
+      }
+      function rgbStr(c) { return `rgb(${Math.round(c.r)},${Math.round(c.g)},${Math.round(c.b)})`; }
+
+      const bg      = toRGB(bs.backgroundColor) || { r: 255, g: 255, b: 255 };
+      const safeInk = lum(bg) > 0.45 ? { r: 44, g: 40, b: 37 } : { r: 245, g: 242, b: 238 };
+      const safeColor = candidate => {
+        const c = toRGB(candidate);
+        return (!c || ratio(c, bg) < 3.5) ? safeInk : c;
+      };
 
       const font    = bs.fontFamily || 'sans-serif';
-      const text    = bs.color      || '#1a1a1a';
-      const bg      = bs.backgroundColor || '#ffffff';
-      const heading = h1s.color     || text;
-      const accent  = config.accentColor || as_.color || heading;
+      const text    = rgbStr(safeColor(bs.color));
+      const heading = rgbStr(safeColor(h1s.color || bs.color));
+      const accent  = config.accentColor || heading;
 
-      const root = document.documentElement;
       root.style.setProperty('--onassis-font',    font);
+      root.style.setProperty('--onassis-bg',      rgbStr(bg));
       root.style.setProperty('--onassis-text',    text);
-      root.style.setProperty('--onassis-bg',      bg);
       root.style.setProperty('--onassis-heading', heading);
       root.style.setProperty('--onassis-accent',  accent);
 
-      dbg('Styles extracted', { font, text, bg, heading, accent });
+      dbg('Styles extracted', { font, text, bg: rgbStr(bg), heading, accent });
     } catch (e) {
       dbg('Style extraction failed', e.message);
     }
@@ -141,7 +183,7 @@
   // ========================================
 
   function injectStyles() {
-    if (document.getElementById('anavo-seo-styles')) return;
+    if (document.getElementById('seo-anavo-styles')) return;
 
     const css = `
 /* ============================
@@ -149,21 +191,21 @@
    ============================ */
 
 /* --- Trigger Buttons --- */
-.anavo-seo-triggers {
+.seo-anavo-triggers {
   position: fixed !important;
   bottom: 24px !important;
   right: 24px !important;
   display: flex !important;
   flex-direction: column !important;
   gap: 8px !important;
-  z-index: 9999 !important;
+  z-index: 2147482000 !important;
   transition: opacity 0.4s ease !important;
 }
-.anavo-seo-triggers.anavo-seo-faded {
+.seo-anavo-triggers.seo-anavo-faded {
   opacity: 0 !important;
   pointer-events: none !important;
 }
-.anavo-seo-btn {
+.seo-anavo-trigger-btn {
   width: 42px !important;
   height: 42px !important;
   border-radius: 50% !important;
@@ -181,36 +223,49 @@
   transition: background 0.2s, color 0.2s, transform 0.2s !important;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
 }
-.anavo-seo-btn:hover {
+.seo-anavo-trigger-btn:hover {
   background: var(--onassis-accent, var(--onassis-text, #1a1a1a)) !important;
   color: var(--onassis-bg, #ffffff) !important;
   transform: scale(1.08) !important;
 }
 
-/* --- Panels --- */
-.anavo-seo-panel {
+/* --- Overlay --- */
+.seo-anavo-panel-overlay {
+  display: none !important;
   position: fixed !important;
-  bottom: 80px !important;
-  right: 24px !important;
-  width: 320px !important;
-  max-height: 70vh !important;
-  overflow-y: auto !important;
+  inset: 0 !important;
+  background: rgba(0,0,0,0.4) !important;
+  backdrop-filter: blur(2px) !important;
+  z-index: 2147483000 !important;
+}
+.seo-anavo-panel-overlay.seo-anavo-open { display: block !important; }
+
+/* --- Panels: sidebar drawer, matching WIDGETS-SHARED v3 --- */
+/* HARDENING #1: honour the "hidden" attribute even though we set display:flex */
+.seo-anavo-panel[hidden] { display: none !important; }
+.seo-anavo-panel {
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  width: 360px !important;
+  max-width: 100vw !important;
+  height: 100dvh !important;
   background: var(--onassis-bg, #ffffff) !important;
   color: var(--onassis-text, #1a1a1a) !important;
   font-family: var(--onassis-font, sans-serif) !important;
-  border: 1px solid var(--onassis-accent, var(--onassis-text, #1a1a1a)) !important;
-  border-radius: 10px !important;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.18) !important;
-  z-index: 10000 !important;
-  display: none !important;
+  box-shadow: -8px 0 24px rgba(0,0,0,0.12) !important;
+  z-index: 2147483001 !important;
+  transform: translateX(100%) !important;
+  transition: transform 0.25s ease !important;
+  display: flex !important;
   flex-direction: column !important;
 }
-.anavo-seo-panel.anavo-seo-open {
-  display: flex !important;
+.seo-anavo-panel.seo-anavo-open {
+  transform: translateX(0) !important;
 }
 
 /* --- Panel Header --- */
-.anavo-seo-panel-header {
+.seo-anavo-panel-header {
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
@@ -221,7 +276,7 @@
   background: var(--onassis-bg, #ffffff) !important;
   z-index: 1 !important;
 }
-.anavo-seo-panel-title {
+.seo-anavo-panel-title {
   font-size: 14px !important;
   font-weight: 700 !important;
   color: var(--onassis-accent, var(--onassis-text, #1a1a1a)) !important;
@@ -229,7 +284,7 @@
   text-transform: uppercase !important;
   letter-spacing: 0.05em !important;
 }
-.anavo-seo-close {
+.seo-anavo-close-btn {
   background: none !important;
   border: none !important;
   font-size: 18px !important;
@@ -240,22 +295,22 @@
   border-radius: 4px !important;
   transition: background 0.15s !important;
 }
-.anavo-seo-close:hover {
+.seo-anavo-close-btn:hover {
   background: rgba(0,0,0,0.08) !important;
 }
 
 /* --- Panel Body --- */
-.anavo-seo-panel-body {
+.seo-anavo-panel-body {
   padding: 12px 16px 16px !important;
   flex: 1 !important;
   overflow-y: auto !important;
 }
 
 /* --- Info Panel Sections --- */
-.anavo-seo-section {
+.seo-anavo-section {
   margin-bottom: 14px !important;
 }
-.anavo-seo-section-title {
+.seo-anavo-section-title {
   font-size: 11px !important;
   font-weight: 700 !important;
   text-transform: uppercase !important;
@@ -265,12 +320,12 @@
   padding-bottom: 4px !important;
   border-bottom: 1px solid rgba(0,0,0,0.08) !important;
 }
-.anavo-seo-nav-list {
+.seo-anavo-nav-list {
   list-style: none !important;
   margin: 0 !important;
   padding: 0 !important;
 }
-.anavo-seo-nav-list li a {
+.seo-anavo-nav-list li a {
   color: var(--onassis-text, #1a1a1a) !important;
   text-decoration: none !important;
   font-size: 13px !important;
@@ -278,34 +333,34 @@
   padding: 3px 0 !important;
   transition: color 0.15s !important;
 }
-.anavo-seo-nav-list li a:hover {
+.seo-anavo-nav-list li a:hover {
   color: var(--onassis-accent, var(--onassis-heading, #1a1a1a)) !important;
 }
-.anavo-seo-summary {
+.seo-anavo-summary {
   font-size: 13px !important;
   line-height: 1.6 !important;
   color: var(--onassis-text, #1a1a1a) !important;
   margin: 0 !important;
   opacity: 0.85 !important;
 }
-.anavo-seo-contact p {
+.seo-anavo-contact p {
   font-size: 13px !important;
   margin: 3px 0 !important;
   color: var(--onassis-text, #1a1a1a) !important;
 }
-.anavo-seo-contact a {
+.seo-anavo-contact a {
   color: var(--onassis-accent, var(--onassis-text, #1a1a1a)) !important;
   text-decoration: none !important;
 }
 
 /* --- FAQ Panel --- */
-.anavo-seo-faq-item {
+.seo-anavo-faq-item {
   border-bottom: 1px solid rgba(0,0,0,0.08) !important;
 }
-.anavo-seo-faq-item:last-child {
+.seo-anavo-faq-item:last-child {
   border-bottom: none !important;
 }
-.anavo-seo-faq-item summary {
+.seo-anavo-faq-item summary {
   font-size: 13px !important;
   font-weight: 600 !important;
   padding: 10px 0 !important;
@@ -317,8 +372,8 @@
   gap: 8px !important;
   line-height: 1.4 !important;
 }
-.anavo-seo-faq-item summary::-webkit-details-marker { display: none !important; }
-.anavo-seo-faq-item summary::before {
+.seo-anavo-faq-item summary::-webkit-details-marker { display: none !important; }
+.seo-anavo-faq-item summary::before {
   content: '+' !important;
   flex-shrink: 0 !important;
   font-size: 16px !important;
@@ -326,10 +381,10 @@
   color: var(--onassis-accent, var(--onassis-text, #1a1a1a)) !important;
   transition: transform 0.2s !important;
 }
-.anavo-seo-faq-item[open] summary::before {
+.seo-anavo-faq-item[open] summary::before {
   content: '−' !important;
 }
-.anavo-seo-faq-answer {
+.seo-anavo-faq-answer {
   font-size: 13px !important;
   line-height: 1.6 !important;
   padding: 0 0 10px 24px !important;
@@ -338,17 +393,30 @@
 }
 
 /* --- Panel Footer --- */
-.anavo-seo-panel-footer {
-  padding: 8px 16px !important;
-  font-size: 10px !important;
-  text-align: center !important;
+.seo-anavo-panel-footer {
+  padding: 12px 16px !important;
+  font-size: 11px !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 8px !important;
   color: var(--onassis-text, #1a1a1a) !important;
-  opacity: 0.45 !important;
+  opacity: 0.6 !important;
+  letter-spacing: 0.04em !important;
   border-top: 1px solid rgba(0,0,0,0.07) !important;
+}
+.seo-anavo-keyboard-hint {
+  font-family: 'Inconsolata', 'Courier New', monospace !important;
+}
+/* Credit link — dofollow, visible, low-key */
+.secret-link {
+  color: inherit !important;
+  text-decoration: none !important;
+  cursor: default !important;
 }
 
 /* --- Accessibility Controls --- */
-.anavo-seo-a11y {
+.seo-anavo-a11y-bar {
   display: flex !important;
   align-items: center !important;
   gap: 6px !important;
@@ -356,7 +424,7 @@
   border-top: 1px solid rgba(0,0,0,0.07) !important;
   background: var(--onassis-bg, #ffffff) !important;
 }
-.anavo-seo-a11y-label {
+.seo-anavo-a11y-label {
   font-size: 10px !important;
   text-transform: uppercase !important;
   letter-spacing: 0.06em !important;
@@ -365,7 +433,7 @@
   margin-right: 2px !important;
   flex-shrink: 0 !important;
 }
-.anavo-seo-a11y-btn {
+.seo-anavo-a11y-btn {
   background: none !important;
   border: 1px solid rgba(0,0,0,0.2) !important;
   border-radius: 4px !important;
@@ -377,89 +445,89 @@
   line-height: 1.6 !important;
   transition: background 0.15s, color 0.15s !important;
 }
-.anavo-seo-a11y-btn:hover,
-.anavo-seo-a11y-btn.anavo-seo-a11y-active {
+.seo-anavo-a11y-btn:hover,
+.seo-anavo-a11y-btn.seo-anavo-active {
   background: var(--onassis-accent, var(--onassis-text, #1a1a1a)) !important;
   color: var(--onassis-bg, #ffffff) !important;
   border-color: transparent !important;
 }
-.anavo-seo-a11y-divider {
+.seo-anavo-a11y-divider {
   width: 1px !important;
   height: 16px !important;
   background: rgba(0,0,0,0.15) !important;
   margin: 0 2px !important;
 }
 /* Font size — target each text element explicitly */
-.anavo-seo-font-125 .anavo-seo-nav-list li a,
-.anavo-seo-font-125 .anavo-seo-summary,
-.anavo-seo-font-125 .anavo-seo-contact p,
-.anavo-seo-font-125 .anavo-seo-faq-item summary,
-.anavo-seo-font-125 .anavo-seo-faq-answer { font-size: 16px !important; }
-.anavo-seo-font-125 .anavo-seo-section-title { font-size: 13px !important; }
+.seo-anavo-font-125 .seo-anavo-nav-list li a,
+.seo-anavo-font-125 .seo-anavo-summary,
+.seo-anavo-font-125 .seo-anavo-contact p,
+.seo-anavo-font-125 .seo-anavo-faq-item summary,
+.seo-anavo-font-125 .seo-anavo-faq-answer { font-size: 16px !important; }
+.seo-anavo-font-125 .seo-anavo-section-title { font-size: 13px !important; }
 
-.anavo-seo-font-150 .anavo-seo-nav-list li a,
-.anavo-seo-font-150 .anavo-seo-summary,
-.anavo-seo-font-150 .anavo-seo-contact p,
-.anavo-seo-font-150 .anavo-seo-faq-item summary,
-.anavo-seo-font-150 .anavo-seo-faq-answer { font-size: 19px !important; }
-.anavo-seo-font-150 .anavo-seo-section-title { font-size: 15px !important; }
+.seo-anavo-font-150 .seo-anavo-nav-list li a,
+.seo-anavo-font-150 .seo-anavo-summary,
+.seo-anavo-font-150 .seo-anavo-contact p,
+.seo-anavo-font-150 .seo-anavo-faq-item summary,
+.seo-anavo-font-150 .seo-anavo-faq-answer { font-size: 19px !important; }
+.seo-anavo-font-150 .seo-anavo-section-title { font-size: 15px !important; }
 /* High contrast scoped to panel */
-.anavo-seo-high-contrast {
+.seo-anavo-high-contrast {
   background: #000000 !important;
   color: #ffffff !important;
   border-color: #ffffff !important;
 }
-.anavo-seo-high-contrast .anavo-seo-panel-title,
-.anavo-seo-high-contrast .anavo-seo-section-title,
-.anavo-seo-high-contrast .anavo-seo-summary,
-.anavo-seo-high-contrast .anavo-seo-contact p,
-.anavo-seo-high-contrast .anavo-seo-nav-list li a,
-.anavo-seo-high-contrast .anavo-seo-panel-footer,
-.anavo-seo-high-contrast .anavo-seo-a11y-label {
+.seo-anavo-high-contrast .seo-anavo-panel-title,
+.seo-anavo-high-contrast .seo-anavo-section-title,
+.seo-anavo-high-contrast .seo-anavo-summary,
+.seo-anavo-high-contrast .seo-anavo-contact p,
+.seo-anavo-high-contrast .seo-anavo-nav-list li a,
+.seo-anavo-high-contrast .seo-anavo-panel-footer,
+.seo-anavo-high-contrast .seo-anavo-a11y-label {
   color: #ffffff !important;
 }
-.anavo-seo-high-contrast .anavo-seo-panel-header,
-.anavo-seo-high-contrast .anavo-seo-a11y {
+.seo-anavo-high-contrast .seo-anavo-panel-header,
+.seo-anavo-high-contrast .seo-anavo-a11y-bar {
   background: #000000 !important;
 }
-.anavo-seo-high-contrast .anavo-seo-close,
-.anavo-seo-high-contrast .anavo-seo-a11y-btn {
+.seo-anavo-high-contrast .seo-anavo-close-btn,
+.seo-anavo-high-contrast .seo-anavo-a11y-btn {
   color: #ffffff !important;
   border-color: rgba(255,255,255,0.4) !important;
 }
-.anavo-seo-high-contrast .anavo-seo-a11y-btn:hover,
-.anavo-seo-high-contrast .anavo-seo-a11y-btn.anavo-seo-a11y-active {
+.seo-anavo-high-contrast .seo-anavo-a11y-btn:hover,
+.seo-anavo-high-contrast .seo-anavo-a11y-btn.seo-anavo-active {
   background: #ffffff !important;
   color: #000000 !important;
 }
 
 /* --- Accessibility --- */
-.anavo-seo-panel:focus { outline: none !important; }
-.anavo-seo-btn:focus-visible,
-.anavo-seo-close:focus-visible,
-.anavo-seo-a11y-btn:focus-visible,
-.anavo-seo-nav-list li a:focus-visible,
-.anavo-seo-faq-item summary:focus-visible {
+.seo-anavo-panel:focus { outline: none !important; }
+.seo-anavo-trigger-btn:focus-visible,
+.seo-anavo-close-btn:focus-visible,
+.seo-anavo-a11y-btn:focus-visible,
+.seo-anavo-nav-list li a:focus-visible,
+.seo-anavo-faq-item summary:focus-visible {
   outline: 2px solid var(--onassis-accent, var(--onassis-text, #1a1a1a)) !important;
   outline-offset: 2px !important;
 }
 @media (prefers-reduced-motion: reduce) {
-  .anavo-seo-triggers, .anavo-seo-btn, .anavo-seo-panel { transition: none !important; }
+  .seo-anavo-triggers, .seo-anavo-trigger-btn, .seo-anavo-panel { transition: none !important; }
 }
 @media (prefers-color-scheme: dark) {
-  .anavo-seo-panel {
+  .seo-anavo-panel {
     background: #1a1a1a !important;
     color: #f0f0f0 !important;
     border-color: rgba(255,255,255,0.2) !important;
   }
-  .anavo-seo-panel-header, .anavo-seo-a11y { background: #1a1a1a !important; }
-  .anavo-seo-panel-title, .anavo-seo-section-title { color: #f0f0f0 !important; }
-  .anavo-seo-nav-list li a, .anavo-seo-summary,
-  .anavo-seo-contact p, .anavo-seo-panel-footer,
-  .anavo-seo-faq-item summary, .anavo-seo-faq-answer { color: #f0f0f0 !important; }
-  .anavo-seo-close, .anavo-seo-a11y-btn, .anavo-seo-a11y-label { color: #f0f0f0 !important; }
-  .anavo-seo-a11y-btn { border-color: rgba(255,255,255,0.3) !important; }
-  .anavo-seo-btn {
+  .seo-anavo-panel-header, .seo-anavo-a11y-bar { background: #1a1a1a !important; }
+  .seo-anavo-panel-title, .seo-anavo-section-title { color: #f0f0f0 !important; }
+  .seo-anavo-nav-list li a, .seo-anavo-summary,
+  .seo-anavo-contact p, .seo-anavo-panel-footer,
+  .seo-anavo-faq-item summary, .seo-anavo-faq-answer { color: #f0f0f0 !important; }
+  .seo-anavo-close-btn, .seo-anavo-a11y-btn, .seo-anavo-a11y-label { color: #f0f0f0 !important; }
+  .seo-anavo-a11y-btn { border-color: rgba(255,255,255,0.3) !important; }
+  .seo-anavo-trigger-btn {
     background: #1a1a1a !important;
     color: #f0f0f0 !important;
     border-color: rgba(255,255,255,0.4) !important;
@@ -467,32 +535,17 @@
 }
 
 /* --- Responsive --- */
-@media (max-width: 800px) {
-  .anavo-seo-panel {
-    width: calc(100vw - 32px) !important;
-    right: 16px !important;
-    bottom: 72px !important;
-    max-height: 60vh !important;
-  }
-  .anavo-seo-triggers {
+@media (max-width: 480px) {
+  .seo-anavo-panel { width: 100vw !important; }
+  .seo-anavo-triggers {
     right: 16px !important;
     bottom: 16px !important;
-  }
-}
-@media (max-width: 480px) {
-  .anavo-seo-panel {
-    width: calc(100vw - 24px) !important;
-    right: 12px !important;
-  }
-  .anavo-seo-triggers {
-    right: 12px !important;
-    bottom: 12px !important;
   }
 }
 `;
 
     const style = document.createElement('style');
-    style.id = 'anavo-seo-styles';
+    style.id = 'seo-anavo-styles';
     style.textContent = css;
     document.head.appendChild(style);
     dbg('Styles injected');
@@ -504,14 +557,14 @@
 
   function buildTriggers() {
     const wrap = document.createElement('div');
-    wrap.className = 'anavo-seo-triggers';
-    wrap.id = 'anavo-seo-triggers';
+    wrap.className = 'seo-anavo-triggers';
+    wrap.id = 'seo-anavo-triggers';
     wrap.setAttribute('aria-label', 'Page tools');
     wrap.innerHTML = `
-      <button class="anavo-seo-btn" id="anavo-seo-faq-btn"
+      <button class="seo-anavo-trigger-btn" id="seo-anavo-faq-btn"
         aria-label="Frequently Asked Questions — press ?"
         title="FAQ (press ?)">?</button>
-      <button class="anavo-seo-btn" id="anavo-seo-info-btn"
+      <button class="seo-anavo-trigger-btn" id="seo-anavo-info-btn"
         aria-label="Quick Info — press +"
         title="Quick Info (press +)">+</button>
     `;
@@ -521,35 +574,43 @@
 
   function buildPanel(type, titleText, bodyHtml, options = {}) {
     const panel = document.createElement('div');
-    panel.className = 'anavo-seo-panel';
-    panel.id = `anavo-seo-${type}-panel`;
+    // Both the generic class and the per-type class, so the shared selectors
+    // (.seo-anavo-faq-panel / .seo-anavo-info-panel) resolve exactly as they do
+    // in the pasted WIDGETS-SHARED blocks.
+    panel.className = `seo-anavo-panel seo-anavo-${type}-panel`;
+    panel.id = `seo-anavo-${type}-panel`;
     panel.setAttribute('role', 'dialog');
     panel.setAttribute('aria-modal', 'true');
-    panel.setAttribute('aria-labelledby', `anavo-seo-${type}-title`);
+    panel.setAttribute('aria-labelledby', `seo-anavo-${type}-title`);
     panel.setAttribute('tabindex', '-1');
+    panel.setAttribute('aria-hidden', 'true');
+    panel.setAttribute('hidden', '');
 
     const a11yBar = options.accessibility ? `
-      <div class="anavo-seo-a11y" role="toolbar" aria-label="Accessibility controls">
-        <span class="anavo-seo-a11y-label">Text</span>
-        <button class="anavo-seo-a11y-btn anavo-seo-a11y-active" data-font="100" aria-label="Normal font size" aria-pressed="true">A</button>
-        <button class="anavo-seo-a11y-btn" data-font="125" aria-label="Large font size" aria-pressed="false">A+</button>
-        <button class="anavo-seo-a11y-btn" data-font="150" aria-label="Extra large font size" aria-pressed="false">A++</button>
-        <div class="anavo-seo-a11y-divider" aria-hidden="true"></div>
-        <button class="anavo-seo-a11y-btn" data-contrast="toggle" aria-label="Toggle high contrast" aria-pressed="false">◐</button>
+      <div class="seo-anavo-a11y-bar" role="toolbar" aria-label="Accessibility controls">
+        <span class="seo-anavo-a11y-label">Text</span>
+        <button class="seo-anavo-a11y-btn seo-anavo-active" data-font="100" aria-label="Normal font size" aria-pressed="true">A</button>
+        <button class="seo-anavo-a11y-btn" data-font="125" aria-label="Large font size" aria-pressed="false">A+</button>
+        <button class="seo-anavo-a11y-btn" data-font="150" aria-label="Extra large font size" aria-pressed="false">A++</button>
+        <div class="seo-anavo-a11y-divider" aria-hidden="true"></div>
+        <button class="seo-anavo-a11y-btn" data-contrast="toggle" aria-label="Toggle high contrast" aria-pressed="false">◐</button>
       </div>` : '';
 
     panel.innerHTML = `
-      <div class="anavo-seo-panel-header">
-        <h2 class="anavo-seo-panel-title" id="anavo-seo-${type}-title">${titleText}</h2>
-        <button class="anavo-seo-close" aria-label="Close panel">&times;</button>
+      <div class="seo-anavo-panel-header">
+        <h2 class="seo-anavo-panel-title" id="seo-anavo-${type}-title">${titleText}</h2>
+        <button class="seo-anavo-close-btn" aria-label="Close panel">&times;</button>
       </div>
-      <div class="anavo-seo-panel-body">${bodyHtml}</div>
+      <div class="seo-anavo-panel-body">${bodyHtml}</div>
       ${a11yBar}
-      <div class="anavo-seo-panel-footer">Powered by Onassis Web Media</div>
+      <div class="seo-anavo-panel-footer">
+        <span class="seo-anavo-keyboard-hint">${type === 'faq' ? '?' : '+'} to open · Esc to close</span>
+        <a href="https://www.onassiswebmedia.com" class="secret-link"><span class="seo-anavo-credit">Built by Onassis Web Media</span></a>
+      </div>
     `;
 
     document.body.appendChild(panel);
-    panel.querySelector('.anavo-seo-close').addEventListener('click', () => closePanel(type));
+    panel.querySelector('.seo-anavo-close-btn').addEventListener('click', () => closePanel(type));
 
     if (options.accessibility) bindA11yControls(panel);
 
@@ -561,13 +622,13 @@
     panel.querySelectorAll('[data-font]').forEach(btn => {
       btn.addEventListener('click', () => {
         const size = btn.dataset.font;
-        panel.classList.remove('anavo-seo-font-125', 'anavo-seo-font-150');
-        if (size !== '100') panel.classList.add(`anavo-seo-font-${size}`);
+        panel.classList.remove('seo-anavo-font-125', 'seo-anavo-font-150');
+        if (size !== '100') panel.classList.add(`seo-anavo-font-${size}`);
         panel.querySelectorAll('[data-font]').forEach(b => {
-          b.classList.remove('anavo-seo-a11y-active');
+          b.classList.remove('seo-anavo-active');
           b.setAttribute('aria-pressed', 'false');
         });
-        btn.classList.add('anavo-seo-a11y-active');
+        btn.classList.add('seo-anavo-active');
         btn.setAttribute('aria-pressed', 'true');
       });
     });
@@ -576,8 +637,8 @@
     const contrastBtn = panel.querySelector('[data-contrast]');
     if (contrastBtn) {
       contrastBtn.addEventListener('click', () => {
-        const on = panel.classList.toggle('anavo-seo-high-contrast');
-        contrastBtn.classList.toggle('anavo-seo-a11y-active', on);
+        const on = panel.classList.toggle('seo-anavo-high-contrast');
+        contrastBtn.classList.toggle('seo-anavo-active', on);
         contrastBtn.setAttribute('aria-pressed', String(on));
       });
     }
@@ -594,9 +655,9 @@
         return `<li><a href="#${id}">${h.textContent.trim()}</a></li>`;
       }).join('');
       navHtml = `
-        <div class="anavo-seo-section">
-          <p class="anavo-seo-section-title">On This Page</p>
-          <ul class="anavo-seo-nav-list">${items}</ul>
+        <div class="seo-anavo-section">
+          <p class="seo-anavo-section-title">On This Page</p>
+          <ul class="seo-anavo-nav-list">${items}</ul>
         </div>`;
     }
 
@@ -605,8 +666,8 @@
     let summaryHtml = '';
     if (summary) {
       summaryHtml = `
-        <div class="anavo-seo-section">
-          <p class="anavo-seo-summary">${summary}</p>
+        <div class="seo-anavo-section">
+          <p class="seo-anavo-summary">${summary}</p>
         </div>`;
     }
 
@@ -624,9 +685,9 @@
       }
       if (parts.length) {
         contactHtml = `
-          <div class="anavo-seo-section">
-            <p class="anavo-seo-section-title">Contact</p>
-            <div class="anavo-seo-contact">${parts.join('')}</div>
+          <div class="seo-anavo-section">
+            <p class="seo-anavo-section-title">Contact</p>
+            <div class="seo-anavo-contact">${parts.join('')}</div>
           </div>`;
       }
     }
@@ -640,9 +701,9 @@
       return '<p style="font-size:13px;opacity:0.7">No FAQs available for this page.</p>';
     }
     return faqItems.map(item => `
-      <details class="anavo-seo-faq-item">
+      <details class="seo-anavo-faq-item">
         <summary>${item.question || item.q || ''}</summary>
-        <div class="anavo-seo-faq-answer">${item.answer || item.a || ''}</div>
+        <div class="seo-anavo-faq-answer">${item.answer || item.a || ''}</div>
       </details>
     `).join('');
   }
@@ -658,10 +719,10 @@
 
   // aria-live region for screen reader announcements
   function getOrCreateLiveRegion() {
-    let el = document.getElementById('anavo-seo-live');
+    let el = document.getElementById('seo-anavo-live');
     if (!el) {
       el = document.createElement('div');
-      el.id = 'anavo-seo-live';
+      el.id = 'seo-anavo-live';
       el.setAttribute('aria-live', 'polite');
       el.setAttribute('aria-atomic', 'true');
       el.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;';
@@ -687,7 +748,7 @@
 
     function handler(e) {
       if (e.key !== 'Tab') return;
-      if (!panel.classList.contains('anavo-seo-open')) {
+      if (!panel.classList.contains('seo-anavo-open')) {
         panel.removeEventListener('keydown', handler);
         return;
       }
@@ -700,19 +761,42 @@
     panel.addEventListener('keydown', handler);
   }
 
+  // Overlay behind the drawer — created lazily, clicking it closes.
+  function ensureOverlay() {
+    let o = document.querySelector('.seo-anavo-panel-overlay');
+    if (!o) {
+      o = document.createElement('div');
+      o.className = 'seo-anavo-panel-overlay';
+      o.addEventListener('click', () => { closePanel('info'); closePanel('faq'); });
+      document.body.appendChild(o);
+    }
+    return o;
+  }
+
   function openPanel(type) {
-    const panel = document.getElementById(`anavo-seo-${type}-panel`);
-    if (!panel) return;
+    const panel = document.getElementById(`seo-anavo-${type}-panel`);
+    // HARDENING #3: only ever drive OUR panels. A foreign element that happens
+    // to share the id can't get hold of the modal machinery.
+    if (!panel || !panel.classList.contains('seo-anavo-panel')) return;
 
     // close the other panel silently
     const other = type === 'info' ? 'faq' : 'info';
-    const otherPanel = document.getElementById(`anavo-seo-${other}-panel`);
-    if (otherPanel) otherPanel.classList.remove('anavo-seo-open');
+    const otherPanel = document.getElementById(`seo-anavo-${other}-panel`);
+    if (otherPanel) {
+      otherPanel.classList.remove('seo-anavo-open');
+      otherPanel.setAttribute('aria-hidden', 'true');
+      otherPanel.setAttribute('hidden', '');
+    }
 
-    panel.classList.add('anavo-seo-open');
+    ensureOverlay().classList.add('seo-anavo-open');
+    panel.removeAttribute('hidden');
+    panel.setAttribute('aria-hidden', 'false');
+    // next frame, so the transform transition actually runs
+    requestAnimationFrame(() => panel.classList.add('seo-anavo-open'));
+    document.body.style.overflow = 'hidden';
     _anyOpen = true;
 
-    if (_triggerWrap) _triggerWrap.classList.remove('anavo-seo-faded');
+    if (_triggerWrap) _triggerWrap.classList.remove('seo-anavo-faded');
     if (_initialTimer) { clearTimeout(_initialTimer); _initialTimer = null; }
 
     // Focus first focusable element inside panel
@@ -722,28 +806,41 @@
 
     trapFocus(panel);
 
-    const label = panel.querySelector('.anavo-seo-panel-title');
+    const label = panel.querySelector('.seo-anavo-panel-title');
     if (label) announce(label.textContent + ' opened');
 
     dbg(`Panel opened: ${type}`);
   }
 
+  // HARDENING #2: fully idempotent teardown. Always drops the overlay and
+  // restores scroll, so a panel can never leave the page locked or frozen,
+  // even if called twice or out of order.
   function closePanel(type) {
-    const panel = document.getElementById(`anavo-seo-${type}-panel`);
+    const panel = document.getElementById(`seo-anavo-${type}-panel`);
     if (!panel) return;
-    panel.classList.remove('anavo-seo-open');
+    panel.classList.remove('seo-anavo-open');
+    panel.setAttribute('aria-hidden', 'true');
+    setTimeout(() => {
+      if (!panel.classList.contains('seo-anavo-open')) panel.setAttribute('hidden', '');
+    }, 280);
 
     const other = type === 'info' ? 'faq' : 'info';
-    const otherPanel = document.getElementById(`anavo-seo-${other}-panel`);
-    _anyOpen = !!(otherPanel && otherPanel.classList.contains('anavo-seo-open'));
+    const otherPanel = document.getElementById(`seo-anavo-${other}-panel`);
+    _anyOpen = !!(otherPanel && otherPanel.classList.contains('seo-anavo-open'));
+
+    if (!_anyOpen) {
+      const o = document.querySelector('.seo-anavo-panel-overlay');
+      if (o) o.classList.remove('seo-anavo-open');
+      document.body.style.overflow = '';
+    }
 
     if (!_anyOpen && _initialDone && _triggerWrap) {
-      _triggerWrap.classList.add('anavo-seo-faded');
+      _triggerWrap.classList.add('seo-anavo-faded');
     }
 
     announce('Panel closed');
     // Return focus to trigger button
-    const btn = document.getElementById(`anavo-seo-${type === 'info' ? 'info' : 'faq'}-btn`);
+    const btn = document.getElementById(`seo-anavo-${type === 'info' ? 'info' : 'faq'}-btn`);
     if (btn) btn.focus();
 
     dbg(`Panel closed: ${type}`);
@@ -759,7 +856,7 @@
     // Initial: show for fadeDelay ms, then fade
     _initialTimer = setTimeout(() => {
       if (!_anyOpen) {
-        _triggerWrap.classList.add('anavo-seo-faded');
+        _triggerWrap.classList.add('seo-anavo-faded');
         _initialDone = true;
         dbg('Triggers faded after initial delay');
         initDwellObserver();
@@ -775,11 +872,11 @@
       if (dwellTimer) { clearTimeout(dwellTimer); dwellTimer = null; }
       dwellTimer = setTimeout(() => {
         if (!_anyOpen && _triggerWrap) {
-          _triggerWrap.classList.remove('anavo-seo-faded');
+          _triggerWrap.classList.remove('seo-anavo-faded');
           dbg('Triggers reappeared after scroll idle');
           setTimeout(() => {
             if (!_anyOpen && _triggerWrap) {
-              _triggerWrap.classList.add('anavo-seo-faded');
+              _triggerWrap.classList.add('seo-anavo-faded');
             }
           }, config.fadeDelay);
         }
@@ -802,14 +899,14 @@
 
       if (e.key === '+' || e.key === '=') {
         e.preventDefault();
-        const panel = document.getElementById('anavo-seo-info-panel');
-        if (panel && panel.classList.contains('anavo-seo-open')) closePanel('info');
+        const panel = document.getElementById('seo-anavo-info-panel');
+        if (panel && panel.classList.contains('seo-anavo-open')) closePanel('info');
         else openPanel('info');
       }
       if (e.key === '?') {
         e.preventDefault();
-        const panel = document.getElementById('anavo-seo-faq-panel');
-        if (panel && panel.classList.contains('anavo-seo-open')) closePanel('faq');
+        const panel = document.getElementById('seo-anavo-faq-panel');
+        if (panel && panel.classList.contains('seo-anavo-open')) closePanel('faq');
         else openPanel('faq');
       }
       if (e.key === 'Escape') {
@@ -826,7 +923,7 @@
 
   function injectFaqSchema(faqItems) {
     if (!faqItems || !faqItems.length) return;
-    const existing = document.getElementById('anavo-seo-faq-schema');
+    const existing = document.getElementById('seo-anavo-faq-schema');
     if (existing) existing.remove();
 
     const schema = {
@@ -841,7 +938,7 @@
 
     const s = document.createElement('script');
     s.type = 'application/ld+json';
-    s.id = 'anavo-seo-faq-schema';
+    s.id = 'seo-anavo-faq-schema';
     s.textContent = JSON.stringify(schema);
     document.head.appendChild(s);
     dbg('FAQ schema injected', faqItems.length + ' items');
@@ -872,7 +969,7 @@
       await lm.init();
 
       if (!lm.isLicensed) {
-        const triggers = document.getElementById('anavo-seo-triggers');
+        const triggers = document.getElementById('seo-anavo-triggers');
         if (triggers) lm.insertWatermark(triggers);
       }
     } catch (e) {
@@ -922,14 +1019,14 @@
     buildPanel('faq', 'Frequently Asked Questions', faqBody);
 
     // Wire trigger buttons
-    document.getElementById('anavo-seo-info-btn').addEventListener('click', () => {
-      const panel = document.getElementById('anavo-seo-info-panel');
-      if (panel && panel.classList.contains('anavo-seo-open')) closePanel('info');
+    document.getElementById('seo-anavo-info-btn').addEventListener('click', () => {
+      const panel = document.getElementById('seo-anavo-info-panel');
+      if (panel && panel.classList.contains('seo-anavo-open')) closePanel('info');
       else openPanel('info');
     });
-    document.getElementById('anavo-seo-faq-btn').addEventListener('click', () => {
-      const panel = document.getElementById('anavo-seo-faq-panel');
-      if (panel && panel.classList.contains('anavo-seo-open')) closePanel('faq');
+    document.getElementById('seo-anavo-faq-btn').addEventListener('click', () => {
+      const panel = document.getElementById('seo-anavo-faq-panel');
+      if (panel && panel.classList.contains('seo-anavo-open')) closePanel('faq');
       else openPanel('faq');
     });
 
@@ -948,5 +1045,25 @@
   } else {
     init();
   }
+
+  // Namespaced globals — seoAnavo*, NOT anavo* (collision-proof), same surface
+  // the pasted WIDGETS-SHARED blocks expose so per-page HTML can drive the
+  // plugin's panels interchangeably.
+  window.seoAnavoOpen  = function (id) {
+    const el = typeof id === 'string' ? document.getElementById(id) : id;
+    if (!el || !el.classList.contains('seo-anavo-panel')) return;
+    openPanel(el.classList.contains('seo-anavo-faq-panel') ? 'faq' : 'info');
+  };
+  window.seoAnavoClose = function () { closePanel('info'); closePanel('faq'); };
+  window.seoAnavoFont  = function (scale) {
+    document.querySelectorAll('.seo-anavo-panel').forEach(p => {
+      p.classList.remove('seo-anavo-font-125', 'seo-anavo-font-150');
+      if (scale === 125 || scale === '125') p.classList.add('seo-anavo-font-125');
+      if (scale === 150 || scale === '150') p.classList.add('seo-anavo-font-150');
+    });
+  };
+  window.seoAnavoHC = function () {
+    document.querySelectorAll('.seo-anavo-panel').forEach(p => p.classList.toggle('seo-anavo-high-contrast'));
+  };
 
 })();
