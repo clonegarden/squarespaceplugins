@@ -318,23 +318,23 @@
 
 :root {
   /* Extract and match site colors */
-  --site-font: 'creato-display-2ezfrg', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --site-text-color: #000;
-  --site-bg-color: #fff;
-  --site-accent-color: rgba(0, 0, 0, 0.8);
+  --onassis-site-font: 'creato-display-2ezfrg', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --onassis-site-text-color: #000;
+  --onassis-site-bg-color: #fff;
+  --onassis-site-accent-color: rgba(0, 0, 0, 0.8);
 
   /* Accessibility variables */
-  --modal-font-size: 16px;
-  --modal-contrast: normal;
+  --onassis-modal-font-size: 16px;
+  --onassis-modal-contrast: normal;
 }
 
 /* Font size variations */
 body.modal-font-large {
-  --modal-font-size: 20px;
+  --onassis-modal-font-size: 20px;
 }
 
 body.modal-font-xlarge {
-  --modal-font-size: 24px;
+  --onassis-modal-font-size: 24px;
 }
 
 /* High contrast mode */
@@ -364,7 +364,7 @@ body.modal-high-contrast .quick-info-modal a {
   height: 100%;
   align-items: center;
   justify-content: center;
-  font-family: var(--site-font);
+  font-family: var(--onassis-site-font);
 }
 
 .faq-modal.active {
@@ -383,8 +383,8 @@ body.modal-high-contrast .quick-info-modal a {
 
 .faq-modal .modal-content {
   position: relative;
-  background: var(--site-bg-color);
-  color: var(--site-text-color);
+  background: var(--onassis-site-bg-color);
+  color: var(--onassis-site-text-color);
   padding: 40px;
   border-radius: 12px;
   max-width: 700px;
@@ -394,7 +394,7 @@ body.modal-high-contrast .quick-info-modal a {
   box-shadow: 0 10px 40px rgba(0,0,0,0.3);
   z-index: 10001;
   animation: slideIn 0.3s ease;
-  font-size: var(--modal-font-size);
+  font-size: var(--onassis-modal-font-size);
 }
 
 /* Respect reduced motion preference */
@@ -424,7 +424,7 @@ body.modal-high-contrast .quick-info-modal a {
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--site-text-color);
+  color: var(--onassis-site-text-color);
   opacity: 0.6;
   transition: opacity 0.2s;
   line-height: 1;
@@ -436,23 +436,23 @@ body.modal-high-contrast .quick-info-modal a {
 .faq-modal .close-btn:hover,
 .faq-modal .close-btn:focus {
   opacity: 1;
-  outline: 2px solid var(--site-accent-color);
+  outline: 2px solid var(--onassis-site-accent-color);
 }
 
 .faq-modal h2 {
   margin-top: 0;
   margin-bottom: 30px;
-  font-size: calc(var(--modal-font-size) * 1.6);
-  color: var(--site-text-color);
+  font-size: calc(var(--onassis-modal-font-size) * 1.6);
+  color: var(--onassis-site-text-color);
   padding-bottom: 15px;
-  border-bottom: 2px solid var(--site-text-color);
+  border-bottom: 2px solid var(--onassis-site-text-color);
 }
 
 .faq-modal h3 {
-  font-size: calc(var(--modal-font-size) * 1.125);
+  font-size: calc(var(--onassis-modal-font-size) * 1.125);
   margin-top: 0;
   margin-bottom: 12px;
-  color: var(--site-text-color);
+  color: var(--onassis-site-text-color);
   font-weight: 600;
 }
 
@@ -485,7 +485,7 @@ body.modal-high-contrast .quick-info-modal a {
   height: 100%;
   align-items: center;
   justify-content: center;
-  font-family: var(--site-font);
+  font-family: var(--onassis-site-font);
 }
 
 .quick-info-modal.active {
@@ -504,8 +504,8 @@ body.modal-high-contrast .quick-info-modal a {
 
 .quick-info-modal .modal-content {
   position: relative;
-  background: var(--site-bg-color);
-  color: var(--site-text-color);
+  background: var(--onassis-site-bg-color);
+  color: var(--onassis-site-text-color);
   padding: 40px;
   border-radius: 12px;
   max-width: 700px;
@@ -515,7 +515,7 @@ body.modal-high-contrast .quick-info-modal a {
   box-shadow: 0 10px 40px rgba(0,0,0,0.3);
   z-index: 10001;
   animation: slideIn 0.3s ease;
-  font-size: var(--modal-font-size);
+  font-size: var(--onassis-modal-font-size);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -533,7 +533,7 @@ body.modal-high-contrast .quick-info-modal a {
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--site-text-color);
+  color: var(--onassis-site-text-color);
   opacity: 0.6;
   transition: opacity 0.2s;
   line-height: 1;
@@ -545,7 +545,7 @@ body.modal-high-contrast .quick-info-modal a {
 .quick-info-modal .close-btn:hover,
 .quick-info-modal .close-btn:focus {
   opacity: 1;
-  outline: 2px solid var(--site-accent-color);
+  outline: 2px solid var(--onassis-site-accent-color);
 }
 
 /* Accessibility Controls */
@@ -575,12 +575,12 @@ body.modal-high-contrast .quick-info-modal a {
 .contrast-btn:hover,
 .contrast-btn:focus {
   background: rgba(0, 0, 0, 0.2);
-  outline: 2px solid var(--site-accent-color);
+  outline: 2px solid var(--onassis-site-accent-color);
 }
 
 .font-size-btn.active {
-  background: var(--site-text-color);
-  color: var(--site-bg-color);
+  background: var(--onassis-site-text-color);
+  color: var(--onassis-site-bg-color);
 }
 
 /* Modal Sections */
@@ -595,13 +595,13 @@ body.modal-high-contrast .quick-info-modal a {
 .modal-section h2 {
   margin-top: 0;
   margin-bottom: 30px;
-  font-size: calc(var(--modal-font-size) * 1.6);
+  font-size: calc(var(--onassis-modal-font-size) * 1.6);
   padding-bottom: 15px;
-  border-bottom: 2px solid var(--site-text-color);
+  border-bottom: 2px solid var(--onassis-site-text-color);
 }
 
 .modal-section h3 {
-  font-size: calc(var(--modal-font-size) * 1.125);
+  font-size: calc(var(--onassis-modal-font-size) * 1.125);
   margin-top: 0;
   margin-bottom: 12px;
   font-weight: 600;
@@ -638,7 +638,7 @@ body.modal-high-contrast .quick-info-modal a {
   content: "✓";
   position: absolute;
   left: 0;
-  color: var(--site-text-color);
+  color: var(--onassis-site-text-color);
   font-weight: bold;
 }
 
@@ -646,7 +646,7 @@ body.modal-high-contrast .quick-info-modal a {
   content: "•";
   position: absolute;
   left: 8px;
-  color: var(--site-text-color);
+  color: var(--onassis-site-text-color);
 }
 
 /* Page Sections Navigation */
@@ -675,7 +675,7 @@ body.modal-high-contrast .quick-info-modal a {
 
 /* Links */
 .modal-content a {
-  color: var(--site-text-color);
+  color: var(--onassis-site-text-color);
   text-decoration: none;
   transition: opacity 0.2s;
   border-bottom: 1px solid currentColor;
@@ -684,7 +684,7 @@ body.modal-high-contrast .quick-info-modal a {
 .modal-content a:hover,
 .modal-content a:focus {
   opacity: 0.7;
-  outline: 2px solid var(--site-accent-color);
+  outline: 2px solid var(--onassis-site-accent-color);
 }
 
 /* Visual Guide / Image Grid */
@@ -711,7 +711,7 @@ body.modal-high-contrast .quick-info-modal a {
 }
 
 .image-grid figcaption {
-  font-size: calc(var(--modal-font-size) * 0.875);
+  font-size: calc(var(--onassis-modal-font-size) * 0.875);
   margin-top: 8px;
   text-align: center;
   font-style: italic;
@@ -731,8 +731,8 @@ body.modal-high-contrast .quick-info-modal a {
   display: inline-block;
   margin-top: 12px;
   padding: 12px 30px;
-  background: var(--site-text-color);
-  color: var(--site-bg-color) !important;
+  background: var(--onassis-site-text-color);
+  color: var(--onassis-site-bg-color) !important;
   text-decoration: none !important;
   border: none !important;
   border-radius: 30px;
@@ -746,7 +746,7 @@ body.modal-high-contrast .quick-info-modal a {
   opacity: 0.8;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  outline: 2px solid var(--site-accent-color);
+  outline: 2px solid var(--onassis-site-accent-color);
 }
 
 /* Modal Footer */
@@ -755,7 +755,7 @@ body.modal-high-contrast .quick-info-modal a {
   padding-top: 20px;
   margin-top: 20px;
   border-top: 1px solid rgba(0, 0, 0, 0.1);
-  font-size: calc(var(--modal-font-size) * 0.875);
+  font-size: calc(var(--onassis-modal-font-size) * 0.875);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -829,12 +829,12 @@ body.modal-high-contrast .quick-info-modal a {
 
 .shortcut-btn {
   padding: 14px 20px;
-  background: var(--site-text-color);
-  color: var(--site-bg-color);
+  background: var(--onassis-site-text-color);
+  color: var(--onassis-site-bg-color);
   border: none;
   border-radius: 30px;
   cursor: pointer;
-  font-family: var(--site-font);
+  font-family: var(--onassis-site-font);
   font-size: 14px;
   font-weight: 600;
   box-shadow: 0 4px 15px rgba(0,0,0,0.3);
@@ -851,7 +851,7 @@ body.modal-high-contrast .quick-info-modal a {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0,0,0,0.4);
   opacity: 0.9;
-  outline: 2px solid var(--site-accent-color);
+  outline: 2px solid var(--onassis-site-accent-color);
 }
 
 .shortcut-btn .icon {
@@ -877,13 +877,13 @@ body.modal-high-contrast .quick-info-modal a {
 
   .faq-modal h2,
   .quick-info-modal .modal-section h2 {
-    font-size: calc(var(--modal-font-size) * 1.375);
+    font-size: calc(var(--onassis-modal-font-size) * 1.375);
     margin-bottom: 20px;
   }
 
   .faq-modal h3,
   .quick-info-modal .modal-section h3 {
-    font-size: calc(var(--modal-font-size) * 1.0625);
+    font-size: calc(var(--onassis-modal-font-size) * 1.0625);
   }
 
   .quick-nav,
@@ -932,8 +932,8 @@ body.modal-high-contrast .quick-info-modal a {
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --site-bg-color: #1a1a1a;
-    --site-text-color: #fff;
+    --onassis-site-bg-color: #1a1a1a;
+    --onassis-site-text-color: #fff;
   }
 }
 `;

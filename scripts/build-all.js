@@ -11,13 +11,13 @@ const chalk = require('chalk');
 const ora = require('ora');
 
 async function buildAll() {
-  const rootDir = path.join(__dirname, '. .');
+  const rootDir = path.join(__dirname, '..');
 
-  // Find all plugin directories (those containing a . js file with same name as directory)
+  // Find all plugin directories (those containing a .js file with same name as directory)
   const pluginDirs = fs
     .readdirSync(rootDir, { withFileTypes: true })
     .filter(dirent => dirent.isDirectory())
-    .filter(dirent => ! ['node_modules', 'scripts', 'docs', '. git'].includes(dirent.name))
+    .filter(dirent => !['node_modules', 'scripts', 'docs', '.git'].includes(dirent.name))
     .map(dirent => dirent.name);
 
   console.log(chalk.blue. bold('\n🔨 Building all plugins.. .\n'));

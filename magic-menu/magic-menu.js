@@ -173,7 +173,7 @@
 
     var css = [
       /* ── nav container ── */
-      '.anavo-mm-nav {',
+      '.anavo-magic-menu-nav {',
       '  position: fixed !important;',
       '  bottom: ' + CFG.bottomOffset + 'px !important;',
       '  left: 50% !important;',
@@ -183,7 +183,7 @@
       '}',
 
       /* ── list ── */
-      '.anavo-mm-list {',
+      '.anavo-magic-menu-list {',
       '  display: flex !important;',
       '  position: relative !important;',
       '  list-style: none !important;',
@@ -197,7 +197,7 @@
       '}',
 
       /* ── item ── */
-      '.anavo-mm-item {',
+      '.anavo-magic-menu-item {',
       '  position: relative !important;',
       '  width: ' + itemW + 'px !important;',
       '  flex-shrink: 0 !important;',
@@ -208,7 +208,7 @@
       '}',
 
       /* ── link ── */
-      '.anavo-mm-link {',
+      '.anavo-magic-menu-link {',
       '  display: flex !important;',
       '  flex-direction: column !important;',
       '  align-items: center !important;',
@@ -222,7 +222,7 @@
       '}',
 
       /* ── icon wrapper ── */
-      '.anavo-mm-icon {',
+      '.anavo-magic-menu-icon {',
       '  position: relative !important;',
       '  display: flex !important;',
       '  align-items: center !important;',
@@ -237,7 +237,7 @@
       '}',
 
       /* glow pseudo-element behind icon */
-      '.anavo-mm-icon::before {',
+      '.anavo-magic-menu-icon::before {',
       '  content: "" !important;',
       '  position: absolute !important;',
       '  top: 50% !important;',
@@ -254,18 +254,18 @@
       '}',
 
       /* ── active icon state ── */
-      '.anavo-mm-item.anavo-mm-active .anavo-mm-icon {',
+      '.anavo-magic-menu-item.anavo-magic-menu-active .anavo-magic-menu-icon {',
       '  background: var(--item-color, #29fd53) !important;',
       '  color: #fff !important;',
       '  transform: translateY(-27px) !important;',
       '}',
 
-      '.anavo-mm-item.anavo-mm-active .anavo-mm-icon::before {',
+      '.anavo-magic-menu-item.anavo-magic-menu-active .anavo-magic-menu-icon::before {',
       '  opacity: 0.5 !important;',
       '}',
 
       /* ── label ── */
-      '.anavo-mm-label {',
+      '.anavo-magic-menu-label {',
       '  font-size: 10px !important;',
       '  font-family: inherit !important;',
       '  font-weight: 500 !important;',
@@ -280,13 +280,13 @@
       '}',
 
       /* active label */
-      '.anavo-mm-item.anavo-mm-active .anavo-mm-label {',
+      '.anavo-magic-menu-item.anavo-magic-menu-active .anavo-magic-menu-label {',
       '  opacity: 1 !important;',
       '  transform: translateY(0) !important;',
       '}',
 
       /* ── indicator circle ── */
-      '.anavo-mm-indicator {',
+      '.anavo-magic-menu-indicator {',
       '  position: absolute !important;',
       '  top: ' + indTop + 'px !important;',
       '  width: ' + indSize + 'px !important;',
@@ -301,7 +301,7 @@
       '}',
 
       /* concave left shoulder */
-      '.anavo-mm-indicator::before {',
+      '.anavo-magic-menu-indicator::before {',
       '  content: "" !important;',
       '  position: absolute !important;',
       '  top: 50% !important;',
@@ -314,7 +314,7 @@
       '}',
 
       /* concave right shoulder */
-      '.anavo-mm-indicator::after {',
+      '.anavo-magic-menu-indicator::after {',
       '  content: "" !important;',
       '  position: absolute !important;',
       '  top: 50% !important;',
@@ -327,8 +327,12 @@
       '}',
     ].join('\n');
 
+    // Remove existing before re-injecting (re-entrant safe)
+    var existing = document.getElementById('anavo-magic-menu-styles');
+    if (existing) existing.remove();
+
     var style = document.createElement('style');
-    style.id  = 'anavo-mm-styles';
+    style.id  = 'anavo-magic-menu-styles';
     style.textContent = css;
     document.head.appendChild(style);
   }
@@ -341,13 +345,13 @@
 
     /* nav */
     var nav = document.createElement('nav');
-    nav.className    = 'anavo-mm-nav';
+    nav.className    = 'anavo-magic-menu-nav';
     nav.setAttribute('role', 'navigation');
     nav.setAttribute('aria-label', 'Main navigation');
 
     /* ul */
     var ul = document.createElement('ul');
-    ul.className   = 'anavo-mm-list';
+    ul.className   = 'anavo-magic-menu-list';
     ul.style.cssText = 'width:' + totalW + 'px!important;';
 
     /* items */
@@ -360,23 +364,23 @@
       var color = CFG.colors[i] || '#29fd53';
 
       var li = document.createElement('li');
-      li.className = 'anavo-mm-item' + (i === activeIdx ? ' anavo-mm-active' : '');
+      li.className = 'anavo-magic-menu-item' + (i === activeIdx ? ' anavo-magic-menu-active' : '');
       li.style.cssText = '--item-color:' + color + ';';
 
       var a = document.createElement('a');
-      a.className = 'anavo-mm-link';
+      a.className = 'anavo-magic-menu-link';
       a.href      = link;
       a.setAttribute('aria-label', label);
 
       var iconSpan = document.createElement('span');
-      iconSpan.className   = 'anavo-mm-icon';
+      iconSpan.className   = 'anavo-magic-menu-icon';
       iconSpan.innerHTML   = _renderIcon(icon);
 
       a.appendChild(iconSpan);
 
       if (CFG.showLabels) {
         var labelSpan = document.createElement('span');
-        labelSpan.className   = 'anavo-mm-label';
+        labelSpan.className   = 'anavo-magic-menu-label';
         labelSpan.textContent = label;
         a.appendChild(labelSpan);
       }
@@ -388,7 +392,7 @@
 
     /* indicator */
     var indicator = document.createElement('div');
-    indicator.className = 'anavo-mm-indicator';
+    indicator.className = 'anavo-magic-menu-indicator';
     /* initial position */
     indicator.style.transform = 'translateX(' + (activeIdx * CFG.itemSize) + 'px)';
     ul.appendChild(indicator);
@@ -397,16 +401,16 @@
 
     /* ── click handling ── */
     liItems.forEach(function (li, idx) {
-      li.querySelector('.anavo-mm-link').addEventListener('click', function (e) {
+      li.querySelector('.anavo-magic-menu-link').addEventListener('click', function (e) {
         var href = CFG.links[idx] || '#';
 
         /* remove active from all */
         liItems.forEach(function (el) {
-          el.classList.remove('anavo-mm-active');
+          el.classList.remove('anavo-magic-menu-active');
         });
 
         /* activate this item */
-        li.classList.add('anavo-mm-active');
+        li.classList.add('anavo-magic-menu-active');
 
         /* slide indicator */
         indicator.style.transform = 'translateX(' + (idx * CFG.itemSize) + 'px)';

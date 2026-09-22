@@ -150,16 +150,16 @@
     const styles = document.createElement('style');
     styles.id = styleId;
     styles.textContent = [
-      '.anavo-lr-wrapper {',
+      '.anavo-letter-rain-wrapper {',
       '  display: block;',
       '  position: relative;',
       '  box-sizing: border-box;',
       '}',
-      '.anavo-lr-letter {',
+      '.anavo-letter-rain-letter {',
       '  display: inline-block;',
       '  white-space: pre;',
       '}',
-      '.anavo-lr-flying {',
+      '.anavo-letter-rain-flying {',
       '  position: fixed;',
       '  pointer-events: none;',
       '  z-index: 9999;',
@@ -167,7 +167,7 @@
       '  white-space: pre;',
       '  will-change: transform, opacity;',
       '}',
-      '.anavo-lr-target-letter {',
+      '.anavo-letter-rain-target-letter {',
       '  display: inline-block;',
       '  white-space: pre;',
       '}',
@@ -248,11 +248,11 @@
     }
 
     // Idempotency: skip if already initialised
-    if (sourceEl.getAttribute('data-anavo-lr-init') === 'true') {
+    if (sourceEl.getAttribute('data-anavo-letter-rain-init') === 'true') {
       dbg('Already initialized, skipping.');
       return;
     }
-    sourceEl.setAttribute('data-anavo-lr-init', 'true');
+    sourceEl.setAttribute('data-anavo-letter-rain-init', 'true');
 
     injectStyles();
 
@@ -273,7 +273,7 @@
 
     // ---- Build wrapper ----
     const wrapper = document.createElement('div');
-    wrapper.className = 'anavo-lr-wrapper';
+    wrapper.className = 'anavo-letter-rain-wrapper';
     wrapper.style.width    = sourceRect.width  + 'px';
     wrapper.style.minHeight = sourceRect.height + 'px';
     copyBoxStyles(sourceEl, wrapper);
@@ -287,7 +287,7 @@
     const letters = originalText.split('');
     for (let i = 0; i < letters.length; i++) {
       const span = document.createElement('span');
-      span.className = 'anavo-lr-letter';
+      span.className = 'anavo-letter-rain-letter';
       span.textContent = letters[i];
       copyTypographyStyles(sourceEl, span);
       wrapper.appendChild(span);
@@ -368,7 +368,7 @@
     const phraseChars  = newPhrase.split('');
     const targetSpans  = phraseChars.map(function (ch) {
       const span = document.createElement('span');
-      span.className   = 'anavo-lr-target-letter';
+      span.className   = 'anavo-letter-rain-target-letter';
       span.textContent = ch;
       if (letterSpans.length > 0) copyTypographyStyles(letterSpans[0], span);
       span.style.opacity = '0';
@@ -392,7 +392,7 @@
         for (let i = 0; i < originalText.length; i++) {
           const r   = sourceRects[i];
           const fly = document.createElement('span');
-          fly.className   = 'anavo-lr-flying';
+          fly.className   = 'anavo-letter-rain-flying';
           fly.textContent = letterSpans[i].textContent;
           copyTypographyStyles(letterSpans[i], fly);
           fly.style.left    = r.left + 'px';

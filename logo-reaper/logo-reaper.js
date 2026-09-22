@@ -184,9 +184,9 @@
       licenseReady = true;
 
       if (!isLicensed) {
-        if (!rootEl.querySelector('.anavo-lr-watermark')) {
+        if (!rootEl.querySelector('.anavo-logo-reaper-watermark')) {
           const wm = document.createElement('div');
-          wm.className = 'anavo-lr-watermark';
+          wm.className = 'anavo-logo-reaper-watermark';
           wm.style.cssText =
             'position:absolute;bottom:4px;right:6px;font-size:10px;font-family:system-ui,sans-serif;color:rgba(0,0,0,0.4);pointer-events:none;z-index:10;';
           wm.textContent = '⚠️ Unlicensed – anavo.tech';
@@ -223,25 +223,25 @@
   const particleColors = ['#e74c3c', '#e67e22', '#f1c40f', '#2ecc71', '#3498db', '#9b59b6'];
 
   function injectStyles() {
-    if (document.getElementById('anavo-lr-styles')) return;
+    if (document.getElementById('anavo-logo-reaper-styles')) return;
 
     const style = document.createElement('style');
-    style.id = 'anavo-lr-styles';
+    style.id = 'anavo-logo-reaper-styles';
     style.textContent = `
       /* Logo Reaper v${PLUGIN_VERSION} – Anavo Tech */
-      .anavo-lr-root {
+      .anavo-logo-reaper-root {
         position: relative;
         overflow: hidden;
         width: 100%;
         box-sizing: border-box;
         background: ${cfg.bgColor};
       }
-      .anavo-lr-lane {
+      .anavo-logo-reaper-lane {
         position: absolute;
         top: 0; left: 0; right: 0; bottom: 0;
         pointer-events: none;
       }
-      .anavo-lr-logo {
+      .anavo-logo-reaper-logo {
         position: absolute;
         display: flex;
         align-items: center;
@@ -250,21 +250,21 @@
         pointer-events: none;
       }
       ${cfg.clickToKill ? `
-      .anavo-lr-hit-layer {
+      .anavo-logo-reaper-hit-layer {
         position: absolute;
         top: 0; left: 0; right: 0; bottom: 0;
         pointer-events: auto;
         cursor: pointer;
         z-index: 10;
       }` : ''}
-      .anavo-lr-logo img {
+      .anavo-logo-reaper-logo img {
         height: ${cfg.logoH}px;
         width: auto;
         display: block;
         pointer-events: none;
         user-select: none;
       }
-      .anavo-lr-stamp {
+      .anavo-logo-reaper-stamp {
         position: absolute;
         top: 50%; left: 50%;
         transform: translate(-50%, -50%) rotate(${cfg.stampRotate}deg) scale(0);
@@ -282,21 +282,21 @@
         z-index: 5;
         text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
       }
-      .anavo-lr-stamp.visible {
-        animation: anavo-lr-stamp-pop 0.35s ease-out forwards;
+      .anavo-logo-reaper-stamp.visible {
+        animation: anavo-logo-reaper-stamp-pop 0.35s ease-out forwards;
       }
-      @keyframes anavo-lr-stamp-pop {
+      @keyframes anavo-logo-reaper-stamp-pop {
         0%   { transform: translate(-50%, -50%) rotate(${cfg.stampRotate}deg) scale(0.2); opacity: 0; }
         60%  { transform: translate(-50%, -50%) rotate(${cfg.stampRotate}deg) scale(${1.15 * cfg.stampScale}); opacity: 1; }
         100% { transform: translate(-50%, -50%) rotate(${cfg.stampRotate}deg) scale(${cfg.stampScale}); opacity: 1; }
       }
-      .anavo-lr-particle {
+      .anavo-logo-reaper-particle {
         position: absolute;
         border-radius: 50%;
         pointer-events: none;
         z-index: 6;
       }
-      .anavo-lr-pile {
+      .anavo-logo-reaper-pile {
         position: absolute;
         bottom: 0;
         left: 0;
@@ -305,13 +305,13 @@
         pointer-events: none;
         z-index: 3;
       }
-      .anavo-lr-dead {
+      .anavo-logo-reaper-dead {
         position: absolute;
         opacity: 0.7;
         filter: grayscale(80%) brightness(0.7);
         will-change: transform, opacity;
       }
-      .anavo-lr-dead img {
+      .anavo-logo-reaper-dead img {
         height: ${Math.round(0.7 * cfg.logoH)}px;
         width: auto;
         display: block;
@@ -340,7 +340,7 @@
   function spawnParticles(x, y, count) {
     for (let i = 0; i < count; i++) {
       const p = document.createElement('div');
-      p.className = 'anavo-lr-particle';
+      p.className = 'anavo-logo-reaper-particle';
 
       const size = 4 + 6 * Math.random();
       p.style.cssText = `width:${size}px;height:${size}px;background:${
@@ -394,7 +394,7 @@
     }
 
     const dead = document.createElement('div');
-    dead.className = 'anavo-lr-dead';
+    dead.className = 'anavo-logo-reaper-dead';
 
     const img = document.createElement('img');
     img.src = src;
@@ -484,7 +484,7 @@
     logoIndex++;
 
     const wrapper = document.createElement('div');
-    wrapper.className = 'anavo-lr-logo';
+    wrapper.className = 'anavo-logo-reaper-logo';
     wrapper.style.top = laneTop + 'px';
     wrapper.style.left = stageW + 'px';
     wrapper.style.height = cfg.logoH + 'px';
@@ -498,7 +498,7 @@
     let stamp = null;
     if (cfg.stampEnabled) {
       stamp = document.createElement('div');
-      stamp.className = 'anavo-lr-stamp';
+      stamp.className = 'anavo-logo-reaper-stamp';
       stamp.style.left = cfg.stampX + '%';
       stamp.style.top = cfg.stampY + '%';
       wrapper.appendChild(stamp);
@@ -617,15 +617,15 @@
     }
 
     root = document.createElement('div');
-    root.className = 'anavo-lr-root';
+    root.className = 'anavo-logo-reaper-root';
     root.style.height = cfg.height + 'px';
 
     lane = document.createElement('div');
-    lane.className = 'anavo-lr-lane';
+    lane.className = 'anavo-logo-reaper-lane';
     root.appendChild(lane);
 
     pile = document.createElement('div');
-    pile.className = 'anavo-lr-pile';
+    pile.className = 'anavo-logo-reaper-pile';
     root.appendChild(pile);
 
     if (cfg.selector === 'body') {
@@ -650,7 +650,7 @@
 
     if (cfg.debug) {
       debugLine = document.createElement('div');
-      debugLine.className = 'anavo-lr-debug-line';
+      debugLine.className = 'anavo-logo-reaper-debug-line';
       debugLine.style.cssText =
         'position:absolute;top:0;bottom:0;width:1px;background:rgba(255,0,0,0.7);pointer-events:none;z-index:20;left:' +
         cfg.triggerX +
@@ -672,10 +672,10 @@
     }
 
     // ✅ click-to-kill: transparent overlay above lane to reliably capture clicks
-    // (works even when .anavo-lr-lane has pointer-events:none, avoiding Squarespace CSS conflicts)
+    // (works even when .anavo-logo-reaper-lane has pointer-events:none, avoiding Squarespace CSS conflicts)
     if (cfg.clickToKill) {
       const hitLayer = document.createElement('div');
-      hitLayer.className = 'anavo-lr-hit-layer';
+      hitLayer.className = 'anavo-logo-reaper-hit-layer';
       root.appendChild(hitLayer);
 
       let pointerStartX = 0;

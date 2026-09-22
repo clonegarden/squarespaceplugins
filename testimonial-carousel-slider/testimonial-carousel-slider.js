@@ -160,24 +160,24 @@
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       }
 
-      #anavo-testimonial-carousel-section .anavo-tc-inner {
+      #anavo-testimonial-carousel-section .anavo-testimonial-carousel-inner {
         max-width: ${config.maxWidth}px;
         margin: 0 auto;
         position: relative;
       }
 
-      #anavo-testimonial-carousel-section .anavo-tc-track-wrap {
+      #anavo-testimonial-carousel-section .anavo-testimonial-carousel-track-wrap {
         overflow: hidden;
         border-radius: ${config.cardRadius}px;
       }
 
-      #anavo-testimonial-carousel-section .anavo-tc-track {
+      #anavo-testimonial-carousel-section .anavo-testimonial-carousel-track {
         display: flex;
         transition: transform ${transitionDuration} cubic-bezier(0.25, 0.46, 0.45, 0.94);
         will-change: transform;
       }
 
-      #anavo-testimonial-carousel-section .anavo-tc-slide {
+      #anavo-testimonial-carousel-section .anavo-testimonial-carousel-slide {
         min-width: 100%;
         background: ${config.bgColor};
         border-radius: ${config.cardRadius}px;
@@ -191,7 +191,7 @@
         border: 1px solid rgba(0, 0, 0, 0.06);
       }
 
-      #anavo-testimonial-carousel-section .anavo-tc-stars {
+      #anavo-testimonial-carousel-section .anavo-testimonial-carousel-stars {
         color: ${config.accentColor};
         font-size: 22px;
         letter-spacing: 2px;
@@ -199,7 +199,7 @@
         line-height: 1;
       }
 
-      #anavo-testimonial-carousel-section .anavo-tc-quote {
+      #anavo-testimonial-carousel-section .anavo-testimonial-carousel-quote {
         font-size: 18px;
         line-height: 1.7;
         color: ${config.textColor};
@@ -208,7 +208,7 @@
         position: relative;
       }
 
-      #anavo-testimonial-carousel-section .anavo-tc-quote::before {
+      #anavo-testimonial-carousel-section .anavo-testimonial-carousel-quote::before {
         content: '\\201C';
         font-size: 60px;
         color: ${config.accentColor};
@@ -221,7 +221,7 @@
         pointer-events: none;
       }
 
-      #anavo-testimonial-carousel-section .anavo-tc-avatar {
+      #anavo-testimonial-carousel-section .anavo-testimonial-carousel-avatar {
         width: 64px;
         height: 64px;
         border-radius: 50%;
@@ -238,7 +238,7 @@
         flex-shrink: 0;
       }
 
-      #anavo-testimonial-carousel-section .anavo-tc-avatar img {
+      #anavo-testimonial-carousel-section .anavo-testimonial-carousel-avatar img {
         width: 100%;
         height: 100%;
         object-fit: cover;
@@ -246,14 +246,14 @@
         display: block;
       }
 
-      #anavo-testimonial-carousel-section .anavo-tc-name {
+      #anavo-testimonial-carousel-section .anavo-testimonial-carousel-name {
         font-size: 17px;
         font-weight: 700;
         color: ${config.textColor};
         margin: 0 0 4px;
       }
 
-      #anavo-testimonial-carousel-section .anavo-tc-meta {
+      #anavo-testimonial-carousel-section .anavo-testimonial-carousel-meta {
         font-size: 14px;
         color: ${config.accentColor};
         margin: 0;
@@ -261,7 +261,7 @@
       }
 
       /* Navigation buttons */
-      #anavo-testimonial-carousel-section .anavo-tc-btn {
+      #anavo-testimonial-carousel-section .anavo-testimonial-carousel-btn {
         position: absolute;
         top: 50%;
         transform: translateY(-50%);
@@ -283,35 +283,35 @@
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
       }
 
-      #anavo-testimonial-carousel-section .anavo-tc-btn:hover,
-      #anavo-testimonial-carousel-section .anavo-tc-btn:focus {
+      #anavo-testimonial-carousel-section .anavo-testimonial-carousel-btn:hover,
+      #anavo-testimonial-carousel-section .anavo-testimonial-carousel-btn:focus {
         background: ${config.accentColor};
         color: ${config.bgColor};
         outline: none;
       }
 
-      #anavo-testimonial-carousel-section .anavo-tc-btn:focus-visible {
+      #anavo-testimonial-carousel-section .anavo-testimonial-carousel-btn:focus-visible {
         outline: 3px solid ${config.accentColor};
         outline-offset: 2px;
       }
 
-      #anavo-testimonial-carousel-section .anavo-tc-btn-prev {
+      #anavo-testimonial-carousel-section .anavo-testimonial-carousel-btn-prev {
         left: -60px;
       }
 
-      #anavo-testimonial-carousel-section .anavo-tc-btn-next {
+      #anavo-testimonial-carousel-section .anavo-testimonial-carousel-btn-next {
         right: -60px;
       }
 
       /* Dot indicators */
-      #anavo-testimonial-carousel-section .anavo-tc-dots {
+      #anavo-testimonial-carousel-section .anavo-testimonial-carousel-dots {
         display: flex;
         justify-content: center;
         gap: 8px;
         margin-top: 24px;
       }
 
-      #anavo-testimonial-carousel-section .anavo-tc-dot {
+      #anavo-testimonial-carousel-section .anavo-testimonial-carousel-dot {
         width: 8px;
         height: 8px;
         border-radius: 50%;
@@ -322,40 +322,40 @@
         transition: background ${transitionDuration} ease, transform ${transitionDuration} ease;
       }
 
-      #anavo-testimonial-carousel-section .anavo-tc-dot.is-active {
+      #anavo-testimonial-carousel-section .anavo-testimonial-carousel-dot.is-active {
         background: ${config.accentColor};
         transform: scale(1.4);
       }
 
-      #anavo-testimonial-carousel-section .anavo-tc-dot:focus-visible {
+      #anavo-testimonial-carousel-section .anavo-testimonial-carousel-dot:focus-visible {
         outline: 3px solid ${config.accentColor};
         outline-offset: 3px;
       }
 
       /* Responsive */
       @media (max-width: 900px) {
-        #anavo-testimonial-carousel-section .anavo-tc-btn-prev {
+        #anavo-testimonial-carousel-section .anavo-testimonial-carousel-btn-prev {
           left: -22px;
         }
-        #anavo-testimonial-carousel-section .anavo-tc-btn-next {
+        #anavo-testimonial-carousel-section .anavo-testimonial-carousel-btn-next {
           right: -22px;
         }
       }
 
       @media (max-width: 768px) {
-        #anavo-testimonial-carousel-section .anavo-tc-slide {
+        #anavo-testimonial-carousel-section .anavo-testimonial-carousel-slide {
           padding: 32px 56px;
         }
-        #anavo-testimonial-carousel-section .anavo-tc-quote {
+        #anavo-testimonial-carousel-section .anavo-testimonial-carousel-quote {
           font-size: 16px;
         }
-        #anavo-testimonial-carousel-section .anavo-tc-btn-prev {
+        #anavo-testimonial-carousel-section .anavo-testimonial-carousel-btn-prev {
           left: 6px;
         }
-        #anavo-testimonial-carousel-section .anavo-tc-btn-next {
+        #anavo-testimonial-carousel-section .anavo-testimonial-carousel-btn-next {
           right: 6px;
         }
-        #anavo-testimonial-carousel-section .anavo-tc-btn {
+        #anavo-testimonial-carousel-section .anavo-testimonial-carousel-btn {
           width: 38px;
           height: 38px;
           font-size: 18px;
@@ -366,13 +366,13 @@
         #anavo-testimonial-carousel-section {
           padding: 40px 12px;
         }
-        #anavo-testimonial-carousel-section .anavo-tc-slide {
+        #anavo-testimonial-carousel-section .anavo-testimonial-carousel-slide {
           padding: 28px 48px;
         }
-        #anavo-testimonial-carousel-section .anavo-tc-quote {
+        #anavo-testimonial-carousel-section .anavo-testimonial-carousel-quote {
           font-size: 15px;
         }
-        #anavo-testimonial-carousel-section .anavo-tc-btn {
+        #anavo-testimonial-carousel-section .anavo-testimonial-carousel-btn {
           width: 34px;
           height: 34px;
           font-size: 16px;
@@ -395,34 +395,34 @@
     section.setAttribute('data-version', PLUGIN_VERSION);
 
     const inner = document.createElement('div');
-    inner.className = 'anavo-tc-inner';
+    inner.className = 'anavo-testimonial-carousel-inner';
 
     // Prev button
     const prevBtn = document.createElement('button');
-    prevBtn.className = 'anavo-tc-btn anavo-tc-btn-prev';
+    prevBtn.className = 'anavo-testimonial-carousel-btn anavo-testimonial-carousel-btn-prev';
     prevBtn.setAttribute('aria-label', 'Previous testimonial');
     prevBtn.type = 'button';
     prevBtn.innerHTML = '&#8249;';
 
     // Next button
     const nextBtn = document.createElement('button');
-    nextBtn.className = 'anavo-tc-btn anavo-tc-btn-next';
+    nextBtn.className = 'anavo-testimonial-carousel-btn anavo-testimonial-carousel-btn-next';
     nextBtn.setAttribute('aria-label', 'Next testimonial');
     nextBtn.type = 'button';
     nextBtn.innerHTML = '&#8250;';
 
     // Track wrapper (clipping container)
     const trackWrap = document.createElement('div');
-    trackWrap.className = 'anavo-tc-track-wrap';
+    trackWrap.className = 'anavo-testimonial-carousel-track-wrap';
     trackWrap.setAttribute('role', 'region');
     trackWrap.setAttribute('aria-label', 'Testimonials');
 
     const track = document.createElement('div');
-    track.className = 'anavo-tc-track';
+    track.className = 'anavo-testimonial-carousel-track';
 
     testimonials.forEach((t, i) => {
       const slide = document.createElement('div');
-      slide.className = 'anavo-tc-slide';
+      slide.className = 'anavo-testimonial-carousel-slide';
       slide.setAttribute('role', 'group');
       slide.setAttribute('aria-label', 'Testimonial ' + (i + 1) + ' of ' + testimonials.length);
 
@@ -431,17 +431,17 @@
       if (config.showStars && t.rating) {
         const starLabel = escapeAttr(String(Math.round(t.rating))) + ' out of 5 stars';
         html +=
-          '<div class="anavo-tc-stars" aria-label="' +
+          '<div class="anavo-testimonial-carousel-stars" aria-label="' +
           starLabel +
           '">' +
           createStars(t.rating) +
           '</div>';
       }
 
-      html += '<p class="anavo-tc-quote">' + escapeHtml(t.quote || '') + '</p>';
+      html += '<p class="anavo-testimonial-carousel-quote">' + escapeHtml(t.quote || '') + '</p>';
 
       if (config.showAvatars) {
-        html += '<div class="anavo-tc-avatar" aria-hidden="true">';
+        html += '<div class="anavo-testimonial-carousel-avatar" aria-hidden="true">';
         if (t.image) {
           html +=
             '<img src="' +
@@ -455,11 +455,11 @@
         html += '</div>';
       }
 
-      html += '<p class="anavo-tc-name">' + escapeHtml(t.name || '') + '</p>';
+      html += '<p class="anavo-testimonial-carousel-name">' + escapeHtml(t.name || '') + '</p>';
 
       const meta = [t.title, t.company].filter(Boolean).join(' · ');
       if (meta) {
-        html += '<p class="anavo-tc-meta">' + escapeHtml(meta) + '</p>';
+        html += '<p class="anavo-testimonial-carousel-meta">' + escapeHtml(meta) + '</p>';
       }
 
       slide.innerHTML = html;
@@ -468,13 +468,13 @@
 
     // Dot indicators
     const dots = document.createElement('div');
-    dots.className = 'anavo-tc-dots';
+    dots.className = 'anavo-testimonial-carousel-dots';
     dots.setAttribute('role', 'tablist');
     dots.setAttribute('aria-label', 'Testimonial navigation');
 
     testimonials.forEach(function (_t, i) {
       const dot = document.createElement('button');
-      dot.className = 'anavo-tc-dot' + (i === 0 ? ' is-active' : '');
+      dot.className = 'anavo-testimonial-carousel-dot' + (i === 0 ? ' is-active' : '');
       dot.type = 'button';
       dot.setAttribute('role', 'tab');
       dot.setAttribute('aria-label', 'Go to testimonial ' + (i + 1));
@@ -556,10 +556,10 @@
   // ========================================
 
   function initCarousel(section, testimonials) {
-    const track = section.querySelector('.anavo-tc-track');
-    const prevBtn = section.querySelector('.anavo-tc-btn-prev');
-    const nextBtn = section.querySelector('.anavo-tc-btn-next');
-    const dotButtons = section.querySelectorAll('.anavo-tc-dot');
+    const track = section.querySelector('.anavo-testimonial-carousel-track');
+    const prevBtn = section.querySelector('.anavo-testimonial-carousel-btn-prev');
+    const nextBtn = section.querySelector('.anavo-testimonial-carousel-btn-next');
+    const dotButtons = section.querySelectorAll('.anavo-testimonial-carousel-dot');
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const total = testimonials.length;

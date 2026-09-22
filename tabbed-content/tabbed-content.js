@@ -554,7 +554,7 @@
    ANAVO TABBED CONTENT v${PLUGIN_VERSION}
    ============================================= */
 
-.anavo-tc-wrapper {
+.anavo-tabbed-content-wrapper {
   background: transparent;
   font-family: ${config.fontFamily};
   border: ${config.sectionBorder ? `1px solid ${config.sectionBorderColor}` : 'none'};
@@ -565,7 +565,7 @@
 }
 
 /* ---- Tab Bar ---- */
-.anavo-tc-tablist {
+.anavo-tabbed-content-tablist {
   display: flex !important;
   overflow-x: auto;
   flex-wrap: nowrap;
@@ -582,9 +582,9 @@
   ${tablistBorderLine}
 }
 
-.anavo-tc-tablist::-webkit-scrollbar { display: none; }
+.anavo-tabbed-content-tablist::-webkit-scrollbar { display: none; }
 
-.anavo-tc-tab {
+.anavo-tabbed-content-tab {
   position: relative;
   padding: ${tabPadding};
   cursor: pointer;
@@ -602,29 +602,29 @@
   appearance: none;${tabBorderCSS}
 }
 
-.anavo-tc-tab[aria-selected="true"] {
+.anavo-tabbed-content-tab[aria-selected="true"] {
   color: ${config.activeColor};
   font-weight: 700;${activeTabBorderCSS}
 }
 
-.anavo-tc-tab:focus-visible {
+.anavo-tabbed-content-tab:focus-visible {
   outline: 2px solid ${config.activeColor};
   outline-offset: -2px;
 }
 
 /* ---- Panels ---- */
-.anavo-tc-panels {
+.anavo-tabbed-content-panels {
   position: relative;
   margin-top: 0 !important;
   padding-top: 0 !important;
   ${panelsBorderCSS}
 }
 
-.anavo-tc-panel {
+.anavo-tabbed-content-panel {
   display: none;
 }
 
-.anavo-tc-panel.anavo-tc-panel--active {
+.anavo-tabbed-content-panel.anavo-tabbed-content-panel--active {
   display: flex;
   flex-direction: ${config.imagePosition === 'right' ? 'row-reverse' : 'row'};
   align-items: stretch;
@@ -633,35 +633,35 @@
 
 /* Fade animation */
 ${config.animationType === 'fade' ? `
-@keyframes anavo-tc-fade-in {
+@keyframes anavo-tabbed-content-fade-in {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
-.anavo-tc-panel.anavo-tc-panel--active {
-  animation: anavo-tc-fade-in ${speed}ms ease forwards;
+.anavo-tabbed-content-panel.anavo-tabbed-content-panel--active {
+  animation: anavo-tabbed-content-fade-in ${speed}ms ease forwards;
 }
 ` : ''}
 
 /* Slide animation */
 ${config.animationType === 'slide' ? `
-@keyframes anavo-tc-slide-in {
+@keyframes anavo-tabbed-content-slide-in {
   from { opacity: 0; transform: translateX(20px); }
   to   { opacity: 1; transform: translateX(0); }
 }
-.anavo-tc-panel.anavo-tc-panel--active {
-  animation: anavo-tc-slide-in ${speed}ms ease forwards;
+.anavo-tabbed-content-panel.anavo-tabbed-content-panel--active {
+  animation: anavo-tabbed-content-slide-in ${speed}ms ease forwards;
 }
 ` : ''}
 
 /* ---- Image Column ---- */
-.anavo-tc-image-col {
+.anavo-tabbed-content-image-col {
   flex: 0 0 ${config.imageWidth}%;
   max-width: ${config.imageWidth}%;
   order: ${imageFlexOrder};
   overflow: hidden;
 }
 
-.anavo-tc-image-wrap {
+.anavo-tabbed-content-image-wrap {
   ${imageWrapStyles}
   width: 100%;
   height: 100%;
@@ -669,12 +669,12 @@ ${config.animationType === 'slide' ? `
   box-sizing: border-box;
 }
 
-.anavo-tc-image-wrap img {
+.anavo-tabbed-content-image-wrap img {
   ${imageInnerStyles}
   object-position: ${config.imageObjectPosition};
 }
 
-.anavo-tc-image-placeholder {
+.anavo-tabbed-content-image-placeholder {
   width: 100%;
   height: 100%;
   min-height: 300px;
@@ -687,7 +687,7 @@ ${config.animationType === 'slide' ? `
 }
 
 /* ---- Content Column ---- */
-.anavo-tc-content-col {
+.anavo-tabbed-content-content-col {
   flex: 1;
   order: ${contentFlexOrder};
   padding: ${config.contentPadding}px;
@@ -700,7 +700,7 @@ ${config.animationType === 'slide' ? `
   align-items: ${config.contentAlign === 'center' ? 'center' : config.contentAlign === 'right' ? 'flex-end' : 'flex-start'};
 }
 
-.anavo-tc-content-col .anavo-tc-heading {
+.anavo-tabbed-content-content-col .anavo-tabbed-content-heading {
   margin: 0 0 12px;
   font-size: ${config.headingSize}px;
   font-family: ${config.titleFontFamily || config.contentFont};
@@ -709,7 +709,7 @@ ${config.animationType === 'slide' ? `
   line-height: 1.2;
 }
 
-.anavo-tc-content-col .anavo-tc-subtitle {
+.anavo-tabbed-content-content-col .anavo-tabbed-content-subtitle {
   margin: 0 0 20px;
   font-size: ${config.subtitleSize}px;
   font-family: ${config.contentFont};
@@ -719,7 +719,7 @@ ${config.animationType === 'slide' ? `
   font-weight: 400;
 }
 
-.anavo-tc-content-col .anavo-tc-body {
+.anavo-tabbed-content-content-col .anavo-tabbed-content-body {
   font-size: ${config.bodySize}px;
   font-family: ${config.descFontFamily || config.contentFont};
   color: ${config.descFontColor || config.inactiveColor};
@@ -727,11 +727,11 @@ ${config.animationType === 'slide' ? `
   margin: 0;
 }
 
-.anavo-tc-content-col .anavo-tc-body p {
+.anavo-tabbed-content-content-col .anavo-tabbed-content-body p {
   margin: 0 0 1em;
 }
 
-.anavo-tc-content-col .anavo-tc-link {
+.anavo-tabbed-content-content-col .anavo-tabbed-content-link {
   display: inline-block;
   margin-top: 24px;
   font-size: ${config.subtitleSize}px;
@@ -745,60 +745,60 @@ ${config.animationType === 'slide' ? `
   transition: opacity ${speed}ms ease;
 }
 
-.anavo-tc-content-col .anavo-tc-link:hover {
+.anavo-tabbed-content-content-col .anavo-tabbed-content-link:hover {
   opacity: 0.7;
 }
 
 /* ---- Responsive: Tablet ---- */
 @media (max-width: 900px) {
-  .anavo-tc-content-col {
+  .anavo-tabbed-content-content-col {
     padding: ${Math.round(config.contentPadding * 0.65)}px;
   }
-  .anavo-tc-content-col .anavo-tc-heading {
+  .anavo-tabbed-content-content-col .anavo-tabbed-content-heading {
     font-size: ${Math.round(config.headingSize * 0.85)}px;
   }
 }
 
 /* ---- Responsive: Mobile ---- */
 @media (max-width: 768px) {
-  .anavo-tc-tablist {
+  .anavo-tabbed-content-tablist {
     gap: ${Math.max(config.tabGap - 4, 2)}px;
   }
-  .anavo-tc-tab {
+  .anavo-tabbed-content-tab {
     padding: 8px 14px;
     font-size: ${Math.max(config.tabFontSize - 1, 11)}px;
   }
 
   ${config.mobileMode === 'scroll' ? `
   /* Scroll-snap carousel mode */
-  .anavo-tc-panels {
+  .anavo-tabbed-content-panels {
     display: flex !important;
     overflow-x: scroll;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
-  .anavo-tc-panels::-webkit-scrollbar { display: none; }
-  .anavo-tc-panel {
+  .anavo-tabbed-content-panels::-webkit-scrollbar { display: none; }
+  .anavo-tabbed-content-panel {
     display: flex !important;
     flex: 0 0 100%;
     min-width: 100%;
     scroll-snap-align: start;
     flex-direction: column;
   }
-  .anavo-tc-panel[hidden] {
+  .anavo-tabbed-content-panel[hidden] {
     display: flex !important;
   }
-  .anavo-tc-image-col {
+  .anavo-tabbed-content-image-col {
     flex: 0 0 100%;
     max-width: 100%;
     order: 1;
   }
-  .anavo-tc-image-wrap {
+  .anavo-tabbed-content-image-wrap {
     padding-top: 60%;
     position: relative;
   }
-  .anavo-tc-image-wrap img {
+  .anavo-tabbed-content-image-wrap img {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -806,7 +806,7 @@ ${config.animationType === 'slide' ? `
     object-fit: cover;
     object-position: ${config.imageObjectPosition};
   }
-  .anavo-tc-content-col {
+  .anavo-tabbed-content-content-col {
     order: 2;
     flex: 0 0 auto;
     max-width: 100%;
@@ -814,19 +814,19 @@ ${config.animationType === 'slide' ? `
   }
   ` : `
   /* Stack/Tap mode */
-  .anavo-tc-panel.anavo-tc-panel--active {
+  .anavo-tabbed-content-panel.anavo-tabbed-content-panel--active {
     flex-direction: column;
   }
-  .anavo-tc-image-col {
+  .anavo-tabbed-content-image-col {
     flex: 0 0 100%;
     max-width: 100%;
     order: 1;
   }
-  .anavo-tc-image-wrap {
+  .anavo-tabbed-content-image-wrap {
     padding-top: 60%;
     position: relative;
   }
-  .anavo-tc-image-wrap img {
+  .anavo-tabbed-content-image-wrap img {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -834,16 +834,16 @@ ${config.animationType === 'slide' ? `
     object-fit: cover;
     object-position: ${config.imageObjectPosition};
   }
-  .anavo-tc-content-col {
+  .anavo-tabbed-content-content-col {
     order: 2;
     flex: 0 0 100%;
     max-width: 100%;
     padding: ${Math.round(config.contentPadding * 0.5)}px;
   }
-  .anavo-tc-image-wrap[role="button"] {
+  .anavo-tabbed-content-image-wrap[role="button"] {
     cursor: pointer;
   }
-  .anavo-tc-mobile-counter {
+  .anavo-tabbed-content-mobile-counter {
     position: absolute;
     right: 12px;
     bottom: 12px;
@@ -861,23 +861,23 @@ ${config.animationType === 'slide' ? `
 
 /* ---- Responsive: Small Mobile ---- */
 @media (max-width: 480px) {
-  .anavo-tc-tab {
+  .anavo-tabbed-content-tab {
     padding: ${isConcreteOrBrowser ? '6px 12px' : '10px 12px'};
     font-size: ${Math.max(config.tabFontSize - 2, 10)}px;
     letter-spacing: 0.08em;
   }
-  .anavo-tc-content-col {
+  .anavo-tabbed-content-content-col {
     padding: 28px 20px;
   }
 }
 
 /* ---- Reduced Motion ---- */
 @media (prefers-reduced-motion: reduce) {
-  .anavo-tc-tab,
-  .anavo-tc-link {
+  .anavo-tabbed-content-tab,
+  .anavo-tabbed-content-link {
     transition: none !important;
   }
-  .anavo-tc-panel.anavo-tc-panel--active {
+  .anavo-tabbed-content-panel.anavo-tabbed-content-panel--active {
     animation: none !important;
   }
 }
@@ -891,21 +891,21 @@ ${config.animationType === 'slide' ? `
   // ========================================
 
   function buildUI(items) {
-    const uid = 'anavo-tc-' + Math.random().toString(36).slice(2, 8);
+    const uid = 'anavo-tabbed-content-' + Math.random().toString(36).slice(2, 8);
 
     const wrapper = document.createElement('div');
-    wrapper.className = 'anavo-tc-wrapper';
+    wrapper.className = 'anavo-tabbed-content-wrapper';
     wrapper.setAttribute('id', uid);
 
     // Tab bar
     const tablist = document.createElement('div');
-    tablist.className = 'anavo-tc-tablist';
+    tablist.className = 'anavo-tabbed-content-tablist';
     tablist.setAttribute('role', 'tablist');
     tablist.setAttribute('aria-label', 'Content tabs');
 
     // Panels container
     const panelsDiv = document.createElement('div');
-    panelsDiv.className = 'anavo-tc-panels';
+    panelsDiv.className = 'anavo-tabbed-content-panels';
 
     items.forEach((item, i) => {
       const tabId = `${uid}-tab-${i}`;
@@ -913,7 +913,7 @@ ${config.animationType === 'slide' ? `
 
       // --- Tab button ---
       const btn = document.createElement('button');
-      btn.className = 'anavo-tc-tab';
+      btn.className = 'anavo-tabbed-content-tab';
       btn.id = tabId;
       btn.setAttribute('role', 'tab');
       btn.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
@@ -925,7 +925,7 @@ ${config.animationType === 'slide' ? `
 
       // --- Panel ---
       const panel = document.createElement('div');
-      panel.className = 'anavo-tc-panel' + (i === 0 ? ' anavo-tc-panel--active' : '');
+      panel.className = 'anavo-tabbed-content-panel' + (i === 0 ? ' anavo-tabbed-content-panel--active' : '');
       panel.id = panelId;
       panel.setAttribute('role', 'tabpanel');
       panel.setAttribute('aria-labelledby', tabId);
@@ -933,11 +933,11 @@ ${config.animationType === 'slide' ? `
 
       // Image column
       const imageCol = document.createElement('div');
-      imageCol.className = 'anavo-tc-image-col';
+      imageCol.className = 'anavo-tabbed-content-image-col';
 
       if (item.image) {
         const imgWrap = document.createElement('div');
-        imgWrap.className = 'anavo-tc-image-wrap';
+        imgWrap.className = 'anavo-tabbed-content-image-wrap';
         const img = document.createElement('img');
         img.src = item.image;
         img.alt = escapeHtml(item.title);
@@ -946,38 +946,38 @@ ${config.animationType === 'slide' ? `
         imageCol.appendChild(imgWrap);
       } else {
         const placeholder = document.createElement('div');
-        placeholder.className = 'anavo-tc-image-placeholder';
+        placeholder.className = 'anavo-tabbed-content-image-placeholder';
         placeholder.textContent = '📷';
         imageCol.appendChild(placeholder);
       }
 
       // Content column
       const contentCol = document.createElement('div');
-      contentCol.className = 'anavo-tc-content-col';
+      contentCol.className = 'anavo-tabbed-content-content-col';
 
       const HTag = ['h2', 'h3', 'h4'].includes(config.headingTag) ? config.headingTag : 'h2';
       const heading = document.createElement(HTag);
-      heading.className = 'anavo-tc-heading';
+      heading.className = 'anavo-tabbed-content-heading';
       heading.textContent = item.title;
       contentCol.appendChild(heading);
 
       if (item.subtitle) {
         const subtitle = document.createElement('p');
-        subtitle.className = 'anavo-tc-subtitle';
+        subtitle.className = 'anavo-tabbed-content-subtitle';
         subtitle.textContent = item.subtitle;
         contentCol.appendChild(subtitle);
       }
 
       if (item.body) {
         const body = document.createElement('div');
-        body.className = 'anavo-tc-body';
+        body.className = 'anavo-tabbed-content-body';
         body.innerHTML = item.body;
         contentCol.appendChild(body);
       }
 
       if (item.link) {
         const link = document.createElement('a');
-        link.className = 'anavo-tc-link';
+        link.className = 'anavo-tabbed-content-link';
         link.href = item.link;
         link.textContent = config.linkText;
         contentCol.appendChild(link);
@@ -1010,13 +1010,13 @@ ${config.animationType === 'slide' ? `
     if (!isMobileViewport()) return false;
     if (config.mobileCounter === 'never') return false;
     if (config.mobileCounter === 'always') return true;
-    const tablist = wrapper.querySelector('.anavo-tc-tablist');
+    const tablist = wrapper.querySelector('.anavo-tabbed-content-tablist');
     if (!tablist) return false;
     return tabCount >= MOBILE_COUNTER_MIN_TABS && tablist.scrollWidth > tablist.clientWidth;
   }
 
   function getActiveTabIndex(wrapper) {
-    const tabs = Array.from(wrapper.querySelectorAll('.anavo-tc-tab'));
+    const tabs = Array.from(wrapper.querySelectorAll('.anavo-tabbed-content-tab'));
     const activeIndex = tabs.findIndex(tab => tab.getAttribute('aria-selected') === 'true');
     return activeIndex >= 0 ? activeIndex : 0;
   }
@@ -1024,8 +1024,8 @@ ${config.animationType === 'slide' ? `
   function updateMobileCounter(wrapper) {
     if (config.mobileMode === 'scroll') return;
 
-    const tabs = wrapper.querySelectorAll('.anavo-tc-tab');
-    const counters = wrapper.querySelectorAll('.anavo-tc-mobile-counter');
+    const tabs = wrapper.querySelectorAll('.anavo-tabbed-content-tab');
+    const counters = wrapper.querySelectorAll('.anavo-tabbed-content-mobile-counter');
     if (!tabs.length || !counters.length) return;
 
     const activeIndex = getActiveTabIndex(wrapper);
@@ -1041,10 +1041,10 @@ ${config.animationType === 'slide' ? `
   function setupMobileCounter(wrapper) {
     if (config.mobileMode === 'scroll') return;
 
-    wrapper.querySelectorAll('.anavo-tc-image-wrap').forEach(imgWrap => {
-      if (imgWrap.querySelector('.anavo-tc-mobile-counter')) return;
+    wrapper.querySelectorAll('.anavo-tabbed-content-image-wrap').forEach(imgWrap => {
+      if (imgWrap.querySelector('.anavo-tabbed-content-mobile-counter')) return;
       const counter = document.createElement('div');
-      counter.className = 'anavo-tc-mobile-counter';
+      counter.className = 'anavo-tabbed-content-mobile-counter';
       counter.setAttribute('aria-hidden', 'true');
       imgWrap.appendChild(counter);
     });
@@ -1055,7 +1055,7 @@ ${config.animationType === 'slide' ? `
   function syncMobileImageA11y(wrapper) {
     if (config.mobileMode !== 'tap') return;
     const isMobile = isMobileViewport();
-    wrapper.querySelectorAll('.anavo-tc-image-wrap').forEach(imgWrap => {
+    wrapper.querySelectorAll('.anavo-tabbed-content-image-wrap').forEach(imgWrap => {
       if (isMobile) {
         imgWrap.setAttribute('role', 'button');
         imgWrap.setAttribute('aria-label', 'Next tab');
@@ -1069,8 +1069,8 @@ ${config.animationType === 'slide' ? `
   }
 
   function activateTab(wrapper, index) {
-    const tabs = wrapper.querySelectorAll('.anavo-tc-tab');
-    const panels = wrapper.querySelectorAll('.anavo-tc-panel');
+    const tabs = wrapper.querySelectorAll('.anavo-tabbed-content-tab');
+    const panels = wrapper.querySelectorAll('.anavo-tabbed-content-panel');
     const prefersReducedMotion = reducedMotionMq.matches;
 
     tabs.forEach((tab, i) => {
@@ -1083,17 +1083,17 @@ ${config.animationType === 'slide' ? `
       // In scroll mode all panels stay in DOM; just scroll the target into view
       panels[index]?.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
       panels.forEach((panel, i) => {
-        panel.classList.toggle('anavo-tc-panel--active', i === index);
+        panel.classList.toggle('anavo-tabbed-content-panel--active', i === index);
       });
     } else {
       panels.forEach((panel, i) => {
         const active = i === index;
         if (active) {
           panel.removeAttribute('hidden');
-          panel.classList.add('anavo-tc-panel--active');
+          panel.classList.add('anavo-tabbed-content-panel--active');
         } else {
           panel.setAttribute('hidden', '');
-          panel.classList.remove('anavo-tc-panel--active');
+          panel.classList.remove('anavo-tabbed-content-panel--active');
         }
       });
     }
@@ -1117,8 +1117,8 @@ ${config.animationType === 'slide' ? `
   // ========================================
 
   function initEvents(wrapper) {
-    const tabs = wrapper.querySelectorAll('.anavo-tc-tab');
-    const panels = wrapper.querySelectorAll('.anavo-tc-panel');
+    const tabs = wrapper.querySelectorAll('.anavo-tabbed-content-tab');
+    const panels = wrapper.querySelectorAll('.anavo-tabbed-content-panel');
 
     const desktopMq = window.matchMedia('(min-width: 769px)');
 
@@ -1184,7 +1184,7 @@ ${config.animationType === 'slide' ? `
       };
 
       panels.forEach(panel => {
-        const imgWrap = panel.querySelector('.anavo-tc-image-wrap');
+        const imgWrap = panel.querySelector('.anavo-tabbed-content-image-wrap');
         if (!imgWrap) return;
 
         let touchStartX = 0;

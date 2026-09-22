@@ -6,6 +6,49 @@ This is the repository-level changelog. It summarizes recent releases across all
 
 ## Recent Releases
 
+### 2026-09-22
+
+**Breaking — CSS namespace collisions fixed across 9 plugins.**
+
+`magic-menu` and `marquee-menu` both injected `<style id="anavo-mm-styles">` and both styled
+`.anavo-mm-item`. `marquee-menu` removes any existing `#anavo-mm-styles` before injecting its
+own, so installing both plugins on one page deleted `magic-menu`'s entire stylesheet — the menu
+rendered as unstyled markup. Script order is non-deterministic, so the failure was intermittent.
+`mega-menu` squatted the same `anavo-mm-` namespace for its element ids.
+
+Every abbreviated prefix that was shared by two or more plugins now uses the full plugin slug:
+
+| Plugin | Old prefix | New prefix |
+|--------|-----------|------------|
+| [Magic Menu](magic-menu/) | `anavo-mm-` | `anavo-magic-menu-` |
+| [Marquee Menu](marquee-menu/) | `anavo-mm-` | `anavo-marquee-menu-` |
+| [Mega Menu](mega-menu/) | `anavo-mm-` | `anavo-mega-menu-` |
+| [Tabbed Content](tabbed-content/) | `anavo-tc-` | `anavo-tabbed-content-` |
+| [Testimonial Carousel Slider](testimonial-carousel-slider/) | `anavo-tc-` | `anavo-testimonial-carousel-` |
+| [Logo Reaper](logo-reaper/) | `anavo-lr-` | `anavo-logo-reaper-` |
+| [Letter Rain Transform](letter-rain-transform/) | `anavo-lr-` | `anavo-letter-rain-` |
+| [Animated Logo Scroller](animated-logo-scroller/) | `anavo-als-`, `anavo-ls-` | `anavo-logo-scroller-` |
+| [Loading Screen](loading-screen/) | `anavo-ls-` | `anavo-loading-screen-` |
+
+All classes are generated at runtime by the plugin itself, so no user markup changes are
+required. Sites with hand-written custom CSS targeting the old class names must update their
+selectors.
+
+Also in this release:
+
+- `magic-menu` now removes its own stylesheet before re-injecting, matching every other plugin.
+- `SEO/Threetwoone/seo-modal-dashboard.js` declared generic `--site-font`, `--site-text-color`,
+  `--site-bg-color`, `--site-accent-color`, `--modal-font-size` and `--modal-contrast` on
+  `:root`, where they could be overwritten by a Squarespace template or another plugin. All six
+  are now prefixed `--onassis-`.
+- Added `npm run check-collisions` (`scripts/check-collisions.js`) plus a GitHub Actions
+  workflow, failing the build when two plugins use the same `anavo-*` identifier or assign the
+  same DOM element id. Wired into `npm run validate`.
+- Fixed `scripts/minify.js`, which used `replace('. js', '.min.js')` — the pattern never
+  matched, so the script overwrote each plugin's **source file** with minified output instead of
+  writing a `.min.js`. `scripts/build-all.js` had the same class of typo in its root path
+  (`'. .'`) and ignore list (`'. git'`), and `package.json` in its lint ignore patterns.
+
 ### 2026-03-11
 
 | Plugin | Version | Notes |
