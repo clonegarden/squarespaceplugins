@@ -1,0 +1,32 @@
+name: Check Namespace Collisions
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**/*.js'
+      - 'scripts/check-collisions.js'
+      - '.github/workflows/check-collisions.yml'
+  pull_request:
+    paths:
+      - '**/*.js'
+      - 'scripts/check-collisions.js'
+      - '.github/workflows/check-collisions.yml'
+  workflow_dispatch:
+
+jobs:
+  check-collisions:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check for cross-plugin namespace collisions
+        run: node scripts/check-collisions.js

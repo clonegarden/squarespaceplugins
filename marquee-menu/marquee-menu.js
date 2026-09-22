@@ -145,9 +145,9 @@
     // Manual override — see _shared/licensing.js header
     if (window.ANAVO_LICENSE_OVERRIDE === true) return;
     if (document.querySelector('[data-anavo-license-override]')) return;
-    if (document.getElementById('anavo-mm-license-notice')) return;
+    if (document.getElementById('anavo-marquee-menu-license-notice')) return;
     var el = document.createElement('div');
-    el.id = 'anavo-mm-license-notice';
+    el.id = 'anavo-marquee-menu-license-notice';
     el.setAttribute('style',
       'position:fixed;bottom:20px;right:20px;' +
       'background:rgba(0,0,0,0.9);color:#fff;' +
@@ -181,25 +181,25 @@
   // ─────────────────────────────────────────────────────────────────
 
   function injectStyles() {
-    var existing = document.getElementById('anavo-mm-styles');
+    var existing = document.getElementById('anavo-marquee-menu-styles');
     if (existing) existing.remove();
 
     var css =
 
       /* ── Keyframe for horizontal scroll ────────────────────────── */
-      '@keyframes anavo-mm-scroll{' +
+      '@keyframes anavo-marquee-menu-scroll{' +
         'from{transform:translateX(0)!important;}' +
         'to{transform:translateX(-50%)!important;}' +
       '}' +
 
       /* ── Each enhanced item needs relative positioning ─────────── */
-      '.anavo-mm-item{' +
+      '.anavo-marquee-menu-item{' +
         'position:relative!important;' +
         'overflow:hidden!important;' +
       '}' +
 
       /* ── Marquee overlay — full cover, hidden by translateY ─────── */
-      '.anavo-mm-marquee{' +
+      '.anavo-marquee-menu-marquee{' +
         'position:absolute!important;' +
         'top:0!important;' +
         'left:0!important;' +
@@ -216,12 +216,12 @@
       '}' +
 
       /* Transition class — added by JS after setting initial position */
-      '.anavo-mm-marquee.anavo-mm-transitioning{' +
+      '.anavo-marquee-menu-marquee.anavo-marquee-menu-transitioning{' +
         'transition:transform 0.6s cubic-bezier(0.19,1,0.22,1)!important;' +
       '}' +
 
       /* ── Inner wrap — counter-translates to keep text stable ────── */
-      '.anavo-mm-marquee-inner-wrap{' +
+      '.anavo-marquee-menu-marquee-inner-wrap{' +
         'width:100%!important;' +
         'overflow:hidden!important;' +
         'display:flex!important;' +
@@ -230,22 +230,22 @@
       '}' +
 
       /* Transition class for inner wrap */
-      '.anavo-mm-marquee-inner-wrap.anavo-mm-transitioning{' +
+      '.anavo-marquee-menu-marquee-inner-wrap.anavo-marquee-menu-transitioning{' +
         'transition:transform 0.6s cubic-bezier(0.19,1,0.22,1)!important;' +
       '}' +
 
       /* ── Scrolling track — doubled content for seamless loop ─────── */
-      '.anavo-mm-marquee-inner{' +
+      '.anavo-marquee-menu-marquee-inner{' +
         'display:flex!important;' +
         'align-items:center!important;' +
         'white-space:nowrap!important;' +
         'will-change:transform!important;' +
-        'animation:anavo-mm-scroll ' + CFG.speed + ' linear infinite!important;' +
+        'animation:anavo-marquee-menu-scroll ' + CFG.speed + ' linear infinite!important;' +
         'animation-play-state:running!important;' +
       '}' +
 
       /* ── Text spans inside the marquee ──────────────────────────── */
-      '.anavo-mm-marquee-inner span{' +
+      '.anavo-marquee-menu-marquee-inner span{' +
         'display:inline-block!important;' +
         'padding:0 0.4em!important;' +
         'color:' + CFG.textColor + '!important;' +
@@ -258,7 +258,7 @@
       '}';
 
     var style = document.createElement('style');
-    style.id = 'anavo-mm-styles';
+    style.id = 'anavo-marquee-menu-styles';
     style.textContent = css;
     document.head.appendChild(style);
   }
@@ -327,22 +327,22 @@
    */
   function buildMarquee(itemEl, index) {
     // Mark item as a positioned container
-    itemEl.classList.add('anavo-mm-item');
+    itemEl.classList.add('anavo-marquee-menu-item');
 
     var marqueeText = getMarqueeText(itemEl, index);
 
-    // .anavo-mm-marquee
+    // .anavo-marquee-menu-marquee
     var marqueeEl = document.createElement('div');
-    marqueeEl.className = 'anavo-mm-marquee';
+    marqueeEl.className = 'anavo-marquee-menu-marquee';
     marqueeEl.setAttribute('aria-hidden', 'true');
 
-    // .anavo-mm-marquee-inner-wrap
+    // .anavo-marquee-menu-marquee-inner-wrap
     var innerWrapEl = document.createElement('div');
-    innerWrapEl.className = 'anavo-mm-marquee-inner-wrap';
+    innerWrapEl.className = 'anavo-marquee-menu-marquee-inner-wrap';
 
-    // .anavo-mm-marquee-inner  — doubled content for seamless loop
+    // .anavo-marquee-menu-marquee-inner  — doubled content for seamless loop
     var innerEl = document.createElement('div');
-    innerEl.className = 'anavo-mm-marquee-inner';
+    innerEl.className = 'anavo-marquee-menu-marquee-inner';
 
     var span1 = document.createElement('span');
     span1.textContent = marqueeText;
@@ -386,8 +386,8 @@
       var edge  = closestEdge(mouseX, mouseY, rect.width, rect.height);
 
       // Step 1: Remove transition class, snap to hidden off-screen position
-      marqueeEl.classList.remove('anavo-mm-transitioning');
-      innerWrapEl.classList.remove('anavo-mm-transitioning');
+      marqueeEl.classList.remove('anavo-marquee-menu-transitioning');
+      innerWrapEl.classList.remove('anavo-marquee-menu-transitioning');
 
       if (edge === 'top') {
         marqueeEl.style.transform   = 'translateY(-101%)';
@@ -400,8 +400,8 @@
       // Step 2: On next frame, add transition and animate to 0%
       requestAnimationFrame(function () {
         requestAnimationFrame(function () {
-          marqueeEl.classList.add('anavo-mm-transitioning');
-          innerWrapEl.classList.add('anavo-mm-transitioning');
+          marqueeEl.classList.add('anavo-marquee-menu-transitioning');
+          innerWrapEl.classList.add('anavo-marquee-menu-transitioning');
 
           marqueeEl.style.transform   = 'translateY(0%)';
           innerWrapEl.style.transform = 'translateY(0%)';
@@ -418,8 +418,8 @@
       var edge  = closestEdge(mouseX, mouseY, rect.width, rect.height);
 
       // Ensure transition class is present before animating out
-      marqueeEl.classList.add('anavo-mm-transitioning');
-      innerWrapEl.classList.add('anavo-mm-transitioning');
+      marqueeEl.classList.add('anavo-marquee-menu-transitioning');
+      innerWrapEl.classList.add('anavo-marquee-menu-transitioning');
 
       if (edge === 'top') {
         marqueeEl.style.transform   = 'translateY(-101%)';
@@ -447,8 +447,8 @@
     var index = 0;
     items.forEach(function (itemEl) {
       // Idempotency: skip already-processed elements
-      if (itemEl.getAttribute('data-anavo-mm-done') === 'true') return;
-      itemEl.setAttribute('data-anavo-mm-done', 'true');
+      if (itemEl.getAttribute('data-anavo-marquee-menu-done') === 'true') return;
+      itemEl.setAttribute('data-anavo-marquee-menu-done', 'true');
 
       buildMarquee(itemEl, index);
       attachHandlers(itemEl);
@@ -488,14 +488,14 @@
     _resizeTimer = setTimeout(function () {
       // If crossing into mobile, hide all marquees
       if (isMobile()) {
-        var done = document.querySelectorAll('[data-anavo-mm-done="true"]');
+        var done = document.querySelectorAll('[data-anavo-marquee-menu-done="true"]');
         done.forEach(function (itemEl) {
           if (itemEl._anavoMarquee) {
-            itemEl._anavoMarquee.classList.remove('anavo-mm-transitioning');
+            itemEl._anavoMarquee.classList.remove('anavo-marquee-menu-transitioning');
             itemEl._anavoMarquee.style.transform = 'translateY(101%)';
           }
           if (itemEl._anavoMarqueeInnerWrap) {
-            itemEl._anavoMarqueeInnerWrap.classList.remove('anavo-mm-transitioning');
+            itemEl._anavoMarqueeInnerWrap.classList.remove('anavo-marquee-menu-transitioning');
             itemEl._anavoMarqueeInnerWrap.style.transform = 'translateY(-101%)';
           }
         });

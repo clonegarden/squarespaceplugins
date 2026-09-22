@@ -390,7 +390,7 @@
 
     var css = `
 /* ===== Anavo Mega Menu ===== */
-#anavo-mm-overlay {
+#anavo-mega-menu-overlay {
   display: none;
   position: fixed;
   inset: 0;
@@ -399,12 +399,12 @@
   opacity: 0;
   transition: opacity ${prefersReducedMotion ? '0ms' : dur + 'ms'} ${ease};
 }
-#anavo-mm-overlay.anavo-mm-visible {
+#anavo-mega-menu-overlay.anavo-mega-menu-visible {
   opacity: 1;
 }
-${config.blur ? '#anavo-mm-overlay { backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }' : ''}
+${config.blur ? '#anavo-mega-menu-overlay { backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }' : ''}
 
-#anavo-mm-panel {
+#anavo-mega-menu-panel {
   display: none;
   position: fixed;
   left: 0;
@@ -420,48 +420,48 @@ ${config.blur ? '#anavo-mm-overlay { backdrop-filter: blur(4px); -webkit-backdro
   ${backdropFilter}
   /* animation initial states — set per animation type */
 }
-#anavo-mm-panel.anavo-mm-anim-slideDown {
+#anavo-mega-menu-panel.anavo-mega-menu-anim-slideDown {
   transform: translateY(-12px);
   opacity: 0;
   transition: ${prefersReducedMotion ? 'none' : `transform ${dur}ms ${ease}, opacity ${dur}ms ${ease}`};
 }
-#anavo-mm-panel.anavo-mm-anim-fadeIn {
+#anavo-mega-menu-panel.anavo-mega-menu-anim-fadeIn {
   opacity: 0;
   transition: ${prefersReducedMotion ? 'none' : `opacity ${dur}ms ${ease}`};
 }
-#anavo-mm-panel.anavo-mm-anim-scaleY {
+#anavo-mega-menu-panel.anavo-mega-menu-anim-scaleY {
   transform-origin: top center;
   transform: scaleY(0);
   opacity: 0;
   transition: ${prefersReducedMotion ? 'none' : `transform ${dur}ms ${ease}, opacity ${dur}ms ${ease}`};
 }
-#anavo-mm-panel.anavo-mm-anim-clipReveal {
+#anavo-mega-menu-panel.anavo-mega-menu-anim-clipReveal {
   clip-path: inset(0 0 100% 0);
   transition: ${prefersReducedMotion ? 'none' : `clip-path ${dur}ms ${ease}`};
 }
-#anavo-mm-panel.anavo-mm-open.anavo-mm-anim-slideDown {
+#anavo-mega-menu-panel.anavo-mega-menu-open.anavo-mega-menu-anim-slideDown {
   transform: translateY(0);
   opacity: 1;
 }
-#anavo-mm-panel.anavo-mm-open.anavo-mm-anim-fadeIn {
+#anavo-mega-menu-panel.anavo-mega-menu-open.anavo-mega-menu-anim-fadeIn {
   opacity: 1;
 }
-#anavo-mm-panel.anavo-mm-open.anavo-mm-anim-scaleY {
+#anavo-mega-menu-panel.anavo-mega-menu-open.anavo-mega-menu-anim-scaleY {
   transform: scaleY(1);
   opacity: 1;
 }
-#anavo-mm-panel.anavo-mm-open.anavo-mm-anim-clipReveal {
+#anavo-mega-menu-panel.anavo-mega-menu-open.anavo-mega-menu-anim-clipReveal {
   clip-path: inset(0 0 0% 0);
 }
-#anavo-mm-panel.anavo-mm-anim-none,
-#anavo-mm-panel.anavo-mm-open.anavo-mm-anim-none {
+#anavo-mega-menu-panel.anavo-mega-menu-anim-none,
+#anavo-mega-menu-panel.anavo-mega-menu-open.anavo-mega-menu-anim-none {
   transition: none;
   transform: none;
   opacity: 1;
   clip-path: none;
 }
 
-#anavo-mm-inner {
+#anavo-mega-menu-inner {
   max-width: ${config.maxWidth};
   margin: 0 auto;
   padding: ${config.paddingY} ${config.paddingX};
@@ -470,7 +470,7 @@ ${config.blur ? '#anavo-mm-overlay { backdrop-filter: blur(4px); -webkit-backdro
 }
 
 /* Close button */
-#anavo-mm-close {
+#anavo-mega-menu-close {
   position: absolute;
   top: 12px;
   right: 16px;
@@ -486,56 +486,56 @@ ${config.blur ? '#anavo-mm-overlay { backdrop-filter: blur(4px); -webkit-backdro
   transition: opacity 0.15s, background 0.15s;
   z-index: 1;
 }
-#anavo-mm-close:hover {
+#anavo-mega-menu-close:hover {
   opacity: 1;
   background: rgba(128,128,128,0.12);
 }
-#anavo-mm-close:focus-visible {
+#anavo-mega-menu-close:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 2px;
 }
 
 /* Force Squarespace blocks visible inside panel */
-#anavo-mm-panel .sqs-block,
-#anavo-mm-panel .sqs-block-content,
-#anavo-mm-panel .sqs-col,
-#anavo-mm-panel .row,
-#anavo-mm-panel .sqs-row {
+#anavo-mega-menu-panel .sqs-block,
+#anavo-mega-menu-panel .sqs-block-content,
+#anavo-mega-menu-panel .sqs-col,
+#anavo-mega-menu-panel .row,
+#anavo-mega-menu-panel .sqs-row {
   visibility: visible !important;
   opacity: 1 !important;
 }
-#anavo-mm-panel img {
+#anavo-mega-menu-panel img {
   max-width: 100%;
   height: auto;
 }
 
 /* Trigger icon */
-.anavo-mm-trigger-icon {
+.anavo-mega-menu-trigger-icon {
   display: inline-block;
   margin-left: 4px;
   transition: transform ${prefersReducedMotion ? '0ms' : '200ms'} ${ease};
   font-style: normal;
 }
-.anavo-mm-trigger-link[aria-expanded="true"] .anavo-mm-trigger-icon {
+.anavo-mega-menu-trigger-link[aria-expanded="true"] .anavo-mega-menu-trigger-icon {
   transform: rotate(180deg);
 }
 
 /* Thin scrollbar */
-#anavo-mm-panel::-webkit-scrollbar { width: 5px; }
-#anavo-mm-panel::-webkit-scrollbar-track { background: transparent; }
-#anavo-mm-panel::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.3); border-radius: 4px; }
+#anavo-mega-menu-panel::-webkit-scrollbar { width: 5px; }
+#anavo-mega-menu-panel::-webkit-scrollbar-track { background: transparent; }
+#anavo-mega-menu-panel::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.3); border-radius: 4px; }
 
 /* Mobile: hide mega menu and trigger icon */
 @media (max-width: ${config.mobileBreakpoint}px) {
-  #anavo-mm-panel,
-  #anavo-mm-overlay { display: none !important; }
-  .anavo-mm-trigger-icon { display: none; }
+  #anavo-mega-menu-panel,
+  #anavo-mega-menu-overlay { display: none !important; }
+  .anavo-mega-menu-trigger-icon { display: none; }
 }
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  #anavo-mm-panel,
-  #anavo-mm-overlay { transition: none !important; animation: none !important; }
+  #anavo-mega-menu-panel,
+  #anavo-mega-menu-overlay { transition: none !important; animation: none !important; }
 }
 `;
 
@@ -559,25 +559,25 @@ ${config.blur ? '#anavo-mm-overlay { backdrop-filter: blur(4px); -webkit-backdro
   function buildDOM(stolenHTML) {
     // Overlay
     overlayEl = document.createElement('div');
-    overlayEl.id = 'anavo-mm-overlay';
+    overlayEl.id = 'anavo-mega-menu-overlay';
     overlayEl.setAttribute('aria-hidden', 'true');
     document.body.appendChild(overlayEl);
 
     // Panel
     panelEl = document.createElement('div');
-    panelEl.id = 'anavo-mm-panel';
+    panelEl.id = 'anavo-mega-menu-panel';
     panelEl.setAttribute('role', 'region');
     panelEl.setAttribute('aria-label', 'Mega Menu');
     panelEl.setAttribute('aria-hidden', 'true');
 
     // Apply animation class
-    var animClass = 'anavo-mm-anim-' + (prefersReducedMotion ? 'none' : config.animation);
+    var animClass = 'anavo-mega-menu-anim-' + (prefersReducedMotion ? 'none' : config.animation);
     panelEl.classList.add(animClass);
 
     // Close button
     if (config.closeButton) {
       closeBtn = document.createElement('button');
-      closeBtn.id = 'anavo-mm-close';
+      closeBtn.id = 'anavo-mega-menu-close';
       closeBtn.setAttribute('aria-label', 'Close mega menu');
       closeBtn.textContent = '✕';
       panelEl.appendChild(closeBtn);
@@ -585,7 +585,7 @@ ${config.blur ? '#anavo-mm-overlay { backdrop-filter: blur(4px); -webkit-backdro
 
     // Inner container
     var inner = document.createElement('div');
-    inner.id = 'anavo-mm-inner';
+    inner.id = 'anavo-mega-menu-inner';
     inner.innerHTML = stolenHTML;
     panelEl.appendChild(inner);
 
@@ -621,12 +621,12 @@ ${config.blur ? '#anavo-mm-overlay { backdrop-filter: blur(4px); -webkit-backdro
     overlayEl.style.display = 'block';
     // Force reflow so transition fires
     void overlayEl.offsetWidth;
-    overlayEl.classList.add('anavo-mm-visible');
+    overlayEl.classList.add('anavo-mega-menu-visible');
 
     // Show panel
     panelEl.style.display = 'block';
     void panelEl.offsetWidth;
-    panelEl.classList.add('anavo-mm-open');
+    panelEl.classList.add('anavo-mega-menu-open');
     panelEl.setAttribute('aria-hidden', 'false');
 
     if (triggerLinkEl) {
@@ -641,8 +641,8 @@ ${config.blur ? '#anavo-mm-overlay { backdrop-filter: blur(4px); -webkit-backdro
     if (!isOpen) return;
     isOpen = false;
 
-    overlayEl.classList.remove('anavo-mm-visible');
-    panelEl.classList.remove('anavo-mm-open');
+    overlayEl.classList.remove('anavo-mega-menu-visible');
+    panelEl.classList.remove('anavo-mega-menu-open');
     panelEl.setAttribute('aria-hidden', 'true');
 
     if (triggerLinkEl) {
@@ -699,11 +699,11 @@ ${config.blur ? '#anavo-mm-overlay { backdrop-filter: blur(4px); -webkit-backdro
 
     // Build trigger <li> + <a>
     var li = document.createElement('li');
-    li.className = 'anavo-mm-trigger-item header-nav-item';
+    li.className = 'anavo-mega-menu-trigger-item header-nav-item';
 
     var a = document.createElement('a');
     a.href = '#';
-    a.className = 'anavo-mm-trigger-link';
+    a.className = 'anavo-mega-menu-trigger-link';
     a.setAttribute('aria-expanded', 'false');
     a.setAttribute('aria-haspopup', 'true');
     a.setAttribute('role', 'button');
@@ -712,7 +712,7 @@ ${config.blur ? '#anavo-mm-overlay { backdrop-filter: blur(4px); -webkit-backdro
     labelSpan.textContent = config.triggerLabel;
 
     var iconSpan = document.createElement('span');
-    iconSpan.className = 'anavo-mm-trigger-icon';
+    iconSpan.className = 'anavo-mega-menu-trigger-icon';
     iconSpan.setAttribute('aria-hidden', 'true');
     iconSpan.textContent = config.triggerIcon;
 

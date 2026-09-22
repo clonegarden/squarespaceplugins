@@ -88,7 +88,10 @@ function injectStyles() {
 }
 ```
 
-CSS class names use the `anavo-{plugin-name}-` prefix (e.g. `anavo-tc-wrapper`, `anavo-hp-header`).
+CSS class names use the full plugin slug as prefix: `anavo-{plugin-directory-name}-`
+(e.g. `anavo-tabbed-content-wrapper`, `anavo-header-pro-header`). Abbreviated prefixes are
+banned — `anavo-mm-` was claimed by three different menu plugins, and whichever loaded second
+removed the other's stylesheet. `npm run check-collisions` enforces this.
 
 ---
 
@@ -185,8 +188,10 @@ Each plugin lives in its own directory:
 
 - File names: **kebab-case** (`tabbed-content.js`, `logo-reaper.js`)
 - Plugin `PLUGIN_NAME` constant: **PascalCase** (`TabbedContent`, `LogoReaper`)
-- CSS class prefix: **kebab-case** (`anavo-tc-`, `anavo-hp-`)
+- CSS class prefix: **kebab-case, full plugin slug** (`anavo-tabbed-content-`, `anavo-header-pro-`)
 - Style tag ID: `anavo-{plugin-name}-styles`
+- Every plugin shares one page with every other plugin, so no two plugins may use the same
+  `anavo-*` identifier. Run `npm run check-collisions` before opening a PR.
 
 ---
 

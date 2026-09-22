@@ -125,7 +125,7 @@
     // Manual override — see _shared/licensing.js header
     if (window.ANAVO_LICENSE_OVERRIDE === true) return;
     if (document.querySelector('[data-anavo-license-override]')) return;
-    var nid = 'anavo-als-license-notice';
+    var nid = 'anavo-logo-scroller-license-notice';
     if (document.getElementById(nid)) return;
     var el = document.createElement('div');
     el.id = nid;
@@ -154,36 +154,36 @@
   // ─────────────────────────────────────────────────────────────────
 
   function injectStyles() {
-    if (document.getElementById('anavo-als-styles')) return;
+    if (document.getElementById('anavo-logo-scroller-styles')) return;
 
     var toDir   = CFG.direction === 'right' ? 'translateX(50%)' : 'translateX(-50%)';
     var fromDir = 'translateX(0)';
 
     var css =
-      '@keyframes anavo-ls-scroll{' +
+      '@keyframes anavo-logo-scroller-scroll{' +
         'from{transform:' + fromDir + '!important;}' +
         'to{transform:'   + toDir   + '!important;}' +
       '}' +
 
-      '.anavo-ls-viewport{' +
+      '.anavo-logo-scroller-viewport{' +
         'overflow:hidden!important;' +
         'width:100%!important;' +
         'position:relative!important;' +
       '}' +
 
-      '.anavo-ls-track{' +
+      '.anavo-logo-scroller-track{' +
         'display:flex!important;' +
         'align-items:center!important;' +
         'width:max-content!important;' +
         'will-change:transform!important;' +
-        'animation:anavo-ls-scroll ' + CFG.speed + ' linear infinite!important;' +
+        'animation:anavo-logo-scroller-scroll ' + CFG.speed + ' linear infinite!important;' +
       '}' +
 
-      '.anavo-ls-viewport:hover .anavo-ls-track.anavo-ls-pause{' +
+      '.anavo-logo-scroller-viewport:hover .anavo-logo-scroller-track.anavo-logo-scroller-pause{' +
         'animation-play-state:paused!important;' +
       '}' +
 
-      '.anavo-ls-track img{' +
+      '.anavo-logo-scroller-track img{' +
         'display:inline-block!important;' +
         'flex-shrink:0!important;' +
         'max-height:60px!important;' +
@@ -195,13 +195,13 @@
         'transition:filter 0.3s,opacity 0.3s!important;' +
       '}' +
 
-      '.anavo-ls-track img:hover{' +
+      '.anavo-logo-scroller-track img:hover{' +
         'filter:grayscale(0%)!important;' +
         'opacity:1!important;' +
       '}';
 
     var style = document.createElement('style');
-    style.id = 'anavo-als-styles';
+    style.id = 'anavo-logo-scroller-styles';
     style.textContent = css;
     document.head.appendChild(style);
   }
@@ -211,8 +211,8 @@
   // ─────────────────────────────────────────────────────────────────
 
   function buildScroller(container) {
-    if (container.getAttribute('data-anavo-als-done') === 'true') return;
-    container.setAttribute('data-anavo-als-done', 'true');
+    if (container.getAttribute('data-anavo-logo-scroller-done') === 'true') return;
+    container.setAttribute('data-anavo-logo-scroller-done', 'true');
 
     // Gather all images from the original container
     var origImgs = container.querySelectorAll('img');
@@ -220,11 +220,11 @@
 
     // Create viewport wrapper
     var viewport = document.createElement('div');
-    viewport.className = 'anavo-ls-viewport';
+    viewport.className = 'anavo-logo-scroller-viewport';
 
     // Create the scrolling track
     var track = document.createElement('div');
-    track.className = 'anavo-ls-track' + (CFG.pauseOnHover === 'true' ? ' anavo-ls-pause' : '');
+    track.className = 'anavo-logo-scroller-track' + (CFG.pauseOnHover === 'true' ? ' anavo-logo-scroller-pause' : '');
 
     // Clone images twice for seamless loop (original set + duplicate set)
     var allImgs = Array.prototype.slice.call(origImgs);

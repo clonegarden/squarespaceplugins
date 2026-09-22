@@ -121,11 +121,11 @@
   var _overlay, _bar, _pageLoaded = false;
 
   function injectOverlay() {
-    if (document.getElementById('anavo-ls-overlay')) return;
+    if (document.getElementById('anavo-loading-screen-overlay')) return;
 
     // Build overlay
     _overlay = document.createElement('div');
-    _overlay.id = 'anavo-ls-overlay';
+    _overlay.id = 'anavo-loading-screen-overlay';
     _overlay.setAttribute('style',
       'position:fixed!important;' +
       'inset:0!important;' +

@@ -40,7 +40,7 @@ async function minifyFile(filePath) {
       throw result.error;
     }
 
-    const minifiedPath = filePath.replace('. js', '.min.js');
+    const minifiedPath = filePath.replace('.js', '.min.js');
     fs.writeFileSync(minifiedPath, result.code, 'utf8');
 
     const originalSize = Buffer.byteLength(code, 'utf8');
