@@ -19,12 +19,15 @@
     <p>Infinite scroll navigation</p>
   </div>
   <div data-anavo-scroll-loop-menu></div>
-  <div class="hint">↑ Click trigger button to open menu</div>
+  <div class="hint">↗ Click "Menu" in the top right to open</div>
   <script>
   (function(){
     var p = new URLSearchParams(location.search);
     var u = new URL('https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/scroll-loop-menu/scroll-loop-menu.min.js');
     u.searchParams.set('domain', 'anavo.tech');
+    /* the demo page has no custom trigger element, so render the built-in one */
+    u.searchParams.set('showTrigger', 'true');
+    u.searchParams.set('triggerColor', '#f0ede8');
     var PX_PARAMS = { fontSize:1, itemOffset:1 };
     var addPx = function(v){ return /px$|%$|em$|rem$|vw$/.test(v) ? v : v + 'px'; };
     p.forEach(function(val, key){ if (PX_PARAMS[key]) val = addPx(val); u.searchParams.set(key, val); });
