@@ -1,17 +1,18 @@
 /**
- * Anavo Quotation Builder v2.0.0
- * Interactive step-by-step quotation calculator for wedding / photography / venue industry.
+ * Anavo Quotation Builder v2.1.0
+ * Interactive step-by-step quotation calculator for booking-style services.
  * Step types: single choice, multiple choice, quantity × price.
  * Floating editor panel in Squarespace edit mode — saves config to Anavo API.
  * Submit → saves to DB + triggers email notification + shows summary with CTA.
  *
  * Usage (Code Block):
  *   <div id="anavo-quotation"></div>
- *   <script src="...quotation-builder.min.js?configId=YOUR_ID&accentColor=%231a3a5c"></script>
+ *   <script src="...quotation-builder.min.js?preset=makeup-artist&accentColor=%231a3a5c"></script>
  *
  * Script URL parameters:
  *   target        CSS selector for container   default: #anavo-quotation
- *   configId      Saved config ID from editor  default: (uses built-in template)
+ *   configId      Saved config ID from editor  default: (uses a built-in preset)
+ *   preset        Built-in profession template default: photographer
  *   accentColor   Brand color                  default: #1a3a5c
  *   currency      Currency symbol              default: $
  *   ctaText       CTA button label             default: Book Now
@@ -36,6 +37,7 @@
   var CFG = {
     target:      params.get('target')      || '#anavo-quotation',
     configId:    params.get('configId')    || '',
+    preset:      params.get('preset')      || 'photographer',
     apiBase:     params.get('api')         || 'https://api.anavo.tech',
     domain:      params.get('domain')      || window.location.hostname,
     accentColor: params.get('accentColor') || '#1a3a5c',
@@ -44,75 +46,368 @@
     ctaUrl:      params.get('ctaUrl')      || '/contact',
   };
 
-  // ─── Default template (Wedding / Photography) ────────────────────────────
+  // How many steps a config may hold. Fewer than two is not a wizard; more
+  // than eight and completion rates fall off a cliff.
+  var MIN_STEPS = 2;
+  var MAX_STEPS = 8;
 
-  var DEFAULT_CONFIG = {
-    name: 'Photography Quote',
-    currency: CFG.currency,
-    accentColor: CFG.accentColor,
-    ctaText: CFG.ctaText,
-    ctaUrl: CFG.ctaUrl,
-    notifyEmail: '',
-    steps: [
-      {
-        id: 's1', title: 'Event Type',
-        description: 'What kind of event are you planning?',
-        type: 'select', required: true,
-        options: [
-          { id: 'o1', label: 'Wedding',                price: 2500 },
-          { id: 'o2', label: 'Engagement Session',     price: 800  },
-          { id: 'o3', label: 'Corporate Event',        price: 1200 },
-          { id: 'o4', label: 'Portrait Session',       price: 400  },
-          { id: 'o5', label: 'Quinceañera / Sweet 16', price: 1800 }
-        ]
-      },
-      {
-        id: 's2', title: 'Coverage Duration',
-        description: 'How many hours of coverage do you need?',
-        type: 'quantity', required: true,
-        unitLabel: 'hour', unitPrice: 200, min: 1, max: 16, default: 4
-      },
-      {
-        id: 's3', title: 'Photographers',
-        description: 'How many photographers should we bring?',
-        type: 'quantity', required: true,
-        unitLabel: 'photographer', unitPrice: 350, min: 1, max: 4, default: 1
-      },
-      {
-        id: 's4', title: 'Videography',
-        description: 'Would you like video coverage?',
-        type: 'select', required: false,
-        options: [
-          { id: 'o1', label: 'No video',           price: 0    },
-          { id: 'o2', label: 'Highlight Reel',     price: 900  },
-          { id: 'o3', label: 'Full Film + Reel',   price: 1800 },
-          { id: 'o4', label: 'Cinematic Package',  price: 2800 }
-        ]
-      },
-      {
-        id: 's5', title: 'Add-ons',
-        description: 'Enhance your package with extras.',
-        type: 'multiselect', required: false,
-        options: [
-          { id: 'o1', label: 'Drone Coverage',      price: 450 },
-          { id: 'o2', label: 'Same-day Slideshow',  price: 600 },
-          { id: 'o3', label: 'Premium Photo Album', price: 750 },
-          { id: 'o4', label: 'Canvas / Wall Art',   price: 300 },
-          { id: 'o5', label: 'Live Photo Booth',    price: 500 }
-        ]
-      },
-      {
-        id: 's6', title: 'Delivery Timeline',
-        description: 'When do you need your files delivered?',
-        type: 'select', required: true,
-        options: [
-          { id: 'o1', label: 'Standard (6–8 weeks)', price: 0   },
-          { id: 'o2', label: 'Rush (2–3 weeks)',      price: 350 },
-          { id: 'o3', label: 'Express (5–7 days)',    price: 700 }
-        ]
-      }
-    ]
+  // ─── Editable copy ────────────────────────────────────────────────────────
+  // Everything a prospect reads as the owner's own words. UI furniture
+  // (field labels, navigation, progress numbering) stays fixed so support
+  // stays predictable — see docs/quotation-builder-customization.md §5.
+
+  var DEFAULT_COPY = {
+    contactTitle:    'Almost there!',
+    contactSub:      'Where should we send your quote?',
+    summaryTitle:    'Your Quote is Ready!',
+    summarySub:      'Hi {name}, here\'s your personalized estimate.',
+    disclaimer:      'Final price confirmed at booking'
   };
+
+  // ─── Profession presets ───────────────────────────────────────────────────
+  // Scope rule: professions that quote *like* a photographer — a booked
+  // engagement priced by type, duration/headcount and add-ons. Anything priced
+  // per square metre, per subscription or per legal case is deliberately out.
+  //
+  // Prices are starter placeholders. The editor panel expects the owner to
+  // overwrite them, and that is the first thing it shows.
+
+  /** Single choice step. */
+  function S(title, description, required, options) {
+    return { title: title, description: description, type: 'select', required: required, options: options };
+  }
+  /** Multiple choice step — never required, it is always an "extras" step. */
+  function M(title, description, options) {
+    return { title: title, description: description, type: 'multiselect', required: false, options: options };
+  }
+  /** Quantity × price step. */
+  function Q(title, description, required, unitLabel, unitPrice, min, max, def) {
+    return {
+      title: title, description: description, type: 'quantity', required: required,
+      unitLabel: unitLabel, unitPrice: unitPrice, min: min, max: max, default: def
+    };
+  }
+
+  var PRESETS = {
+    photographer: {
+      label: 'Photographer',
+      name: 'Photography Quote',
+      steps: [
+        S('Event Type', 'What kind of event are you planning?', true, [
+          ['Wedding', 2500], ['Engagement Session', 800], ['Corporate Event', 1200],
+          ['Portrait Session', 400], ['Quinceañera / Sweet 16', 1800]
+        ]),
+        Q('Coverage Duration', 'How many hours of coverage do you need?', true, 'hour', 200, 1, 16, 4),
+        Q('Photographers', 'How many photographers should we bring?', true, 'photographer', 350, 1, 4, 1),
+        S('Videography', 'Would you like video coverage?', false, [
+          ['No video', 0], ['Highlight Reel', 900], ['Full Film + Reel', 1800], ['Cinematic Package', 2800]
+        ]),
+        M('Add-ons', 'Enhance your package with extras.', [
+          ['Drone Coverage', 450], ['Same-day Slideshow', 600], ['Premium Photo Album', 750],
+          ['Canvas / Wall Art', 300], ['Live Photo Booth', 500]
+        ]),
+        S('Delivery Timeline', 'When do you need your files delivered?', true, [
+          ['Standard (6–8 weeks)', 0], ['Rush (2–3 weeks)', 350], ['Express (5–7 days)', 700]
+        ])
+      ]
+    },
+
+    videographer: {
+      label: 'Videographer',
+      name: 'Video Production Quote',
+      steps: [
+        S('Project Type', 'What are we filming?', true, [
+          ['Wedding Film', 3200], ['Brand / Commercial', 2800], ['Event Coverage', 1500],
+          ['Music Video', 2200], ['Documentary Short', 2600]
+        ]),
+        Q('Shoot Days', 'How many days of filming?', true, 'day', 900, 1, 10, 1),
+        Q('Crew Size', 'How many people on set?', true, 'crew member', 400, 1, 8, 2),
+        S('Deliverables', 'What should the final cut look like?', true, [
+          ['Highlight (2–3 min)', 0], ['Feature Cut (8–12 min)', 1200],
+          ['Full Film + Highlight', 2400], ['Multi-cam Full Event', 3000]
+        ]),
+        M('Add-ons', 'Optional extras.', [
+          ['Drone / Aerial', 550], ['Second Camera Angle', 700], ['Licensed Music Track', 250],
+          ['Raw Footage Delivery', 400], ['Same-week Teaser', 600]
+        ]),
+        S('Turnaround', 'When do you need the final cut?', true, [
+          ['Standard (8–10 weeks)', 0], ['Priority (4 weeks)', 800], ['Rush (10 days)', 1600]
+        ])
+      ]
+    },
+
+    'wedding-planner': {
+      label: 'Wedding Planner',
+      name: 'Wedding Planning Quote',
+      steps: [
+        S('Service Level', 'How much of the planning should we handle?', true, [
+          ['Day-of Coordination', 1800], ['Partial Planning', 4500],
+          ['Full Planning', 9000], ['Luxury / Destination', 15000]
+        ]),
+        Q('Guest Count', 'How many guests are you expecting?', true, 'guest', 12, 10, 400, 100),
+        Q('Planning Months', 'How long until the wedding?', true, 'month', 250, 1, 24, 12),
+        S('Extra Events', 'Anything beyond the wedding day?', false, [
+          ['Wedding day only', 0], ['+ Rehearsal Dinner', 900],
+          ['+ Welcome Party', 1400], ['Full Weekend (3 events)', 2800]
+        ]),
+        M('Add-ons', 'Optional services.', [
+          ['Vendor Sourcing', 1200], ['Design & Styling Concept', 1600], ['RSVP Management', 700],
+          ['Honeymoon Planning', 900], ['On-site Assistant', 600]
+        ])
+      ]
+    },
+
+    'makeup-artist': {
+      label: 'Makeup Artist',
+      name: 'Makeup Quote',
+      steps: [
+        S('Occasion', 'What is the makeup for?', true, [
+          ['Bridal', 350], ['Bridal Party', 180], ['Photoshoot / Editorial', 250],
+          ['Evening Event', 150], ['Special Effects', 400]
+        ]),
+        Q('People', 'How many people need makeup?', true, 'person', 120, 1, 15, 1),
+        S('Trial Session', 'Would you like a trial beforehand?', false, [
+          ['No trial', 0], ['One trial', 150], ['Two trials', 280]
+        ]),
+        S('Travel', 'Where are we working?', true, [
+          ['At my studio', 0], ['On location — local', 80], ['On location — over 50km', 200]
+        ]),
+        M('Add-ons', 'Optional extras.', [
+          ['Airbrush Finish', 90], ['Lashes', 45], ['Touch-up Kit', 60],
+          ['All-day Standby', 350], ['Early Start (before 6am)', 120]
+        ])
+      ]
+    },
+
+    'hair-stylist': {
+      label: 'Hair Stylist',
+      name: 'Hair Styling Quote',
+      steps: [
+        S('Occasion', 'What is the styling for?', true, [
+          ['Bridal', 300], ['Bridal Party', 150], ['Photoshoot / Editorial', 220],
+          ['Evening Event', 130], ['Costume / Period Styling', 350]
+        ]),
+        Q('People', 'How many people need styling?', true, 'person', 100, 1, 15, 1),
+        S('Trial', 'Would you like a trial beforehand?', false, [
+          ['No trial', 0], ['One trial', 130], ['Two trials', 240]
+        ]),
+        S('Travel', 'Where are we working?', true, [
+          ['At my salon', 0], ['On location — local', 80], ['On location — over 50km', 200]
+        ]),
+        M('Add-ons', 'Optional extras.', [
+          ['Hair Extensions Fitting', 150], ['Veil / Accessory Placement', 60],
+          ['All-day Standby', 320], ['Early Start (before 6am)', 120], ['Second Look Change', 110]
+        ])
+      ]
+    },
+
+    'dj-live-music': {
+      label: 'DJ / Live Music',
+      name: 'Music Quote',
+      steps: [
+        S('Event Type', 'What are we playing?', true, [
+          ['Wedding Reception', 1400], ['Corporate Party', 1100], ['Birthday / Private', 800],
+          ['Club Night', 900], ['Festival Set', 1600]
+        ]),
+        Q('Performance Hours', 'How long should we play?', true, 'hour', 150, 1, 10, 4),
+        S('Setup Size', 'How big is the room?', true, [
+          ['Small (under 50 guests)', 0], ['Medium (50–150)', 350],
+          ['Large (150–300)', 750], ['Very Large (300+)', 1400]
+        ]),
+        M('Extras', 'Production add-ons.', [
+          ['Dance Floor Lighting', 400], ['Uplighting Package', 350], ['Wireless Mic for Speeches', 120],
+          ['Fog / Haze Machine', 180], ['Live Saxophone', 600]
+        ]),
+        S('Travel', 'Where is the venue?', true, [
+          ['Local (under 30km)', 0], ['Regional (30–100km)', 180], ['Long distance (100km+)', 450]
+        ])
+      ]
+    },
+
+    'event-venue': {
+      label: 'Event Venue',
+      name: 'Venue Hire Quote',
+      steps: [
+        S('Event Type', 'What are you hosting?', true, [
+          ['Wedding', 4500], ['Corporate Event', 3200], ['Private Party', 2200],
+          ['Conference', 3800], ['Photoshoot / Film', 1200]
+        ]),
+        Q('Guest Count', 'How many guests?', true, 'guest', 35, 10, 400, 100),
+        Q('Hours of Hire', 'How long do you need the space?', true, 'hour', 250, 2, 14, 6),
+        S('Catering', 'How would you like food handled?', true, [
+          ['Venue only — no catering', 0], ['Canapés & Drinks', 1800],
+          ['Seated Dinner', 4200], ['Full Day Catering', 6500]
+        ]),
+        M('Extras', 'Optional additions.', [
+          ['AV & Projection', 700], ['Dedicated Event Manager', 900], ['Extended Bar Licence', 600],
+          ['Ceremony Setup', 850], ['Overnight Suite', 400]
+        ])
+      ]
+    },
+
+    caterer: {
+      label: 'Caterer',
+      name: 'Catering Quote',
+      steps: [
+        S('Event Type', 'What is the occasion?', true, [
+          ['Wedding', 1500], ['Corporate Lunch', 600], ['Private Dinner', 500],
+          ['Cocktail Reception', 900], ['Festival / Large Scale', 2500]
+        ]),
+        Q('Guests', 'How many people are we feeding?', true, 'guest', 55, 10, 500, 80),
+        S('Menu Tier', 'What level of menu?', true, [
+          ['Classic', 0], ['Premium', 1200], ['Signature Tasting', 2800], ['Fully Bespoke', 4500]
+        ]),
+        S('Service Style', 'How should it be served?', true, [
+          ['Buffet', 0], ['Family Style', 600], ['Plated Service', 1400], ['Food Stations', 1100]
+        ]),
+        M('Add-ons', 'Optional extras.', [
+          ['Bar Service', 1200], ['Dessert Table', 650], ['Late-night Snacks', 550],
+          ['Dietary Menus', 400], ['Waiting Staff', 900]
+        ])
+      ]
+    },
+
+    florist: {
+      label: 'Florist',
+      name: 'Floral Quote',
+      steps: [
+        S('Event Type', 'What is the occasion?', true, [
+          ['Wedding', 1800], ['Corporate Event', 900], ['Private Party', 600],
+          ['Funeral / Memorial', 700], ['Installation / Window', 1400]
+        ]),
+        Q('Arrangements', 'How many arrangements do you need?', true, 'arrangement', 95, 1, 60, 10),
+        S('Flower Tier', 'What level of blooms?', true, [
+          ['Seasonal', 0], ['Premium', 700], ['Luxury / Imported', 1800]
+        ]),
+        S('Setup', 'Who installs on the day?', true, [
+          ['Collection only', 0], ['Delivery & drop-off', 180], ['Full on-site styling', 850]
+        ]),
+        M('Add-ons', 'Optional extras.', [
+          ['Bridal Bouquet', 280], ['Buttonholes (set of 6)', 150], ['Arch / Installation', 1200],
+          ['Table Runners', 420], ['Same-day Teardown', 350]
+        ])
+      ]
+    },
+
+    'private-chef': {
+      label: 'Private Chef',
+      name: 'Private Chef Quote',
+      steps: [
+        S('Occasion', 'What are we cooking for?', true, [
+          ['Dinner Party', 600], ['Anniversary / Romantic', 500], ['Family Celebration', 750],
+          ['Corporate Entertaining', 1100], ['Holiday / Villa Stay', 1800]
+        ]),
+        Q('Guests', 'How many people at the table?', true, 'guest', 85, 2, 30, 8),
+        S('Courses', 'How many courses?', true, [
+          ['Three courses', 0], ['Four courses', 300], ['Five courses', 650], ['Tasting menu (7+)', 1300]
+        ]),
+        S('Service Style', 'How formal?', true, [
+          ['Relaxed / family style', 0], ['Plated service', 400], ['Fine dining with front of house', 1000]
+        ]),
+        M('Add-ons', 'Optional extras.', [
+          ['Wine Pairing', 750], ['Canapés on Arrival', 380], ['Dessert Course Upgrade', 260],
+          ['Kitchen Assistant', 450], ['Full Cleanup', 200]
+        ])
+      ]
+    },
+
+    'tattoo-artist': {
+      label: 'Tattoo Artist',
+      name: 'Tattoo Quote',
+      steps: [
+        S('Placement', 'Where on the body?', true, [
+          ['Forearm', 250], ['Upper Arm / Shoulder', 350], ['Back', 600],
+          ['Chest / Ribs', 550], ['Leg', 400], ['Hand / Neck', 450]
+        ]),
+        S('Size', 'How large is the piece?', true, [
+          ['Small (under 5cm)', 0], ['Medium (5–15cm)', 250],
+          ['Large (15–30cm)', 700], ['Full panel (30cm+)', 1500]
+        ]),
+        S('Detail Level', 'How intricate is the design?', true, [
+          ['Linework / Minimal', 0], ['Shaded Blackwork', 300],
+          ['Full Colour', 600], ['Photorealism', 1200]
+        ]),
+        Q('Sessions', 'How many sessions do you expect?', true, 'session', 400, 1, 12, 1),
+        M('Add-ons', 'Optional extras.', [
+          ['Custom Design Consultation', 150], ['Cover-up Work', 350],
+          ['Touch-up Session', 180], ['Numbing Cream', 40], ['Aftercare Kit', 35]
+        ])
+      ]
+    },
+
+    'personal-trainer': {
+      label: 'Personal Trainer',
+      name: 'Training Quote',
+      steps: [
+        S('Goal', 'What are you training for?', true, [
+          ['General Fitness', 0], ['Weight Loss', 80], ['Strength / Muscle', 120],
+          ['Event Preparation', 200], ['Rehabilitation', 250]
+        ]),
+        Q('Sessions per Week', 'How often will we train?', true, 'session', 220, 1, 7, 2),
+        Q('Programme Length', 'How many months?', true, 'month', 90, 1, 12, 3),
+        // Prices only ever add. The API clamps a negative price to zero, so a
+        // discount-shaped option would quietly disagree with the emailed total.
+        S('Format', 'How would you like to train?', true, [
+          ['Online coaching', 0], ['Small group (2–4)', 200], ['Hybrid', 350], ['In-person 1:1', 500]
+        ]),
+        M('Add-ons', 'Optional extras.', [
+          ['Nutrition Plan', 300], ['Weekly Check-ins', 200], ['Body Composition Scans', 150],
+          ['Custom App Programming', 250], ['Recovery / Mobility Sessions', 280]
+        ])
+      ]
+    },
+
+    custom: {
+      label: 'Start from scratch',
+      name: 'My Quote',
+      steps: [
+        S('First Question', 'Replace this with your own question.', true, [
+          ['First option', 100], ['Second option', 200]
+        ]),
+        S('Second Question', 'Every quote needs at least two steps.', false, [
+          ['No thanks', 0], ['Yes please', 150]
+        ])
+      ]
+    }
+  };
+
+  var PRESET_IDS = Object.keys(PRESETS);
+
+  /**
+   * Turn a preset into a live config. Ids are assigned here rather than being
+   * written out in each preset, which keeps the templates readable and makes
+   * every id shape identical to one the editor would produce.
+   */
+  function buildPreset(presetId) {
+    // Normalise before use: an unknown id from the URL or a stale saved config
+    // must not survive into `config.preset`, or it leaks back out through the
+    // generated script tag and leaves the editor dropdown with no selection.
+    var id = Object.prototype.hasOwnProperty.call(PRESETS, presetId) ? presetId : 'photographer';
+    var preset = PRESETS[id];
+    var steps = preset.steps.map(function (step, si) {
+      var out = { id: 's' + (si + 1) };
+      for (var k in step) { if (Object.prototype.hasOwnProperty.call(step, k)) out[k] = step[k]; }
+      if (out.options) {
+        out.options = step.options.map(function (opt, oi) {
+          return { id: 'o' + (oi + 1), label: opt[0], price: opt[1] };
+        });
+      }
+      return out;
+    });
+
+    return {
+      preset:      id,
+      name:        preset.name,
+      currency:    CFG.currency,
+      accentColor: CFG.accentColor,
+      ctaText:     CFG.ctaText,
+      ctaUrl:      CFG.ctaUrl,
+      notifyEmail: '',
+      emailLead:   false,
+      copy:        Object.assign({}, DEFAULT_COPY, preset.copy || {}),
+      steps:       steps
+    };
+  }
 
   // ─── Helpers ──────────────────────────────────────────────────────────────
 
@@ -256,6 +551,17 @@
       '.anavo-qb-save:disabled{opacity:.5 !important;cursor:default !important}',
       '.anavo-qb-mini{position:fixed !important;bottom:20px !important;right:20px !important;background:rgba(13,20,38,.92) !important;color:#e2e8f0 !important;border:1px solid rgba(255,255,255,.15) !important;border-radius:8px !important;padding:8px 14px !important;font-size:12px !important;font-weight:700 !important;cursor:pointer !important;z-index:99999 !important;display:none !important}',
       '.anavo-qb-req-row{display:flex !important;align-items:center !important;gap:6px !important;font-size:12px !important;color:#94a3b8 !important;margin-bottom:10px !important;cursor:pointer !important}',
+
+      // Submit failure state
+      '.anavo-qb-error{background:#fef2f2 !important;border:1px solid #fecaca !important;color:#b91c1c !important;border-radius:8px !important;padding:11px 14px !important;font-size:13px !important;margin:0 0 16px !important;line-height:1.45 !important}',
+
+      // Editor: preset picker and upsell
+      '.anavo-qb-ed-note{font-size:11px !important;color:#64748b !important;margin-top:5px !important;line-height:1.45 !important}',
+      '.anavo-qb-upsell{background:rgba(255,255,255,.05) !important;border:1px solid rgba(255,255,255,.12) !important;border-radius:8px !important;padding:12px !important;margin-top:4px !important}',
+      '.anavo-qb-upsell-hd{font-size:12px !important;font-weight:700 !important;color:#e2e8f0 !important;margin-bottom:5px !important}',
+      '.anavo-qb-upsell-bd{font-size:11px !important;color:#94a3b8 !important;line-height:1.5 !important;margin-bottom:9px !important}',
+      '.anavo-qb-upsell-cta{display:block !important;text-align:center !important;padding:8px !important;background:rgba(255,255,255,.09) !important;border:1px solid rgba(255,255,255,.16) !important;border-radius:6px !important;color:#e2e8f0 !important;font-size:11px !important;font-weight:700 !important;text-decoration:none !important}',
+      '.anavo-qb-upsell-cta:hover{background:rgba(255,255,255,.14) !important}',
     ].join('');
 
     var el = document.createElement('style');
@@ -275,8 +581,18 @@
     this.sel = {};             // stepId -> { label, price, detail }
     this.contact = { name: '', email: '' };
     this.done = false;
+    // The API withholds email for submissions filled faster than a person can
+    // fill them. Timed from first paint rather than from page load, so a
+    // visitor who scrolls for a while is not counted as having "started".
+    this.startedAt = Date.now();
+    this.hp = '';              // honeypot — a real person never fills this
     this._render();
   }
+
+  Widget.prototype._copy = function (key) {
+    var copy = this.config.copy || {};
+    return copy[key] != null && copy[key] !== '' ? copy[key] : DEFAULT_COPY[key];
+  };
 
   Widget.prototype._totalSteps = function () {
     return this.config.steps.length; // contact is step index = totalSteps
@@ -484,8 +800,8 @@
   Widget.prototype._renderContact = function (parent) {
     var self = this;
     parent.innerHTML =
-      '<div class="anavo-qb-step-title">Almost done!</div>' +
-      '<div class="anavo-qb-step-desc">Enter your details to receive your personalized quote.</div>';
+      '<div class="anavo-qb-step-title">' + esc(this._copy('contactTitle')) + '</div>' +
+      '<div class="anavo-qb-step-desc">' + esc(this._copy('contactSub')) + '</div>';
 
     var fields = document.createElement('div');
     fields.className = 'anavo-qb-fields';
@@ -501,7 +817,25 @@
 
     fields.appendChild(field('Your Name', 'text', 'name', 'Jane Smith'));
     fields.appendChild(field('Email Address', 'email', 'email', 'jane@example.com'));
+
+    // Honeypot: off-screen rather than display:none, since some bots skip
+    // hidden fields. Real people never see it; scripted fills always take it.
+    var hp = document.createElement('div');
+    hp.setAttribute('aria-hidden', 'true');
+    hp.style.cssText = 'position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden';
+    var hpInp = document.createElement('input');
+    hpInp.type = 'text'; hpInp.tabIndex = -1; hpInp.autocomplete = 'off';
+    hpInp.name = 'company_website';
+    hpInp.addEventListener('input', function () { self.hp = this.value; });
+    hp.appendChild(hpInp);
+    fields.appendChild(hp);
+
     parent.appendChild(fields);
+
+    var err = document.createElement('div');
+    err.className = 'anavo-qb-error';
+    err.style.display = 'none';
+    parent.appendChild(err);
 
     var nav = document.createElement('div');
     nav.className = 'anavo-qb-nav';
@@ -513,11 +847,30 @@
     var submit = document.createElement('button');
     submit.className = 'anavo-qb-btn anavo-qb-btn-primary'; submit.textContent = 'Get My Quote →';
     submit.addEventListener('click', function () {
-      if (!self.contact.name.trim() || !self.contact.email.trim()) {
-        alert('Please enter your name and email.'); return;
+      var name = self.contact.name.trim();
+      var email = self.contact.email.trim();
+
+      function fail(message) {
+        err.textContent = message;
+        err.style.display = 'block';
+        submit.textContent = 'Get My Quote →';
+        submit.disabled = false;
       }
+
+      if (!name || !email) return fail('Please enter your name and email.');
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return fail('That email address does not look right.');
+
+      err.style.display = 'none';
       submit.textContent = 'Sending…'; submit.disabled = true;
-      self._submit(function () { self.done = true; self._render(); });
+
+      // The old build fired the request and showed the summary regardless, so
+      // a failed submission looked identical to a successful one and the lead
+      // was lost without anyone knowing. Wait for the result instead.
+      self._submit(function (ok, message) {
+        if (!ok) return fail(message || 'We could not send your quote. Please try again.');
+        self.done = true;
+        self._render();
+      });
     });
 
     nav.appendChild(back); nav.appendChild(submit);
@@ -564,7 +917,7 @@
     box.appendChild(row);
 
     var note = document.createElement('div'); note.className = 'anavo-qb-sidebar-note';
-    note.textContent = 'Final price confirmed at booking';
+    note.textContent = this._copy('disclaimer');
     box.appendChild(note);
 
     sidebar.appendChild(box);
@@ -586,16 +939,41 @@
       clientEmail: this.contact.email,
       selections: this.sel,
       total:      this._getTotal(),
-      currency:   this.config.currency || CFG.currency
+      currency:   this.config.currency || CFG.currency,
+      // Abuse signals the API needs to decide whether to email on this
+      // domain's behalf. Without them a real lead is stored but the owner is
+      // never notified, which is indistinguishable from the plugin being broken.
+      hp:         this.hp,
+      formMs:     Date.now() - this.startedAt
     };
+
+    var timedOut = false;
+    var timer = setTimeout(function () {
+      timedOut = true;
+      onDone(false, 'The request timed out. Please try again.');
+    }, 15000);
 
     fetch(CFG.apiBase + '/api/quotation/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
-    }).catch(function () {});
-
-    onDone();
+    })
+      .then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (d) {
+          return { ok: r.ok, data: d };
+        });
+      })
+      .then(function (res) {
+        if (timedOut) return;
+        clearTimeout(timer);
+        if (res.ok && res.data && res.data.success) return onDone(true);
+        onDone(false, (res.data && res.data.error) || 'We could not send your quote. Please try again.');
+      })
+      .catch(function () {
+        if (timedOut) return;
+        clearTimeout(timer);
+        onDone(false, 'We could not reach the server. Please check your connection and try again.');
+      });
   };
 
   Widget.prototype._renderSummary = function () {
@@ -606,8 +984,10 @@
     wrap.className = 'anavo-qb-summary';
 
     wrap.innerHTML =
-      '<div class="anavo-qb-sum-title">Your Quote is Ready!</div>' +
-      '<div class="anavo-qb-sum-sub">Hi ' + esc(this.contact.name) + ', here\'s your personalized estimate.</div>';
+      '<div class="anavo-qb-sum-title">' + esc(this._copy('summaryTitle')) + '</div>' +
+      '<div class="anavo-qb-sum-sub">' +
+        esc(this._copy('summarySub').replace(/\{name\}/g, this.contact.name)) +
+      '</div>';
 
     var table = document.createElement('table');
     table.className = 'anavo-qb-sum-table';
@@ -686,6 +1066,7 @@
     function buildScriptTag(cfg) {
       var base = 'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/quotation-builder/quotation-builder.min.js';
       var q = '?configId=' + encodeURIComponent(cfg.id || 'default') +
+        '&preset=' + encodeURIComponent(cfg.preset || 'photographer') +
         '&accentColor=' + encodeURIComponent(cfg.accentColor || '#1a3a5c') +
         '&ctaText=' + encodeURIComponent(cfg.ctaText || 'Book Now') +
         '&ctaUrl=' + encodeURIComponent(cfg.ctaUrl || '/contact');
@@ -695,6 +1076,41 @@
     function renderBody() {
       body.innerHTML = '';
       var cfg = configRef[0];
+
+      // Preset picker — replaces every step, so it asks first.
+      var preSec = document.createElement('div'); preSec.className = 'anavo-qb-ed-section';
+      preSec.innerHTML = '<span class="anavo-qb-ed-lbl">Profession Template</span>';
+      var preSel = document.createElement('select'); preSel.className = 'anavo-qb-type-sel';
+      preSel.style.marginBottom = '0';
+      PRESET_IDS.forEach(function (id) {
+        var o = document.createElement('option');
+        o.value = id; o.textContent = PRESETS[id].label;
+        o.selected = cfg.preset === id;
+        preSel.appendChild(o);
+      });
+      preSel.addEventListener('change', function () {
+        var chosen = this.value;
+        if (!window.confirm('Switch to the ' + PRESETS[chosen].label + ' template?\n\nThis replaces all current steps and prices. Your quote name, colour and notification email are kept.')) {
+          this.value = cfg.preset;
+          return;
+        }
+        var fresh = buildPreset(chosen);
+        // Keep what belongs to the customer, replace what belongs to the trade.
+        fresh.id          = cfg.id;
+        fresh.currency    = cfg.currency;
+        fresh.accentColor = cfg.accentColor;
+        fresh.ctaText     = cfg.ctaText;
+        fresh.ctaUrl      = cfg.ctaUrl;
+        fresh.notifyEmail = cfg.notifyEmail;
+        fresh.emailLead   = cfg.emailLead;
+        configRef[0] = fresh;
+        renderBody();
+      });
+      preSec.appendChild(preSel);
+      var preNote = document.createElement('div'); preNote.className = 'anavo-qb-ed-note';
+      preNote.textContent = 'Prices are starter values — replace them with yours.';
+      preSec.appendChild(preNote);
+      body.appendChild(preSec);
 
       // Settings
       var settSec = document.createElement('div'); settSec.className = 'anavo-qb-ed-section';
@@ -715,11 +1131,49 @@
       settSec.appendChild(settingField('Notification Email', 'notifyEmail', 'email'));
       settSec.appendChild(settingField('CTA Button Text', 'ctaText'));
       settSec.appendChild(settingField('CTA Button URL', 'ctaUrl'));
+
+      // Lead copy is opt-in: the recipient comes from the form, so it is the
+      // one message a stranger could aim anywhere. Off unless asked for.
+      var leadRow = document.createElement('label'); leadRow.className = 'anavo-qb-req-row';
+      leadRow.style.marginTop = '4px';
+      var leadChk = document.createElement('input'); leadChk.type = 'checkbox';
+      leadChk.checked = cfg.emailLead === true;
+      leadChk.addEventListener('change', function () { cfg.emailLead = this.checked; });
+      leadRow.appendChild(leadChk);
+      leadRow.appendChild(document.createTextNode(' Email the client a copy of their quote'));
+      settSec.appendChild(leadRow);
       body.appendChild(settSec);
+
+      // Wording
+      var copySec = document.createElement('div'); copySec.className = 'anavo-qb-ed-section';
+      copySec.innerHTML = '<span class="anavo-qb-ed-lbl">Wording</span>';
+      if (!cfg.copy) cfg.copy = Object.assign({}, DEFAULT_COPY);
+
+      function copyField(label, key, hint) {
+        var wrap = document.createElement('div'); wrap.style.marginBottom = '8px';
+        var lbl = document.createElement('label'); lbl.className = 'anavo-qb-ed-lbl'; lbl.textContent = label;
+        var inp = document.createElement('input'); inp.className = 'anavo-qb-ed-inp';
+        inp.value = cfg.copy[key] || '';
+        inp.placeholder = DEFAULT_COPY[key];
+        inp.addEventListener('input', function () { cfg.copy[key] = this.value; });
+        wrap.appendChild(lbl); wrap.appendChild(inp);
+        if (hint) {
+          var h = document.createElement('div'); h.className = 'anavo-qb-ed-note'; h.textContent = hint;
+          wrap.appendChild(h);
+        }
+        return wrap;
+      }
+
+      copySec.appendChild(copyField('Contact Step Heading', 'contactTitle'));
+      copySec.appendChild(copyField('Contact Step Subheading', 'contactSub'));
+      copySec.appendChild(copyField('Summary Heading', 'summaryTitle'));
+      copySec.appendChild(copyField('Summary Subheading', 'summarySub', '{name} is replaced with the client\u2019s name.'));
+      copySec.appendChild(copyField('Price Disclaimer', 'disclaimer'));
+      body.appendChild(copySec);
 
       // Steps
       var stepsSec = document.createElement('div'); stepsSec.className = 'anavo-qb-ed-section';
-      stepsSec.innerHTML = '<span class="anavo-qb-ed-lbl">Steps (' + cfg.steps.length + ')</span>';
+      stepsSec.innerHTML = '<span class="anavo-qb-ed-lbl">Steps (' + cfg.steps.length + ' of ' + MAX_STEPS + ')</span>';
 
       cfg.steps.forEach(function (step, si) {
         var item = document.createElement('div'); item.className = 'anavo-qb-step-item';
@@ -730,7 +1184,14 @@
           '<span style="color:#475569;font-size:10px;flex-shrink:0">' + step.type + '</span>';
 
         var rmStep = document.createElement('button'); rmStep.className = 'anavo-qb-rm'; rmStep.textContent = '×';
-        rmStep.addEventListener('click', function (e) { e.stopPropagation(); cfg.steps.splice(si, 1); renderBody(); });
+        if (cfg.steps.length <= MIN_STEPS) {
+          rmStep.disabled = true;
+          rmStep.style.opacity = '.35';
+          rmStep.style.cursor = 'default';
+          rmStep.title = 'A quote needs at least ' + MIN_STEPS + ' steps';
+        } else {
+          rmStep.addEventListener('click', function (e) { e.stopPropagation(); cfg.steps.splice(si, 1); renderBody(); });
+        }
         hd.appendChild(rmStep);
 
         var bd = document.createElement('div'); bd.className = 'anavo-qb-step-bd';
@@ -821,13 +1282,41 @@
       });
 
       var addStep = document.createElement('button'); addStep.className = 'anavo-qb-add';
-      addStep.style.marginTop = '8px'; addStep.textContent = '+ Add Step';
-      addStep.addEventListener('click', function () {
-        cfg.steps.push({ id: uid(), title: 'New Step', type: 'select', required: false, options: [] });
-        renderBody();
-      });
+      addStep.style.marginTop = '8px';
+      if (cfg.steps.length >= MAX_STEPS) {
+        addStep.textContent = 'Maximum ' + MAX_STEPS + ' steps';
+        addStep.disabled = true;
+        addStep.style.opacity = '.4';
+        addStep.style.cursor = 'default';
+      } else {
+        addStep.textContent = '+ Add Step';
+        addStep.addEventListener('click', function () {
+          cfg.steps.push({ id: uid(), title: 'New Step', type: 'select', required: false, options: [] });
+          renderBody();
+        });
+      }
       stepsSec.appendChild(addStep);
+
+      if (cfg.steps.length >= MAX_STEPS) {
+        var clampNote = document.createElement('div'); clampNote.className = 'anavo-qb-ed-note';
+        clampNote.textContent = 'Quotes convert best at ' + MIN_STEPS + '–' + MAX_STEPS + ' steps. Need more? See Full Customization below.';
+        stepsSec.appendChild(clampNote);
+      }
       body.appendChild(stepsSec);
+
+      // Full Customization upsell — shown where the limits are felt.
+      var upSec = document.createElement('div'); upSec.className = 'anavo-qb-ed-section';
+      var up = document.createElement('div'); up.className = 'anavo-qb-upsell';
+      up.innerHTML =
+        '<div class="anavo-qb-upsell-hd">Need it further customized?</div>' +
+        '<div class="anavo-qb-upsell-bd">Custom steps, conditional pricing, CRM integration — built by our devs for <strong>USD 500</strong> or <strong>1500 credits</strong>.</div>';
+      var upCta = document.createElement('a'); upCta.className = 'anavo-qb-upsell-cta';
+      upCta.href = 'https://anavo.tech/plugins/quotation-builder/full-customization?domain=' + encodeURIComponent(CFG.domain);
+      upCta.target = '_blank'; upCta.rel = 'noopener';
+      upCta.textContent = 'Create an Order →';
+      up.appendChild(upCta);
+      upSec.appendChild(up);
+      body.appendChild(upSec);
 
       // Script tag
       var scrSec = document.createElement('div'); scrSec.className = 'anavo-qb-ed-section';
@@ -849,17 +1338,37 @@
 
     // Footer
     var footer = document.createElement('div'); footer.className = 'anavo-qb-ed-footer';
+    footer.style.flexDirection = 'column';
+    var saveMsg = document.createElement('div');
+    saveMsg.className = 'anavo-qb-ed-note';
+    saveMsg.style.cssText = 'display:none;margin:0 0 8px;color:#fca5a5';
     var saveBtn = document.createElement('button'); saveBtn.className = 'anavo-qb-save'; saveBtn.textContent = 'Save & Preview';
     saveBtn.addEventListener('click', function () {
       var cfg = configRef[0];
+      saveMsg.style.display = 'none';
       saveBtn.textContent = 'Saving…'; saveBtn.disabled = true;
+
+      function failed(message) {
+        saveMsg.textContent = message;
+        saveMsg.style.display = 'block';
+        saveBtn.textContent = 'Save & Preview';
+        saveBtn.disabled = false;
+      }
+
       fetch(CFG.apiBase + '/api/quotation/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ domain: CFG.domain, config: cfg })
       })
-        .then(function (r) { return r.json(); })
-        .then(function (d) {
+        .then(function (r) {
+          return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, data: d }; });
+        })
+        .then(function (res) {
+          // Saving requires an active license for this domain. Say so plainly —
+          // "Error — retry" sends the customer nowhere.
+          if (!res.ok) return failed(res.data.error || 'Could not save. Please try again.');
+
+          var d = res.data;
           cfg.id = d.id || cfg.id;
           configRef[0] = cfg;
           injectStyles(cfg.accentColor);
@@ -869,8 +1378,9 @@
           saveBtn.textContent = '✓ Saved!'; saveBtn.disabled = false;
           setTimeout(function () { saveBtn.textContent = 'Save & Preview'; }, 2500);
         })
-        .catch(function () { saveBtn.textContent = 'Error — retry'; saveBtn.disabled = false; });
+        .catch(function () { failed('Could not reach the server. Check your connection and try again.'); });
     });
+    footer.appendChild(saveMsg);
     footer.appendChild(saveBtn);
     panel.appendChild(footer);
     document.body.appendChild(panel);
@@ -895,14 +1405,26 @@
     if (CFG.configId) {
       fetch(CFG.apiBase + '/api/quotation/config?domain=' + encodeURIComponent(CFG.domain) + '&configId=' + encodeURIComponent(CFG.configId))
         .then(function (r) { return r.json(); })
-        .then(function (d) { launch(d.config || DEFAULT_CONFIG); })
-        .catch(function () { launch(DEFAULT_CONFIG); });
+        .then(function (d) { launch(normalizeConfig(d.config) || buildPreset(CFG.preset)); })
+        .catch(function () { launch(buildPreset(CFG.preset)); });
     } else {
-      launch(DEFAULT_CONFIG);
+      launch(buildPreset(CFG.preset));
     }
 
     checkLicense();
     return true;
+  }
+
+  /**
+   * A saved config predates the copy fields and the preset marker, so fill in
+   * whatever is missing rather than letting `undefined` reach the UI.
+   */
+  function normalizeConfig(config) {
+    if (!config || !Array.isArray(config.steps) || !config.steps.length) return null;
+    config.copy = Object.assign({}, DEFAULT_COPY, config.copy || {});
+    if (!Object.prototype.hasOwnProperty.call(PRESETS, config.preset)) config.preset = 'custom';
+    if (config.emailLead !== true) config.emailLead = false;
+    return config;
   }
 
   function checkLicense() {
@@ -924,6 +1446,6 @@
   }
 
   window.AnavoPluginState = window.AnavoPluginState || { plugins: {} };
-  window.AnavoPluginState.plugins['QuotationBuilder'] = { version: '2.0.0', config: CFG };
+  window.AnavoPluginState.plugins['QuotationBuilder'] = { version: '2.1.0', config: CFG };
 
 })();
