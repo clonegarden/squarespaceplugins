@@ -6,6 +6,35 @@ This is the repository-level changelog. It summarizes recent releases across all
 
 ## Recent Releases
 
+### 2026-09-29
+
+**New plugin — [Section Snap](section-snap/) v1.0.0.**
+
+Scroll-snaps a configurable range of page sections — the hero and the one below it by
+default — then releases the page so everything after it scrolls normally.
+
+It exists because the hand-rolled version of this effect that circulates in Squarespace
+forums relies on `.page-section:nth-of-type(n)`. That selector is scoped per parent, so the
+footer's own first `.page-section` matches it too and becomes a snap target. Under
+`scroll-snap-type: mandatory` there is then no snap point between the second section and the
+footer, and any downward scroll teleports the visitor straight to the bottom of the page.
+
+Section Snap resolves sections in JS and excludes anything inside `<header>` or `<footer>`,
+so only the intended elements are ever tagged. It also handles the cases the snippet misses:
+
+- Themes with a fixed header set `scroll-padding-top` on the scroll container, which insets
+  the snapport. Arrival is detected against the real landing position, not a raw
+  `getBoundingClientRect().top`.
+- `scroll-snap-stop: always` is applied to destinations only. On the origin section it makes
+  the browser refuse to release short wheel gestures.
+- `scroll-behavior: smooth` is opt-in, because on `<html>` it retimes every anchor link on
+  the site.
+- Snap is skipped below `minWidth` (768px default), in the Squarespace editor, under
+  `prefers-reduced-motion`, and on pages too short for the last target to reach the top —
+  where `mandatory` would otherwise rubber-band the visitor back to the hero.
+
+---
+
 ### 2026-09-22
 
 **Breaking — CSS namespace collisions fixed across 9 plugins.**

@@ -65,6 +65,7 @@ const PLUGINS = [
   { id: 'mouse-target-focus',name:'Mouse Target Focus',  category: 'UI',    mockType: 'ui',   accent: '#00d4ff', lines: ['◯  CURSOR','◯ → ◎ FOCUS','TARGET TRACKED'] },
   { id: 'particles-button', name: 'Particles Button',    category: 'UI',    mockType: 'ui',   accent: '#7c3aff', lines: ['  [ CLICK ME ]  ','·  ✦ · ✦ · ✦','BURST ON CLICK'] },
   { id: 'split-hover',      name: 'Split Hover',         category: 'UI',    mockType: 'image',accent: '#ff00ff', lines: ['▓▓▓▓▓ ░░░░░','  ◄ HOVER ►  ','SPLIT REVEAL'] },
+  { id: 'section-snap',     name: 'Section Snap',        category: 'UI',    mockType: 'ui',   accent: '#00d4ff', lines: ['█ SECTION 1 █','   ↓ SNAP ↓   ','▒ THEN FREE ▒'] },
 
   // ─ SEO ────────────────────────────────────────────────────────────────────
   { id: 'seo-modals',       name: 'SEO Modals',          category: 'SEO',   mockType: 'seo',  accent: '#00d4ff', lines: ['TITLE ████ 60','DESC  ████ 155','◉ SCHEMA OK'] },
