@@ -855,6 +855,7 @@
         err.style.display = 'block';
         submit.textContent = 'Get My Quote →';
         submit.disabled = false;
+        back.disabled = false;
       }
 
       if (!name || !email) return fail('Please enter your name and email.');
@@ -862,6 +863,10 @@
 
       err.style.display = 'none';
       submit.textContent = 'Sending…'; submit.disabled = true;
+      // Navigating back mid-request would detach these nodes, and `fail` would
+      // then write the error into a element no longer in the document -- the
+      // lead would see nothing at all.
+      back.disabled = true;
 
       // The old build fired the request and showed the summary regardless, so
       // a failed submission looked identical to a successful one and the lead
@@ -947,33 +952,54 @@
       formMs:     Date.now() - this.startedAt
     };
 
-    var timedOut = false;
-    var timer = setTimeout(function () {
-      timedOut = true;
-      onDone(false, 'The request timed out. Please try again.');
-    }, 15000);
+    var settled = false;
+    // One call, exactly once. Without this guard an exception thrown while
+    // rendering the summary would propagate into the chain's failure handler
+    // and report "we could not reach the server" for a submission the server
+    // actually accepted.
+    function finish(ok, message) {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      onDone(ok, message);
+    }
 
-    fetch(CFG.apiBase + '/api/quotation/submit', {
+    // AbortController is absent on the older browsers this plugin still has to
+    // run on, so it is a progressive enhancement rather than a requirement.
+    var ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+    var opts = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
-    })
+    };
+    if (ctrl) opts.signal = ctrl.signal;
+
+    var timer = setTimeout(function () {
+      if (settled) return;
+      if (ctrl) ctrl.abort();
+      // Deliberately not inviting a retry: without the abort landing, the
+      // request may already have been stored and emailed, and a second attempt
+      // would duplicate the lead and the owner's notification.
+      finish(false, ctrl
+        ? 'The request timed out. Please try again.'
+        : 'This is taking longer than expected. Your request may already have gone through — please check your email before trying again.');
+    }, 15000);
+
+    fetch(CFG.apiBase + '/api/quotation/submit', opts)
       .then(function (r) {
         return r.json().catch(function () { return {}; }).then(function (d) {
           return { ok: r.ok, data: d };
         });
       })
-      .then(function (res) {
-        if (timedOut) return;
-        clearTimeout(timer);
-        if (res.ok && res.data && res.data.success) return onDone(true);
-        onDone(false, (res.data && res.data.error) || 'We could not send your quote. Please try again.');
-      })
-      .catch(function () {
-        if (timedOut) return;
-        clearTimeout(timer);
-        onDone(false, 'We could not reach the server. Please check your connection and try again.');
-      });
+      .then(
+        function (res) {
+          if (res.ok && res.data && res.data.success) return finish(true);
+          finish(false, (res.data && res.data.error) || 'We could not send your quote. Please try again.');
+        },
+        function () {
+          finish(false, 'We could not reach the server. Please check your connection and try again.');
+        }
+      );
   };
 
   Widget.prototype._renderSummary = function () {
@@ -1090,12 +1116,22 @@
       });
       preSel.addEventListener('change', function () {
         var chosen = this.value;
-        if (!window.confirm('Switch to the ' + PRESETS[chosen].label + ' template?\n\nThis replaces all current steps and prices. Your quote name, colour and notification email are kept.')) {
+        if (!window.confirm('Switch to the ' + PRESETS[chosen].label + ' template?\n\nThis replaces all steps and prices. Anything you edited yourself — quote name, wording, colour, notification email and CTA — is kept.')) {
           this.value = cfg.preset;
           return;
         }
         var fresh = buildPreset(chosen);
-        // Keep what belongs to the customer, replace what belongs to the trade.
+        var prev  = buildPreset(cfg.preset);
+        // What is being swapped is the trade's step list. Anything the owner
+        // typed themselves survives; anything still sitting at the previous
+        // template's default gives way to the new one. Blindly keeping the old
+        // values would carry "Photography Quote" onto a caterer, and blindly
+        // replacing them would silently destroy hand-written wording that is
+        // not regenerated into anything the owner would recognise as new.
+        if (cfg.name !== prev.name) fresh.name = cfg.name;
+        Object.keys(DEFAULT_COPY).forEach(function (k) {
+          if (cfg.copy && cfg.copy[k] && cfg.copy[k] !== prev.copy[k]) fresh.copy[k] = cfg.copy[k];
+        });
         fresh.id          = cfg.id;
         fresh.currency    = cfg.currency;
         fresh.accentColor = cfg.accentColor;
@@ -1363,22 +1399,27 @@
         .then(function (r) {
           return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, data: d }; });
         })
-        .then(function (res) {
-          // Saving requires an active license for this domain. Say so plainly —
-          // "Error — retry" sends the customer nowhere.
-          if (!res.ok) return failed(res.data.error || 'Could not save. Please try again.');
+        .then(
+          function (res) {
+            // Saving requires an active license for this domain. Say so plainly —
+            // "Error — retry" sends the customer nowhere.
+            if (!res.ok) return failed(res.data.error || 'Could not save. Please try again.');
 
-          var d = res.data;
-          cfg.id = d.id || cfg.id;
-          configRef[0] = cfg;
-          injectStyles(cfg.accentColor);
-          var el = document.querySelector(CFG.target);
-          if (el) widgetRef[0] = new Widget(el, cfg);
-          renderBody();
-          saveBtn.textContent = '✓ Saved!'; saveBtn.disabled = false;
-          setTimeout(function () { saveBtn.textContent = 'Save & Preview'; }, 2500);
-        })
-        .catch(function () { failed('Could not reach the server. Check your connection and try again.'); });
+            var d = res.data;
+            cfg.id = d.id || cfg.id;
+            configRef[0] = cfg;
+            injectStyles(cfg.accentColor);
+            var el = document.querySelector(CFG.target);
+            if (el) widgetRef[0] = new Widget(el, cfg);
+            renderBody();
+            saveBtn.textContent = '✓ Saved!'; saveBtn.disabled = false;
+            setTimeout(function () { saveBtn.textContent = 'Save & Preview'; }, 2500);
+          },
+          // Second argument, not a trailing .catch: a throw from the re-render
+          // above must not be reported as a network failure after the config
+          // was already saved.
+          function () { failed('Could not reach the server. Check your connection and try again.'); }
+        );
     });
     footer.appendChild(saveMsg);
     footer.appendChild(saveBtn);
