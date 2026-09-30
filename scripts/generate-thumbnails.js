@@ -36,6 +36,7 @@ const PLUGINS = [
   { id: 'marquee-menu',    name: 'Marquee Menu',         category: 'Navigation', mockType: 'nav',   accent: '#00d4ff', lines: ['ABOUT  WORK  CONTACT','  ↕ HOVER ↕  ','◀ TEXT SCROLLS ▶'] },
   { id: 'nav-fx',          name: 'Nav FX',               category: 'Navigation', mockType: 'nav',   accent: '#ff4400', lines: ['HOME   WORK','  3D · GLOW  ','WORK   ABOUT'] },
   { id: 'scroll-loop-menu',name: 'Scroll Loop Menu',     category: 'Navigation', mockType: 'nav',   accent: '#00ff88', lines: ['HOME','◀━━━━━━━━━━━▶','↕ SCROLL LOOP'] },
+  { id: 'burger-menu-pro', name: 'Burger Menu Pro',      category: 'Navigation', mockType: 'nav',   accent: '#7c3aff', lines: ['LOGO        ☰','▼ SLIDE · CIRCLE ▼','ANY SCREEN WIDTH'] },
 
   // ─ Media ──────────────────────────────────────────────────────────────────
   { id: 'photo-grid',         name: 'Photo Grid',          category: 'Media', mockType: 'image', accent: '#00d4ff', lines: ['▓▓ ▓▓ ▓▓','▓▓ ▓▓ ▓▓','CSS MASONRY'] },
@@ -66,6 +67,7 @@ const PLUGINS = [
   { id: 'particles-button', name: 'Particles Button',    category: 'UI',    mockType: 'ui',   accent: '#7c3aff', lines: ['  [ CLICK ME ]  ','·  ✦ · ✦ · ✦','BURST ON CLICK'] },
   { id: 'split-hover',      name: 'Split Hover',         category: 'UI',    mockType: 'image',accent: '#ff00ff', lines: ['▓▓▓▓▓ ░░░░░','  ◄ HOVER ►  ','SPLIT REVEAL'] },
   { id: 'section-snap',     name: 'Section Snap',        category: 'UI',    mockType: 'ui',   accent: '#00d4ff', lines: ['█ SECTION 1 █','   ↓ SNAP ↓   ','▒ THEN FREE ▒'] },
+  { id: 'list-hover-reveal', name: 'List Hover Reveal', category: 'UI',    mockType: 'ui',   accent: '#00ff88', lines: ['━━ PROJECT ONE ━━','  ▓▓ ◄ CURSOR  ','━━ PROJECT TWO ━━'] },
 
   // ─ SEO ────────────────────────────────────────────────────────────────────
   { id: 'seo-modals',       name: 'SEO Modals',          category: 'SEO',   mockType: 'seo',  accent: '#00d4ff', lines: ['TITLE ████ 60','DESC  ████ 155','◉ SCHEMA OK'] },
