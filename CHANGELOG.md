@@ -6,6 +6,14 @@ This is the repository-level changelog. It summarizes recent releases across all
 
 ## Recent Releases
 
+### 2026-09-30
+
+**New — List Hover Reveal v1.0.0** (`list-hover-reveal/`). Hover-to-reveal rows for native List
+sections: cursor-following image with rAF lerp and velocity tilt, four reveal styles, whole-row
+links, keyboard focus, `prefers-reduced-motion`, and a touch mode whose image size is set by
+`imgWidthMobile` / `imgHeightMobile` instead of being derived from the list height. Targeted by
+`sectionId` or `target`. See [list-hover-reveal/README.md](list-hover-reveal/README.md).
+
 ### 2026-09-22
 
 **Breaking — CSS namespace collisions fixed across 9 plugins.**

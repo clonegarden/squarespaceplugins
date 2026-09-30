@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>List Hover Reveal — Demo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:Georgia,'Times New Roman',serif;background:#f4f1ec;color:#1b1b1b;--siteBackgroundColor:#f4f1ec;--tweak-line-block-line-color:rgba(27,27,27,.35)}
+    .intro,.outro{min-height:60vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 6vw}
+    .intro h1{font-weight:400;font-size:clamp(2rem,5vw,4rem);letter-spacing:.02em}
+    .intro p,.outro p{font-family:system-ui,sans-serif;font-size:13px;letter-spacing:.12em;text-transform:uppercase;opacity:.55;margin-top:1rem}
+    /* Minimal copy of the Squarespace "Simple" List markup defaults */
+    .page-section{position:relative}
+    .content-wrapper{position:relative;max-width:1200px;margin:0 auto;padding:0 4vw}
+    .user-items-list{padding:2.5vmax 0 9vmax}
+    .user-items-list-simple{display:grid;grid-template-columns:repeat(3,1fr);grid-gap:60px;list-style:none}
+    .list-item-media-inner{position:relative;padding-bottom:133.33%;overflow:hidden}
+    .list-item-media-inner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+    .list-item-content__title{font-weight:400;font-size:clamp(1.3rem,2.6vw,2.2rem);letter-spacing:.02em}
+    .list-item-content__button{font-family:system-ui,sans-serif;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#1b1b1b;text-decoration:none;border:1px solid #1b1b1b;padding:.8em 1.4em;display:inline-block}
+    .hint{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);font:11px system-ui,sans-serif;color:rgba(0,0,0,.45);background:rgba(255,255,255,.7);padding:6px 14px;border-radius:20px;border:1px solid rgba(0,0,0,.08);pointer-events:none;z-index:9999}
+  </style>
+</head>
+<body>
+  <div class="intro"><div><h1>Selected Work</h1><p>Scroll down</p></div></div>
+
+  <section class="page-section user-items-list-section" data-section-id="demo-list">
+    <div class="content-wrapper">
+      <div class="user-items-list" data-anavo-list-hover-reveal>
+        <ul class="user-items-list-item-container user-items-list-simple" data-alignment-vertical="middle" data-num-columns="3">
+          <li class="list-item">
+            <div class="list-item-media"><div class="list-item-media-inner" data-aspect-ratio="3:4">
+              <img alt="" src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=900&q=80" data-image-focal-point="0.5,0.5">
+            </div></div>
+            <div class="list-item-content">
+              <div class="list-item-content__text-wrapper"><h2 class="list-item-content__title">Ridgewood Row House</h2></div>
+              <div class="list-item-content__button-wrapper"><div class="list-item-content__button-container">
+                <a class="list-item-content__button" href="#ridgewood-link">○ View the project</a>
+              </div></div>
+            </div>
+          </li>
+          <li class="list-item">
+            <div class="list-item-media"><div class="list-item-media-inner" data-aspect-ratio="3:4">
+              <img alt="" src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=900&q=80" data-image-focal-point="0.5,0.5">
+            </div></div>
+            <div class="list-item-content">
+              <div class="list-item-content__text-wrapper"><h2 class="list-item-content__title">Clinton Hill Loft</h2></div>
+              <div class="list-item-content__button-wrapper"><div class="list-item-content__button-container">
+                <a class="list-item-content__button" href="#clinton-hill-link">○ View the project</a>
+              </div></div>
+            </div>
+          </li>
+          <li class="list-item">
+            <div class="list-item-media"><div class="list-item-media-inner" data-aspect-ratio="3:4">
+              <img alt="" src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=900&q=80" data-image-focal-point="0.5,0.5">
+            </div></div>
+            <div class="list-item-content">
+              <div class="list-item-content__text-wrapper"><h2 class="list-item-content__title">Catskills Retreat</h2></div>
+              <div class="list-item-content__button-wrapper"><div class="list-item-content__button-container">
+                <a class="list-item-content__button" href="#catskills-link">○ View the project</a>
+              </div></div>
+            </div>
+          </li>
+          <li class="list-item">
+            <div class="list-item-media"><div class="list-item-media-inner" data-aspect-ratio="3:4">
+              <img alt="" src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=900&q=80" data-image-focal-point="0.5,0.5">
+            </div></div>
+            <div class="list-item-content">
+              <div class="list-item-content__text-wrapper"><h2 class="list-item-content__title">Park Slope Brownstone</h2></div>
+              <div class="list-item-content__button-wrapper"><div class="list-item-content__button-container">
+                <!-- "#" links never become row links -->
+                <a class="list-item-content__button" href="#">○ Coming soon</a>
+              </div></div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <div class="outro"><div><p>End of list</p></div></div>
+  <div class="hint">Hover a row (desktop) · scroll a row through the middle of the screen (touch)</div>
+
+  <script>
+  (function(){
+    var p = new URLSearchParams(location.search);
+    var local = location.protocol === 'file:' || /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+    var u = new URL(local
+      ? new URL('../../list-hover-reveal/list-hover-reveal.js', location.href).href
+      : 'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/list-hover-reveal/list-hover-reveal.min.js');
+    u.searchParams.set('domain', 'anavo.tech');
+    p.forEach(function(val, key){ u.searchParams.set(key, val); });
+    var s = document.createElement('script');
+    s.src = u.toString();
+    document.body.appendChild(s);
+  })();
+  </script>
+</body>
+</html>

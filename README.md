@@ -207,6 +207,18 @@ Animated continuous logo marquee with stamp and particle explosion effects. Logo
 
 ---
 
+### List Hover Reveal
+Turns a native List section into full-width rows: hovering a row reveals its image, which follows the cursor with a smooth tilt while the other rows dim. On phones the row crossing the middle of the screen shows its image behind it, at a configurable size. **v1.0.0**
+
+**Install (Settings → Advanced → Code Injection → Footer):**
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/list-hover-reveal/list-hover-reveal.min.js?sectionId=YOUR_SECTION_ID"></script>
+```
+
+[📖 Documentation](list-hover-reveal/README.md) | [🎬 Live Demo](demos/list-hover-reveal/index.html)
+
+---
+
 ## 🔐 Licensing
 
 These plugins are **commercially licensed** and require activation. 
