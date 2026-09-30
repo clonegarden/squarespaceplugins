@@ -32,6 +32,18 @@ Squarekicker-inspired header enhancement — centered layout, sticky/auto-hide, 
 
 ---
 
+### Burger Menu Pro
+Forces the native 7.1 burger menu at every width (or below a breakpoint) and animates the overlay: slide, fade, curtain, slide-right or a circle that grows from the burger. Staggered items, socials + CTA moved into the menu, Escape/focus handling, reduced-motion aware. **v1.0.0**
+
+**Install (Settings → Advanced → Code Injection → Footer):**
+```html
+<script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/burger-menu-pro/burger-menu-pro.min.js?breakpoint=1024&animation=circle"></script>
+```
+
+[📖 Documentation](burger-menu-pro/README.md) | [🎬 Live Demo](demos/burger-menu-pro/index.html) | [📋 Changelog](burger-menu-pro/CHANGELOG.md)
+
+---
+
 ### Mega Menu
 Full-width mega menu dropdown that steals a Squarespace section and transforms it into a nav-triggered panel. Supports hover/click triggers, 5 animation modes, and 4 presets. **v1.0.0**
 

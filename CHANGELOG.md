@@ -96,6 +96,7 @@ Also in this release:
 |--------|--------|-----------|
 | Tabbed Content | v1.1.0 | [CHANGELOG](tabbed-content/CHANGELOG.md) |
 | Header Pro | v1.x | [CHANGELOG](header-pro/CHANGELOG.md) |
+| Burger Menu Pro | v1.0.0 | [CHANGELOG](burger-menu-pro/CHANGELOG.md) |
 | Testimonial Carousel Slider | v1.0.0 | [CHANGELOG](testimonial-carousel-slider/CHANGELOG.md) |
 | Expanded Menu | v2.1.5 | [CHANGELOG](expanded-menu/CHANGELOG.md) |
 | Floating Header | v1.0.8 | [CHANGELOG](floating-header/CHANGELOG.md) |
