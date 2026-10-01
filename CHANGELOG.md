@@ -6,6 +6,20 @@ This is the repository-level changelog. It summarizes recent releases across all
 
 ## Recent Releases
 
+### 2026-10-01
+
+**Fix — Image Tilt v1.2.0 and Section Snap v1.1.0 now use the shared license manager.**
+Both plugins checked their license with an inline Supabase REST call that only ran when the
+snippet passed `supabaseUrl` and `supabaseKey`. The snippet the store generates passes neither,
+so the check was always skipped and unlicensed domains never saw a notice. The query also looked
+up `purchased_plugins.plugin_id` by the PascalCase plugin name, while the store writes kebab-case
+ids, so it could not have matched anyway. Both now load `_shared/licensing.min.js` and run
+`AnavoLicenseManager` like every other commercial plugin (DB check via api.anavo.tech, preview and
+dev hosts allowed, shared notice). `supabaseUrl` / `supabaseKey` are still accepted and ignored,
+so existing snippets keep working.
+
+---
+
 ### 2026-09-30
 
 **New — List Hover Reveal v1.0.0** (`list-hover-reveal/`). Hover-to-reveal rows for native List
