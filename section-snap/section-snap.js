@@ -2,7 +2,7 @@
  * ============================================================
  * SECTION SNAP — Anavo Tech
  * ============================================================
- * @version  1.0.0
+ * @version  1.1.0
  * @author   Anavo Tech
  * @license  Commercial — plugins.anavo.tech
  *
@@ -36,8 +36,8 @@
  *   container   scope override (CSS selector)       default: auto
  *   debug       console diagnostics                 default: false
  *   domain      license check hostname
- *   supabaseUrl Supabase project URL
- *   supabaseKey Supabase anon key
+ *   supabaseUrl ignored since v1.1.0 (shared licensing)
+ *   supabaseKey ignored since v1.1.0 (shared licensing)
  * ============================================================
  */
 
@@ -45,7 +45,7 @@
   'use strict';
 
   var PLUGIN_ID = 'SectionSnap';
-  var VERSION   = '1.0.0';
+  var VERSION   = '1.1.0';
   var NS        = 'anavo-section-snap';
 
   // ─────────────────────────────────────────────────────────────────
@@ -112,69 +112,42 @@
   window.AnavoPluginState[PLUGIN_ID] = { version: VERSION, active: true };
 
   // ─────────────────────────────────────────────────────────────────
-  // 3. LICENSE CHECK
+  // 3. LICENSE CHECK — shared AnavoLicenseManager (non-blocking)
   // ─────────────────────────────────────────────────────────────────
+  // Same path as every other commercial plugin: _shared/licensing.min.js
+  // checks this domain against api.anavo.tech (licenses table, plugin =
+  // PLUGIN_ID), lets preview/dev hosts through and shows the shared
+  // unlicensed notice. It never blocks the effect.
+  // supabaseUrl / supabaseKey are still accepted for old snippets, but unused.
 
-  var BYPASS_DOMAINS = ['anavo.tech', 'www.anavo.tech', 'pluginstore.anavo.tech', 'clonegarden.github.io', 'localhost', '127.0.0.1'];
+  var LICENSING_SRC = 'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licensing.min.js';
+  var LICENSES_JSON = 'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licenses.json';
 
   function checkLicense() {
     try {
-      var host = window.location.hostname.toLowerCase().replace(/^www\./, '');
-      if (BYPASS_DOMAINS.indexOf(host) > -1) return;
-      if (!CFG.supabaseUrl || !CFG.supabaseKey) {
-        console.warn('[Anavo ' + PLUGIN_ID + '] supabaseUrl/supabaseKey not set — license check skipped.');
-        return;
-      }
-      var endpoint = CFG.supabaseUrl + '/rest/v1/purchased_plugins'
-        + '?plugin_id=eq.' + encodeURIComponent(PLUGIN_ID)
-        + '&domain=eq.'    + encodeURIComponent(host)
-        + '&select=id&limit=1';
-      fetch(endpoint, {
-        method: 'GET',
-        cache: 'no-cache',
-        headers: {
-          'apikey':        CFG.supabaseKey,
-          'Authorization': 'Bearer ' + CFG.supabaseKey,
-          'Accept':        'application/json'
+      var run = function () {
+        try {
+          var lm = new window.AnavoLicenseManager(PLUGIN_ID, VERSION, {
+            licenseServer: LICENSES_JSON,
+            showUI: true
+          });
+          lm.init();
+        } catch (e) {
+          console.warn('[Anavo ' + PLUGIN_ID + '] License init error:', e.message);
         }
-      })
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        if (!Array.isArray(data) || data.length === 0) {
-          console.warn('[Anavo ' + PLUGIN_ID + '] Domain not licensed: ' + host);
-          _licenseNotice();
-        }
-      })
-      .catch(function () {});
+      };
+      if (window.AnavoLicenseManager) { run(); return; }
+      var pending = document.querySelector('script[src="' + LICENSING_SRC + '"]');
+      if (pending) { pending.addEventListener('load', run); return; }
+      var s = document.createElement('script');
+      s.src = LICENSING_SRC;
+      s.async = true;
+      s.onload = run;
+      s.onerror = function () {
+        console.warn('[Anavo ' + PLUGIN_ID + '] Could not load licensing module');
+      };
+      document.head.appendChild(s);
     } catch (e) {}
-  }
-
-  function _licenseNotice() {
-    // Manual override — see _shared/licensing.js header
-    if (window.ANAVO_LICENSE_OVERRIDE === true) return;
-    if (document.querySelector('[data-anavo-license-override]')) return;
-    var nid = 'anavo-license-notice';
-    if (document.getElementById(nid)) return;
-    var el = document.createElement('div');
-    el.id = nid;
-    el.setAttribute('style',
-      'position:fixed;bottom:20px;right:20px;' +
-      'background:rgba(0,0,0,0.9);color:#fff;' +
-      'padding:12px 18px;border-radius:6px;' +
-      'font-family:system-ui,sans-serif;font-size:12px;' +
-      'z-index:999999;pointer-events:auto;line-height:1.6'
-    );
-    el.innerHTML =
-      '<strong style="display:block;margin-bottom:4px">\u26a0\ufe0f Unlicensed Plugin</strong>' +
-      '<a href="https://plugins.anavo.tech" target="_blank" rel="noopener" ' +
-      'style="color:#ffd700;text-decoration:none">Get SectionSnap license \u2192</a>';
-    document.body.appendChild(el);
-    // anavo-auto-dismiss: never leave a notice sitting on a client site
-    setTimeout(function () {
-      el.style.transition = 'opacity .4s ease';
-      el.style.opacity = '0';
-      setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 450);
-    }, 5000);
   }
 
   // ─────────────────────────────────────────────────────────────────

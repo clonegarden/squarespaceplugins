@@ -3,7 +3,7 @@
  * IMAGE TILT PLUGIN — Anavo Tech
  * ============================================================
  * @plugin_id  ImageTilt
- * @version    1.1.0
+ * @version    1.2.0
  * @author     Anavo Tech
  * @license    Commercial — plugins.anavo.tech
  *
@@ -23,10 +23,7 @@
  *
  *   2. Settings → Advanced → Code Injection → FOOTER:
  *        <script src="https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/image-tilt/image-tilt.js
- *          ?domain=yoursite.com
- *          &supabaseUrl=https%3A%2F%2FXXXX.supabase.co
- *          &supabaseKey=YOUR_ANON_KEY
- *          &layers=3
+ *          ?layers=3
  *          &opacity=0.7
  *          &rotateX=2
  *          &rotateY=2
@@ -41,8 +38,8 @@
  * │ Parameter    │ Description                                  │ Default            │
  * ├──────────────┼──────────────────────────────────────────────┼────────────────────┤
  * │ domain       │ Hostname for license check                   │ location.hostname  │
- * │ supabaseUrl  │ Supabase project URL                         │ (required)         │
- * │ supabaseKey  │ Supabase anon key                            │ (required)         │
+ * │ supabaseUrl  │ Ignored since v1.2.0 (shared licensing)      │ —                  │
+ * │ supabaseKey  │ Ignored since v1.2.0 (shared licensing)      │ —                  │
  * │ selector     │ CSS selector for <img> elements to tilt      │ [data-anavo-tilt]  │
  * │ target       │ CSS selector for mount-point poll            │ [data-anavo-image-tilt] │
  * │ layers       │ Number of front layer copies (1–8)           │ 3                  │
@@ -104,7 +101,7 @@
   'use strict';
 
   var PLUGIN_ID = 'ImageTilt';
-  var VERSION   = '1.1.0';
+  var VERSION   = '1.2.0';
 
   // ─────────────────────────────────────────────────────────────────
   // 1. SCRIPT REF + PARAM PARSING
@@ -186,69 +183,42 @@
   window.AnavoPluginState.plugins[PLUGIN_ID] = { version: VERSION, config: CFG };
 
   // ─────────────────────────────────────────────────────────────────
-  // 3. LICENSE CHECK — Supabase REST (non-blocking)
+  // 3. LICENSE CHECK — shared AnavoLicenseManager (non-blocking)
   // ─────────────────────────────────────────────────────────────────
+  // Same path as every other commercial plugin: _shared/licensing.min.js
+  // checks this domain against api.anavo.tech (licenses table, plugin =
+  // PLUGIN_ID), lets preview/dev hosts through and shows the shared
+  // unlicensed notice. It never blocks the effect.
+  // supabaseUrl / supabaseKey are still accepted for old snippets, but unused.
 
-  var _BYPASS = ['anavo.tech', 'www.anavo.tech', 'pluginstore.anavo.tech', 'clonegarden.github.io', 'localhost', '127.0.0.1'];
+  var LICENSING_SRC = 'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licensing.min.js';
+  var LICENSES_JSON = 'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/_shared/licenses.json';
 
   function checkLicense() {
     try {
-      var host = window.location.hostname.toLowerCase().replace(/^www\./, '');
-      if (_BYPASS.indexOf(host) > -1) return;
-      if (!CFG.supabaseUrl || !CFG.supabaseKey) {
-        console.warn('[Anavo ' + PLUGIN_ID + '] supabaseUrl/supabaseKey not set — skipping license check.');
-        return;
-      }
-      var endpoint = CFG.supabaseUrl + '/rest/v1/purchased_plugins'
-        + '?plugin_id=eq.' + encodeURIComponent(PLUGIN_ID)
-        + '&domain=eq.'    + encodeURIComponent(host)
-        + '&select=id&limit=1';
-      fetch(endpoint, {
-        method: 'GET',
-        cache:  'no-cache',
-        headers: {
-          'apikey':        CFG.supabaseKey,
-          'Authorization': 'Bearer ' + CFG.supabaseKey,
-          'Accept':        'application/json'
+      var run = function () {
+        try {
+          var lm = new window.AnavoLicenseManager(PLUGIN_ID, VERSION, {
+            licenseServer: LICENSES_JSON,
+            showUI: true
+          });
+          lm.init();
+        } catch (e) {
+          console.warn('[Anavo ' + PLUGIN_ID + '] License init error:', e.message);
         }
-      })
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        if (!Array.isArray(data) || data.length === 0) {
-          console.warn('[Anavo ' + PLUGIN_ID + '] Unlicensed domain: ' + host);
-          _showNotice();
-        }
-      })
-      .catch(function () {});
+      };
+      if (window.AnavoLicenseManager) { run(); return; }
+      var pending = document.querySelector('script[src="' + LICENSING_SRC + '"]');
+      if (pending) { pending.addEventListener('load', run); return; }
+      var s = document.createElement('script');
+      s.src = LICENSING_SRC;
+      s.async = true;
+      s.onload = run;
+      s.onerror = function () {
+        console.warn('[Anavo ' + PLUGIN_ID + '] Could not load licensing module');
+      };
+      document.head.appendChild(s);
     } catch (e) {}
-  }
-
-  function _showNotice() {
-    if (document.getElementById('anavo-tilt-notice')) return;
-    var el = document.createElement('div');
-    el.id = 'anavo-tilt-notice';
-    el.setAttribute('style',
-      'position:fixed!important;' +
-      'bottom:20px!important;' +
-      'left:20px!important;' +
-      'background:rgba(0,0,0,0.88)!important;' +
-      'color:#fff!important;' +
-      'padding:12px 18px!important;' +
-      'border-radius:6px!important;' +
-      'font-family:monospace,monospace!important;' +
-      'font-size:12px!important;' +
-      'z-index:999999!important;' +
-      'pointer-events:auto!important;' +
-      'line-height:1.6!important;' +
-      'max-width:280px!important;' +
-      'box-sizing:border-box!important;'
-    );
-    el.innerHTML =
-      '<strong style="display:block;margin-bottom:4px;font-family:monospace">Anavo ImageTilt — Unlicensed</strong>' +
-      '<a href="https://plugins.anavo.tech" target="_blank" rel="noopener" ' +
-      'style="color:#ffd700;text-decoration:none;font-family:monospace">' +
-      'Get a license → plugins.anavo.tech</a>';
-    document.body.appendChild(el);
   }
 
   // ─────────────────────────────────────────────────────────────────
