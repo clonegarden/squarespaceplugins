@@ -1,5 +1,5 @@
 /**
- * Anavo Quotation Builder v2.1.0
+ * Anavo Quotation Builder v2.1.1
  * Interactive step-by-step quotation calculator for booking-style services.
  * Step types: single choice, multiple choice, quantity × price.
  * Floating editor panel in Squarespace edit mode — saves config to Anavo API.
@@ -544,6 +544,9 @@
       '.anavo-qb-qty-cfg{display:flex !important;gap:8px !important;flex-wrap:wrap !important;margin-bottom:8px !important}',
       '.anavo-qb-qty-cfg label{font-size:11px !important;color:#64748b !important;display:flex !important;flex-direction:column !important;gap:3px !important;flex:1 !important;min-width:60px !important}',
       '.anavo-qb-script-box{background:rgba(0,0,0,.35) !important;border:1px solid rgba(255,255,255,.1) !important;border-radius:6px !important;padding:10px !important;font-family:monospace !important;font-size:10px !important;word-break:break-all !important;color:#94a3b8 !important;max-height:90px !important;overflow-y:auto !important;white-space:pre-wrap !important;margin-bottom:6px !important}',
+      '.anavo-qb-script-box.qb-stale{border-color:#f59e0b !important;color:#fde68a !important}',
+      '.anavo-qb-stale-warn{font-size:11px !important;line-height:1.45 !important;color:#fde68a !important;background:rgba(245,158,11,.12) !important;border-left:2px solid #f59e0b !important;padding:7px 9px !important;border-radius:0 4px 4px 0 !important;margin-bottom:7px !important}',
+      '.anavo-qb-copy-btn.qb-stale{background:#f59e0b !important;border-color:#f59e0b !important;color:#1c1917 !important;font-weight:600 !important}',
       '.anavo-qb-copy-btn{width:100% !important;padding:7px !important;background:rgba(255,255,255,.07) !important;border:1px solid rgba(255,255,255,.14) !important;color:#e2e8f0 !important;border-radius:4px !important;font-size:11px !important;cursor:pointer !important}',
       '.anavo-qb-ed-footer{padding:12px 16px !important;border-top:1px solid rgba(255,255,255,.09) !important;display:flex !important;gap:8px !important;flex-shrink:0 !important}',
       '.anavo-qb-save{flex:1 !important;padding:9px !important;background:' + accent + ' !important;color:#fff !important;border:none !important;border-radius:6px !important;font-size:13px !important;font-weight:700 !important;cursor:pointer !important;transition:filter .18s !important}',
@@ -1089,6 +1092,11 @@
     // Body
     var body = document.createElement('div'); body.className = 'anavo-qb-ed-body';
 
+    // A saved config only reaches the live page once the owner replaces the
+    // script tag by hand. Until then the page keeps serving whatever it loaded,
+    // and nothing about a successful save says so.
+    var scriptTagStale = false;
+
     function buildScriptTag(cfg) {
       var base = 'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/quotation-builder/quotation-builder.min.js';
       var q = '?configId=' + encodeURIComponent(cfg.id || 'default') +
@@ -1357,13 +1365,44 @@
       // Script tag
       var scrSec = document.createElement('div'); scrSec.className = 'anavo-qb-ed-section';
       scrSec.innerHTML = '<span class="anavo-qb-ed-lbl">Script Tag (copy to SS footer)</span>';
+
+      if (scriptTagStale) {
+        var warn = document.createElement('div'); warn.className = 'anavo-qb-stale-warn';
+        warn.textContent = 'Saved \u2014 but this page is still loading the old script tag. ' +
+          'Copy the one below and replace it in your Code Block, or your visitors keep seeing the previous version.';
+        scrSec.appendChild(warn);
+      }
+
       var scrBox = document.createElement('div'); scrBox.className = 'anavo-qb-script-box';
+      if (scriptTagStale) scrBox.classList.add('qb-stale');
       scrBox.textContent = buildScriptTag(cfg);
-      var cpBtn = document.createElement('button'); cpBtn.className = 'anavo-qb-copy-btn'; cpBtn.textContent = '📋 Copy Script Tag';
+      var cpBtn = document.createElement('button'); cpBtn.className = 'anavo-qb-copy-btn';
+      if (scriptTagStale) cpBtn.classList.add('qb-stale');
+      cpBtn.textContent = '📋 Copy Script Tag';
+
+      // Clearing the warning in place rather than through renderBody, which
+      // would replace the button the confirmation timer is holding on to.
+      function copied() {
+        scriptTagStale = false;
+        if (warn) { warn.parentNode.removeChild(warn); warn = null; }
+        scrBox.classList.remove('qb-stale');
+        cpBtn.classList.remove('qb-stale');
+        cpBtn.textContent = '✓ Copied!';
+        setTimeout(function () { cpBtn.textContent = '📋 Copy Script Tag'; }, 2000);
+      }
+
       cpBtn.addEventListener('click', function () {
         (navigator.clipboard ? navigator.clipboard.writeText(scrBox.textContent) : Promise.reject())
-          .then(function () { cpBtn.textContent = '✓ Copied!'; setTimeout(function () { cpBtn.textContent = '📋 Copy Script Tag'; }, 2000); })
-          .catch(function () { var r = document.createRange(); r.selectNode(scrBox); window.getSelection().removeAllRanges(); window.getSelection().addRange(r); try { document.execCommand('copy'); } catch (_) {} });
+          .then(copied)
+          .catch(function () {
+            var r = document.createRange(); r.selectNode(scrBox);
+            window.getSelection().removeAllRanges(); window.getSelection().addRange(r);
+            var ok = false;
+            try { ok = document.execCommand('copy'); } catch (_) {}
+            // Only drop the warning on a copy that actually happened. A manual
+            // selection the owner never copies must stay flagged.
+            if (ok) copied();
+          });
       });
       scrSec.appendChild(scrBox); scrSec.appendChild(cpBtn);
       body.appendChild(scrSec);
@@ -1408,6 +1447,9 @@
             var d = res.data;
             cfg.id = d.id || cfg.id;
             configRef[0] = cfg;
+            // The live page loads whatever configId was in its script tag. A new
+            // or changed id means that tag is now out of date.
+            if (cfg.id && cfg.id !== CFG.configId) scriptTagStale = true;
             injectStyles(cfg.accentColor);
             var el = document.querySelector(CFG.target);
             if (el) widgetRef[0] = new Widget(el, cfg);
@@ -1487,6 +1529,6 @@
   }
 
   window.AnavoPluginState = window.AnavoPluginState || { plugins: {} };
-  window.AnavoPluginState.plugins['QuotationBuilder'] = { version: '2.1.0', config: CFG };
+  window.AnavoPluginState.plugins['QuotationBuilder'] = { version: '2.1.1', config: CFG };
 
 })();
