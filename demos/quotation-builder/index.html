@@ -10,6 +10,11 @@
     .page-header{background:#fff;border-bottom:1px solid #eee;padding:28px 40px}
     .page-header h1{font-size:20px;font-weight:600;letter-spacing:-0.01em;margin-bottom:4px}
     .page-header p{color:#aaa;font-size:13px}
+    .demo-controls{background:#fff;border-bottom:1px solid #eee;padding:16px 40px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .demo-controls label{font-size:13px;font-weight:500;color:#555}
+    .demo-controls select{font:inherit;font-size:13px;padding:7px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#111;cursor:pointer;min-width:200px}
+    .demo-controls select:focus{outline:2px solid #1a3a5c;outline-offset:1px}
+    .demo-controls .hint{font-size:12px;color:#aaa}
     .content{padding:40px 32px 80px;max-width:760px;margin:0 auto}
   </style>
 </head>
@@ -18,17 +23,67 @@
     <h1>Quotation Builder</h1>
     <p>Interactive quote configurator for services</p>
   </div>
+  <div class="demo-controls">
+    <label for="demo-preset">Profession preset</label>
+    <select id="demo-preset"></select>
+    <span class="hint">Each preset ships its own steps, options and wording.</span>
+  </div>
   <div class="content">
     <div id="anavo-quotation"></div>
   </div>
   <script>
   (function(){
     var p = new URLSearchParams(location.search);
+
+    // Mirrors PRESETS in quotation-builder.js. An id that drifts out of sync
+    // just falls back to photographer inside the plugin, so the page stays
+    // usable, but the two lists should be updated together.
+    var PRESETS = [
+      ['photographer',    'Photographer'],
+      ['videographer',    'Videographer'],
+      ['wedding-planner', 'Wedding Planner'],
+      ['makeup-artist',   'Makeup Artist'],
+      ['hair-stylist',    'Hair Stylist'],
+      ['dj-live-music',   'DJ / Live Music'],
+      ['event-venue',     'Event Venue'],
+      ['caterer',         'Caterer'],
+      ['florist',         'Florist'],
+      ['private-chef',    'Private Chef'],
+      ['tattoo-artist',   'Tattoo Artist'],
+      ['personal-trainer','Personal Trainer'],
+      ['custom',          'Start from scratch']
+    ];
+    var DEFAULT_PRESET = 'photographer';
+
+    var sel = document.getElementById('demo-preset');
+    PRESETS.forEach(function(entry){
+      var o = document.createElement('option');
+      o.value = entry[0];
+      o.textContent = entry[1];
+      sel.appendChild(o);
+    });
+
+    // Resolve the same way the plugin does, so an unknown id in the URL shows
+    // the preset that actually rendered instead of leaving the select blank.
+    var requested = p.get('preset') || '';
+    var active = PRESETS.some(function(e){ return e[0] === requested; }) ? requested : DEFAULT_PRESET;
+    sel.value = active;
+
+    // The plugin guards against double-init via AnavoPluginState, so swapping
+    // presets needs a fresh document rather than a re-injected script tag.
+    sel.addEventListener('change', function(){
+      var next = new URL(location.href);
+      next.searchParams.set('preset', sel.value);
+      location.assign(next.toString());
+    });
+
     var u = new URL('https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/quotation-builder/quotation-builder.min.js');
     u.searchParams.set('domain', 'anavo.tech');
     var PX_PARAMS = {};
     var addPx = function(v){ return /px$|%$|em$|rem$|vw$/.test(v) ? v : v + 'px'; };
     p.forEach(function(val, key){ if (PX_PARAMS[key]) val = addPx(val); u.searchParams.set(key, val); });
+    // After the passthrough, so the select and the widget always agree.
+    u.searchParams.set('preset', active);
     var s = document.createElement('script');
     s.src = u.toString();
     document.body.appendChild(s);
