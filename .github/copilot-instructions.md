@@ -214,3 +214,57 @@ function dbg(...args) {
   if (config.debug) console.log(`[${PLUGIN_NAME}]`, ...args);
 }
 ```
+
+---
+
+## Working on This Repo
+
+### Clone to a persistent directory, never a temp one
+
+Keep the clone somewhere that survives a reboot, alongside the other repos you work on.
+A clone under `%TEMP%` / `/tmp` can be deleted by the OS mid-session — and the deletion is
+silent, so the first sign is a `git status` listing a hundred files as deleted and the
+`origin/*` refs gone. Anything not yet pushed is gone with it.
+
+### Do not shallow clone
+
+`git clone --depth 1` makes `git merge-base --is-ancestor` and `git log A..B` return wrong
+answers **without erroring**, so a branch can look merged when it is not. Check with:
+
+```sh
+git rev-list --count origin/main   # 1 means shallow
+git fetch --unshallow              # fix
+```
+
+### `npm run build` rewrites every `.min.js`
+
+The build regenerates all minified files, not only the plugin you edited. Restore the
+unrelated ones before committing, or the diff will touch dozens of plugins:
+
+```sh
+git diff --name-only -- '*.min.js'   # everything except yours → git checkout --
+```
+
+A CI bot also commits `🤖 Auto-minify JavaScript files [skip ci]` to `main` after a merge, so
+expect `main` to move on its own.
+
+If the build fails, run `terser` directly to see the real error: `scripts/minify.js` reports
+failures through `chalk.red` from inside its `catch`, so a `chalk` that will not load throws
+over the original error instead of printing it. `chalk` and `ora` are pinned to their last
+CommonJS majors (4 and 5) for that reason — the scripts use `require()`, and both packages are
+ESM-only from 5 and 8 on. Do not take the Dependabot bump on either without converting the
+scripts first.
+
+### Lint by comparison, not by absence
+
+Some plugins carry pre-existing ESLint problems on `main`. Run the linter on `main` first and
+compare counts — requiring a clean run will send you off fixing unrelated code.
+
+### Before opening a PR
+
+```sh
+npm run check-collisions
+```
+
+Two plugins claiming the same `anavo-*` identifier is the failure mode this repo is most prone
+to, because every plugin shares one page with every other plugin.
