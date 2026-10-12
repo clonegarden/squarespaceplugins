@@ -1568,7 +1568,7 @@
           '<span class="anavo-qb-upsell-px">' + pkg.price + ' &middot; ' + pkg.credits + '</span></div>' +
           '<div class="anavo-qb-upsell-bd">' + pkg.body + '</div>';
         var upCta = document.createElement('a'); upCta.className = 'anavo-qb-upsell-cta';
-        upCta.href = 'https://anavo.tech/plugins/quotation-builder/customization?package=' + pkg.id +
+        upCta.href = 'https://anavo.tech/?view=my-plugins&plugin=quotation-builder&order=' + pkg.id +
           '&domain=' + encodeURIComponent(CFG.domain);
         upCta.target = '_blank'; upCta.rel = 'noopener';
         upCta.textContent = 'Create an Order \u2192';
