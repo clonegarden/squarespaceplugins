@@ -1,0 +1,1158 @@
+{
+  "generatedBy": "scripts/export-presets.js — edit quotation-builder.js instead",
+  "pluginVersion": "2.2.0",
+  "priceKeyFormat": "s{step}o{option} for choices, s{step}u for quantity unit price",
+  "presets": [
+    {
+      "id": "photographer",
+      "label": "Photographer",
+      "name": "Photography Quote",
+      "stepCount": 6,
+      "prices": [
+        {
+          "key": "s0o0",
+          "label": "Event Type — Wedding",
+          "default": 2500
+        },
+        {
+          "key": "s0o1",
+          "label": "Event Type — Engagement Session",
+          "default": 800
+        },
+        {
+          "key": "s0o2",
+          "label": "Event Type — Corporate Event",
+          "default": 1200
+        },
+        {
+          "key": "s0o3",
+          "label": "Event Type — Portrait Session",
+          "default": 400
+        },
+        {
+          "key": "s0o4",
+          "label": "Event Type — Quinceañera / Sweet 16",
+          "default": 1800
+        },
+        {
+          "key": "s1u",
+          "label": "Coverage Duration — per hour",
+          "default": 200
+        },
+        {
+          "key": "s2u",
+          "label": "Photographers — per photographer",
+          "default": 350
+        },
+        {
+          "key": "s3o0",
+          "label": "Videography — No video",
+          "default": 0
+        },
+        {
+          "key": "s3o1",
+          "label": "Videography — Highlight Reel",
+          "default": 900
+        },
+        {
+          "key": "s3o2",
+          "label": "Videography — Full Film + Reel",
+          "default": 1800
+        },
+        {
+          "key": "s3o3",
+          "label": "Videography — Cinematic Package",
+          "default": 2800
+        },
+        {
+          "key": "s4o0",
+          "label": "Add-ons — Drone Coverage",
+          "default": 450
+        },
+        {
+          "key": "s4o1",
+          "label": "Add-ons — Same-day Slideshow",
+          "default": 600
+        },
+        {
+          "key": "s4o2",
+          "label": "Add-ons — Premium Photo Album",
+          "default": 750
+        },
+        {
+          "key": "s4o3",
+          "label": "Add-ons — Canvas / Wall Art",
+          "default": 300
+        },
+        {
+          "key": "s4o4",
+          "label": "Add-ons — Live Photo Booth",
+          "default": 500
+        },
+        {
+          "key": "s5o0",
+          "label": "Delivery Timeline — Standard (6–8 weeks)",
+          "default": 0
+        },
+        {
+          "key": "s5o1",
+          "label": "Delivery Timeline — Rush (2–3 weeks)",
+          "default": 350
+        },
+        {
+          "key": "s5o2",
+          "label": "Delivery Timeline — Express (5–7 days)",
+          "default": 700
+        }
+      ]
+    },
+    {
+      "id": "videographer",
+      "label": "Videographer",
+      "name": "Video Production Quote",
+      "stepCount": 6,
+      "prices": [
+        {
+          "key": "s0o0",
+          "label": "Project Type — Wedding Film",
+          "default": 3200
+        },
+        {
+          "key": "s0o1",
+          "label": "Project Type — Brand / Commercial",
+          "default": 2800
+        },
+        {
+          "key": "s0o2",
+          "label": "Project Type — Event Coverage",
+          "default": 1500
+        },
+        {
+          "key": "s0o3",
+          "label": "Project Type — Music Video",
+          "default": 2200
+        },
+        {
+          "key": "s0o4",
+          "label": "Project Type — Documentary Short",
+          "default": 2600
+        },
+        {
+          "key": "s1u",
+          "label": "Shoot Days — per day",
+          "default": 900
+        },
+        {
+          "key": "s2u",
+          "label": "Crew Size — per crew member",
+          "default": 400
+        },
+        {
+          "key": "s3o0",
+          "label": "Deliverables — Highlight (2–3 min)",
+          "default": 0
+        },
+        {
+          "key": "s3o1",
+          "label": "Deliverables — Feature Cut (8–12 min)",
+          "default": 1200
+        },
+        {
+          "key": "s3o2",
+          "label": "Deliverables — Full Film + Highlight",
+          "default": 2400
+        },
+        {
+          "key": "s3o3",
+          "label": "Deliverables — Multi-cam Full Event",
+          "default": 3000
+        },
+        {
+          "key": "s4o0",
+          "label": "Add-ons — Drone / Aerial",
+          "default": 550
+        },
+        {
+          "key": "s4o1",
+          "label": "Add-ons — Second Camera Angle",
+          "default": 700
+        },
+        {
+          "key": "s4o2",
+          "label": "Add-ons — Licensed Music Track",
+          "default": 250
+        },
+        {
+          "key": "s4o3",
+          "label": "Add-ons — Raw Footage Delivery",
+          "default": 400
+        },
+        {
+          "key": "s4o4",
+          "label": "Add-ons — Same-week Teaser",
+          "default": 600
+        },
+        {
+          "key": "s5o0",
+          "label": "Turnaround — Standard (8–10 weeks)",
+          "default": 0
+        },
+        {
+          "key": "s5o1",
+          "label": "Turnaround — Priority (4 weeks)",
+          "default": 800
+        },
+        {
+          "key": "s5o2",
+          "label": "Turnaround — Rush (10 days)",
+          "default": 1600
+        }
+      ]
+    },
+    {
+      "id": "wedding-planner",
+      "label": "Wedding Planner",
+      "name": "Wedding Planning Quote",
+      "stepCount": 5,
+      "prices": [
+        {
+          "key": "s0o0",
+          "label": "Service Level — Day-of Coordination",
+          "default": 1800
+        },
+        {
+          "key": "s0o1",
+          "label": "Service Level — Partial Planning",
+          "default": 4500
+        },
+        {
+          "key": "s0o2",
+          "label": "Service Level — Full Planning",
+          "default": 9000
+        },
+        {
+          "key": "s0o3",
+          "label": "Service Level — Luxury / Destination",
+          "default": 15000
+        },
+        {
+          "key": "s1u",
+          "label": "Guest Count — per guest",
+          "default": 12
+        },
+        {
+          "key": "s2u",
+          "label": "Planning Months — per month",
+          "default": 250
+        },
+        {
+          "key": "s3o0",
+          "label": "Extra Events — Wedding day only",
+          "default": 0
+        },
+        {
+          "key": "s3o1",
+          "label": "Extra Events — + Rehearsal Dinner",
+          "default": 900
+        },
+        {
+          "key": "s3o2",
+          "label": "Extra Events — + Welcome Party",
+          "default": 1400
+        },
+        {
+          "key": "s3o3",
+          "label": "Extra Events — Full Weekend (3 events)",
+          "default": 2800
+        },
+        {
+          "key": "s4o0",
+          "label": "Add-ons — Vendor Sourcing",
+          "default": 1200
+        },
+        {
+          "key": "s4o1",
+          "label": "Add-ons — Design & Styling Concept",
+          "default": 1600
+        },
+        {
+          "key": "s4o2",
+          "label": "Add-ons — RSVP Management",
+          "default": 700
+        },
+        {
+          "key": "s4o3",
+          "label": "Add-ons — Honeymoon Planning",
+          "default": 900
+        },
+        {
+          "key": "s4o4",
+          "label": "Add-ons — On-site Assistant",
+          "default": 600
+        }
+      ]
+    },
+    {
+      "id": "makeup-artist",
+      "label": "Makeup Artist",
+      "name": "Makeup Quote",
+      "stepCount": 5,
+      "prices": [
+        {
+          "key": "s0o0",
+          "label": "Occasion — Bridal",
+          "default": 350
+        },
+        {
+          "key": "s0o1",
+          "label": "Occasion — Bridal Party",
+          "default": 180
+        },
+        {
+          "key": "s0o2",
+          "label": "Occasion — Photoshoot / Editorial",
+          "default": 250
+        },
+        {
+          "key": "s0o3",
+          "label": "Occasion — Evening Event",
+          "default": 150
+        },
+        {
+          "key": "s0o4",
+          "label": "Occasion — Special Effects",
+          "default": 400
+        },
+        {
+          "key": "s1u",
+          "label": "People — per person",
+          "default": 120
+        },
+        {
+          "key": "s2o0",
+          "label": "Trial Session — No trial",
+          "default": 0
+        },
+        {
+          "key": "s2o1",
+          "label": "Trial Session — One trial",
+          "default": 150
+        },
+        {
+          "key": "s2o2",
+          "label": "Trial Session — Two trials",
+          "default": 280
+        },
+        {
+          "key": "s3o0",
+          "label": "Travel — At my studio",
+          "default": 0
+        },
+        {
+          "key": "s3o1",
+          "label": "Travel — On location — local",
+          "default": 80
+        },
+        {
+          "key": "s3o2",
+          "label": "Travel — On location — over 50km",
+          "default": 200
+        },
+        {
+          "key": "s4o0",
+          "label": "Add-ons — Airbrush Finish",
+          "default": 90
+        },
+        {
+          "key": "s4o1",
+          "label": "Add-ons — Lashes",
+          "default": 45
+        },
+        {
+          "key": "s4o2",
+          "label": "Add-ons — Touch-up Kit",
+          "default": 60
+        },
+        {
+          "key": "s4o3",
+          "label": "Add-ons — All-day Standby",
+          "default": 350
+        },
+        {
+          "key": "s4o4",
+          "label": "Add-ons — Early Start (before 6am)",
+          "default": 120
+        }
+      ]
+    },
+    {
+      "id": "hair-stylist",
+      "label": "Hair Stylist",
+      "name": "Hair Styling Quote",
+      "stepCount": 5,
+      "prices": [
+        {
+          "key": "s0o0",
+          "label": "Occasion — Bridal",
+          "default": 300
+        },
+        {
+          "key": "s0o1",
+          "label": "Occasion — Bridal Party",
+          "default": 150
+        },
+        {
+          "key": "s0o2",
+          "label": "Occasion — Photoshoot / Editorial",
+          "default": 220
+        },
+        {
+          "key": "s0o3",
+          "label": "Occasion — Evening Event",
+          "default": 130
+        },
+        {
+          "key": "s0o4",
+          "label": "Occasion — Costume / Period Styling",
+          "default": 350
+        },
+        {
+          "key": "s1u",
+          "label": "People — per person",
+          "default": 100
+        },
+        {
+          "key": "s2o0",
+          "label": "Trial — No trial",
+          "default": 0
+        },
+        {
+          "key": "s2o1",
+          "label": "Trial — One trial",
+          "default": 130
+        },
+        {
+          "key": "s2o2",
+          "label": "Trial — Two trials",
+          "default": 240
+        },
+        {
+          "key": "s3o0",
+          "label": "Travel — At my salon",
+          "default": 0
+        },
+        {
+          "key": "s3o1",
+          "label": "Travel — On location — local",
+          "default": 80
+        },
+        {
+          "key": "s3o2",
+          "label": "Travel — On location — over 50km",
+          "default": 200
+        },
+        {
+          "key": "s4o0",
+          "label": "Add-ons — Hair Extensions Fitting",
+          "default": 150
+        },
+        {
+          "key": "s4o1",
+          "label": "Add-ons — Veil / Accessory Placement",
+          "default": 60
+        },
+        {
+          "key": "s4o2",
+          "label": "Add-ons — All-day Standby",
+          "default": 320
+        },
+        {
+          "key": "s4o3",
+          "label": "Add-ons — Early Start (before 6am)",
+          "default": 120
+        },
+        {
+          "key": "s4o4",
+          "label": "Add-ons — Second Look Change",
+          "default": 110
+        }
+      ]
+    },
+    {
+      "id": "dj-live-music",
+      "label": "DJ / Live Music",
+      "name": "Music Quote",
+      "stepCount": 5,
+      "prices": [
+        {
+          "key": "s0o0",
+          "label": "Event Type — Wedding Reception",
+          "default": 1400
+        },
+        {
+          "key": "s0o1",
+          "label": "Event Type — Corporate Party",
+          "default": 1100
+        },
+        {
+          "key": "s0o2",
+          "label": "Event Type — Birthday / Private",
+          "default": 800
+        },
+        {
+          "key": "s0o3",
+          "label": "Event Type — Club Night",
+          "default": 900
+        },
+        {
+          "key": "s0o4",
+          "label": "Event Type — Festival Set",
+          "default": 1600
+        },
+        {
+          "key": "s1u",
+          "label": "Performance Hours — per hour",
+          "default": 150
+        },
+        {
+          "key": "s2o0",
+          "label": "Setup Size — Small (under 50 guests)",
+          "default": 0
+        },
+        {
+          "key": "s2o1",
+          "label": "Setup Size — Medium (50–150)",
+          "default": 350
+        },
+        {
+          "key": "s2o2",
+          "label": "Setup Size — Large (150–300)",
+          "default": 750
+        },
+        {
+          "key": "s2o3",
+          "label": "Setup Size — Very Large (300+)",
+          "default": 1400
+        },
+        {
+          "key": "s3o0",
+          "label": "Extras — Dance Floor Lighting",
+          "default": 400
+        },
+        {
+          "key": "s3o1",
+          "label": "Extras — Uplighting Package",
+          "default": 350
+        },
+        {
+          "key": "s3o2",
+          "label": "Extras — Wireless Mic for Speeches",
+          "default": 120
+        },
+        {
+          "key": "s3o3",
+          "label": "Extras — Fog / Haze Machine",
+          "default": 180
+        },
+        {
+          "key": "s3o4",
+          "label": "Extras — Live Saxophone",
+          "default": 600
+        },
+        {
+          "key": "s4o0",
+          "label": "Travel — Local (under 30km)",
+          "default": 0
+        },
+        {
+          "key": "s4o1",
+          "label": "Travel — Regional (30–100km)",
+          "default": 180
+        },
+        {
+          "key": "s4o2",
+          "label": "Travel — Long distance (100km+)",
+          "default": 450
+        }
+      ]
+    },
+    {
+      "id": "event-venue",
+      "label": "Event Venue",
+      "name": "Venue Hire Quote",
+      "stepCount": 5,
+      "prices": [
+        {
+          "key": "s0o0",
+          "label": "Event Type — Wedding",
+          "default": 4500
+        },
+        {
+          "key": "s0o1",
+          "label": "Event Type — Corporate Event",
+          "default": 3200
+        },
+        {
+          "key": "s0o2",
+          "label": "Event Type — Private Party",
+          "default": 2200
+        },
+        {
+          "key": "s0o3",
+          "label": "Event Type — Conference",
+          "default": 3800
+        },
+        {
+          "key": "s0o4",
+          "label": "Event Type — Photoshoot / Film",
+          "default": 1200
+        },
+        {
+          "key": "s1u",
+          "label": "Guest Count — per guest",
+          "default": 35
+        },
+        {
+          "key": "s2u",
+          "label": "Hours of Hire — per hour",
+          "default": 250
+        },
+        {
+          "key": "s3o0",
+          "label": "Catering — Venue only — no catering",
+          "default": 0
+        },
+        {
+          "key": "s3o1",
+          "label": "Catering — Canapés & Drinks",
+          "default": 1800
+        },
+        {
+          "key": "s3o2",
+          "label": "Catering — Seated Dinner",
+          "default": 4200
+        },
+        {
+          "key": "s3o3",
+          "label": "Catering — Full Day Catering",
+          "default": 6500
+        },
+        {
+          "key": "s4o0",
+          "label": "Extras — AV & Projection",
+          "default": 700
+        },
+        {
+          "key": "s4o1",
+          "label": "Extras — Dedicated Event Manager",
+          "default": 900
+        },
+        {
+          "key": "s4o2",
+          "label": "Extras — Extended Bar Licence",
+          "default": 600
+        },
+        {
+          "key": "s4o3",
+          "label": "Extras — Ceremony Setup",
+          "default": 850
+        },
+        {
+          "key": "s4o4",
+          "label": "Extras — Overnight Suite",
+          "default": 400
+        }
+      ]
+    },
+    {
+      "id": "caterer",
+      "label": "Caterer",
+      "name": "Catering Quote",
+      "stepCount": 5,
+      "prices": [
+        {
+          "key": "s0o0",
+          "label": "Event Type — Wedding",
+          "default": 1500
+        },
+        {
+          "key": "s0o1",
+          "label": "Event Type — Corporate Lunch",
+          "default": 600
+        },
+        {
+          "key": "s0o2",
+          "label": "Event Type — Private Dinner",
+          "default": 500
+        },
+        {
+          "key": "s0o3",
+          "label": "Event Type — Cocktail Reception",
+          "default": 900
+        },
+        {
+          "key": "s0o4",
+          "label": "Event Type — Festival / Large Scale",
+          "default": 2500
+        },
+        {
+          "key": "s1u",
+          "label": "Guests — per guest",
+          "default": 55
+        },
+        {
+          "key": "s2o0",
+          "label": "Menu Tier — Classic",
+          "default": 0
+        },
+        {
+          "key": "s2o1",
+          "label": "Menu Tier — Premium",
+          "default": 1200
+        },
+        {
+          "key": "s2o2",
+          "label": "Menu Tier — Signature Tasting",
+          "default": 2800
+        },
+        {
+          "key": "s2o3",
+          "label": "Menu Tier — Fully Bespoke",
+          "default": 4500
+        },
+        {
+          "key": "s3o0",
+          "label": "Service Style — Buffet",
+          "default": 0
+        },
+        {
+          "key": "s3o1",
+          "label": "Service Style — Family Style",
+          "default": 600
+        },
+        {
+          "key": "s3o2",
+          "label": "Service Style — Plated Service",
+          "default": 1400
+        },
+        {
+          "key": "s3o3",
+          "label": "Service Style — Food Stations",
+          "default": 1100
+        },
+        {
+          "key": "s4o0",
+          "label": "Add-ons — Bar Service",
+          "default": 1200
+        },
+        {
+          "key": "s4o1",
+          "label": "Add-ons — Dessert Table",
+          "default": 650
+        },
+        {
+          "key": "s4o2",
+          "label": "Add-ons — Late-night Snacks",
+          "default": 550
+        },
+        {
+          "key": "s4o3",
+          "label": "Add-ons — Dietary Menus",
+          "default": 400
+        },
+        {
+          "key": "s4o4",
+          "label": "Add-ons — Waiting Staff",
+          "default": 900
+        }
+      ]
+    },
+    {
+      "id": "florist",
+      "label": "Florist",
+      "name": "Floral Quote",
+      "stepCount": 5,
+      "prices": [
+        {
+          "key": "s0o0",
+          "label": "Event Type — Wedding",
+          "default": 1800
+        },
+        {
+          "key": "s0o1",
+          "label": "Event Type — Corporate Event",
+          "default": 900
+        },
+        {
+          "key": "s0o2",
+          "label": "Event Type — Private Party",
+          "default": 600
+        },
+        {
+          "key": "s0o3",
+          "label": "Event Type — Funeral / Memorial",
+          "default": 700
+        },
+        {
+          "key": "s0o4",
+          "label": "Event Type — Installation / Window",
+          "default": 1400
+        },
+        {
+          "key": "s1u",
+          "label": "Arrangements — per arrangement",
+          "default": 95
+        },
+        {
+          "key": "s2o0",
+          "label": "Flower Tier — Seasonal",
+          "default": 0
+        },
+        {
+          "key": "s2o1",
+          "label": "Flower Tier — Premium",
+          "default": 700
+        },
+        {
+          "key": "s2o2",
+          "label": "Flower Tier — Luxury / Imported",
+          "default": 1800
+        },
+        {
+          "key": "s3o0",
+          "label": "Setup — Collection only",
+          "default": 0
+        },
+        {
+          "key": "s3o1",
+          "label": "Setup — Delivery & drop-off",
+          "default": 180
+        },
+        {
+          "key": "s3o2",
+          "label": "Setup — Full on-site styling",
+          "default": 850
+        },
+        {
+          "key": "s4o0",
+          "label": "Add-ons — Bridal Bouquet",
+          "default": 280
+        },
+        {
+          "key": "s4o1",
+          "label": "Add-ons — Buttonholes (set of 6)",
+          "default": 150
+        },
+        {
+          "key": "s4o2",
+          "label": "Add-ons — Arch / Installation",
+          "default": 1200
+        },
+        {
+          "key": "s4o3",
+          "label": "Add-ons — Table Runners",
+          "default": 420
+        },
+        {
+          "key": "s4o4",
+          "label": "Add-ons — Same-day Teardown",
+          "default": 350
+        }
+      ]
+    },
+    {
+      "id": "private-chef",
+      "label": "Private Chef",
+      "name": "Private Chef Quote",
+      "stepCount": 5,
+      "prices": [
+        {
+          "key": "s0o0",
+          "label": "Occasion — Dinner Party",
+          "default": 600
+        },
+        {
+          "key": "s0o1",
+          "label": "Occasion — Anniversary / Romantic",
+          "default": 500
+        },
+        {
+          "key": "s0o2",
+          "label": "Occasion — Family Celebration",
+          "default": 750
+        },
+        {
+          "key": "s0o3",
+          "label": "Occasion — Corporate Entertaining",
+          "default": 1100
+        },
+        {
+          "key": "s0o4",
+          "label": "Occasion — Holiday / Villa Stay",
+          "default": 1800
+        },
+        {
+          "key": "s1u",
+          "label": "Guests — per guest",
+          "default": 85
+        },
+        {
+          "key": "s2o0",
+          "label": "Courses — Three courses",
+          "default": 0
+        },
+        {
+          "key": "s2o1",
+          "label": "Courses — Four courses",
+          "default": 300
+        },
+        {
+          "key": "s2o2",
+          "label": "Courses — Five courses",
+          "default": 650
+        },
+        {
+          "key": "s2o3",
+          "label": "Courses — Tasting menu (7+)",
+          "default": 1300
+        },
+        {
+          "key": "s3o0",
+          "label": "Service Style — Relaxed / family style",
+          "default": 0
+        },
+        {
+          "key": "s3o1",
+          "label": "Service Style — Plated service",
+          "default": 400
+        },
+        {
+          "key": "s3o2",
+          "label": "Service Style — Fine dining with front of house",
+          "default": 1000
+        },
+        {
+          "key": "s4o0",
+          "label": "Add-ons — Wine Pairing",
+          "default": 750
+        },
+        {
+          "key": "s4o1",
+          "label": "Add-ons — Canapés on Arrival",
+          "default": 380
+        },
+        {
+          "key": "s4o2",
+          "label": "Add-ons — Dessert Course Upgrade",
+          "default": 260
+        },
+        {
+          "key": "s4o3",
+          "label": "Add-ons — Kitchen Assistant",
+          "default": 450
+        },
+        {
+          "key": "s4o4",
+          "label": "Add-ons — Full Cleanup",
+          "default": 200
+        }
+      ]
+    },
+    {
+      "id": "tattoo-artist",
+      "label": "Tattoo Artist",
+      "name": "Tattoo Quote",
+      "stepCount": 5,
+      "prices": [
+        {
+          "key": "s0o0",
+          "label": "Placement — Forearm",
+          "default": 250
+        },
+        {
+          "key": "s0o1",
+          "label": "Placement — Upper Arm / Shoulder",
+          "default": 350
+        },
+        {
+          "key": "s0o2",
+          "label": "Placement — Back",
+          "default": 600
+        },
+        {
+          "key": "s0o3",
+          "label": "Placement — Chest / Ribs",
+          "default": 550
+        },
+        {
+          "key": "s0o4",
+          "label": "Placement — Leg",
+          "default": 400
+        },
+        {
+          "key": "s0o5",
+          "label": "Placement — Hand / Neck",
+          "default": 450
+        },
+        {
+          "key": "s1o0",
+          "label": "Size — Small (under 5cm)",
+          "default": 0
+        },
+        {
+          "key": "s1o1",
+          "label": "Size — Medium (5–15cm)",
+          "default": 250
+        },
+        {
+          "key": "s1o2",
+          "label": "Size — Large (15–30cm)",
+          "default": 700
+        },
+        {
+          "key": "s1o3",
+          "label": "Size — Full panel (30cm+)",
+          "default": 1500
+        },
+        {
+          "key": "s2o0",
+          "label": "Detail Level — Linework / Minimal",
+          "default": 0
+        },
+        {
+          "key": "s2o1",
+          "label": "Detail Level — Shaded Blackwork",
+          "default": 300
+        },
+        {
+          "key": "s2o2",
+          "label": "Detail Level — Full Colour",
+          "default": 600
+        },
+        {
+          "key": "s2o3",
+          "label": "Detail Level — Photorealism",
+          "default": 1200
+        },
+        {
+          "key": "s3u",
+          "label": "Sessions — per session",
+          "default": 400
+        },
+        {
+          "key": "s4o0",
+          "label": "Add-ons — Custom Design Consultation",
+          "default": 150
+        },
+        {
+          "key": "s4o1",
+          "label": "Add-ons — Cover-up Work",
+          "default": 350
+        },
+        {
+          "key": "s4o2",
+          "label": "Add-ons — Touch-up Session",
+          "default": 180
+        },
+        {
+          "key": "s4o3",
+          "label": "Add-ons — Numbing Cream",
+          "default": 40
+        },
+        {
+          "key": "s4o4",
+          "label": "Add-ons — Aftercare Kit",
+          "default": 35
+        }
+      ]
+    },
+    {
+      "id": "personal-trainer",
+      "label": "Personal Trainer",
+      "name": "Training Quote",
+      "stepCount": 5,
+      "prices": [
+        {
+          "key": "s0o0",
+          "label": "Goal — General Fitness",
+          "default": 0
+        },
+        {
+          "key": "s0o1",
+          "label": "Goal — Weight Loss",
+          "default": 80
+        },
+        {
+          "key": "s0o2",
+          "label": "Goal — Strength / Muscle",
+          "default": 120
+        },
+        {
+          "key": "s0o3",
+          "label": "Goal — Event Preparation",
+          "default": 200
+        },
+        {
+          "key": "s0o4",
+          "label": "Goal — Rehabilitation",
+          "default": 250
+        },
+        {
+          "key": "s1u",
+          "label": "Sessions per Week — per session",
+          "default": 220
+        },
+        {
+          "key": "s2u",
+          "label": "Programme Length — per month",
+          "default": 90
+        },
+        {
+          "key": "s3o0",
+          "label": "Format — Online coaching",
+          "default": 0
+        },
+        {
+          "key": "s3o1",
+          "label": "Format — Small group (2–4)",
+          "default": 200
+        },
+        {
+          "key": "s3o2",
+          "label": "Format — Hybrid",
+          "default": 350
+        },
+        {
+          "key": "s3o3",
+          "label": "Format — In-person 1:1",
+          "default": 500
+        },
+        {
+          "key": "s4o0",
+          "label": "Add-ons — Nutrition Plan",
+          "default": 300
+        },
+        {
+          "key": "s4o1",
+          "label": "Add-ons — Weekly Check-ins",
+          "default": 200
+        },
+        {
+          "key": "s4o2",
+          "label": "Add-ons — Body Composition Scans",
+          "default": 150
+        },
+        {
+          "key": "s4o3",
+          "label": "Add-ons — Custom App Programming",
+          "default": 250
+        },
+        {
+          "key": "s4o4",
+          "label": "Add-ons — Recovery / Mobility Sessions",
+          "default": 280
+        }
+      ]
+    }
+  ]
+}

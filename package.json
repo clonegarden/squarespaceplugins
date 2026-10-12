@@ -52,13 +52,14 @@
     "format": "prettier --write '**/*.{js,json,md,html,css}'",
     "format:check": "prettier --check '**/*.{js,json,md,html,css}'",
     "test": "echo \"No tests yet\" && exit 0",
-    "validate": "npm run check-collisions && npm run lint && npm run format:check",
+    "validate": "npm run check-collisions && node scripts/export-presets.js --check && npm run lint && npm run format:check",
     "version": "node scripts/version-bump.js",
     "changelog": "node scripts/generate-changelog.js",
     "release": "npm run validate && npm run build && npm version",
     "pre-commit": "npm run validate",
     "serve": "http-server -p 8080 -c-1",
     "check-collisions": "node scripts/check-collisions.js",
+    "export-presets": "node scripts/export-presets.js",
     "check-licenses": "node scripts/check-licenses.js"
   },
   "devDependencies": {
