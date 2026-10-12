@@ -25,8 +25,14 @@
   </div>
   <div class="demo-controls">
     <label for="demo-preset">Profession preset</label>
-    <select id="demo-preset"></select>
-    <span class="hint">Each preset ships its own steps, options and wording.</span>
+    <select id="demo-preset" disabled></select>
+    <label for="demo-font">Font</label>
+    <select id="demo-font"></select>
+    <label for="demo-ui">Interface</label>
+    <select id="demo-ui"></select>
+    <label for="demo-btn">Buttons</label>
+    <select id="demo-btn"></select>
+    <span class="hint">Everything here is a script-tag parameter the store writes.</span>
   </div>
   <div class="content">
     <div id="anavo-quotation"></div>
@@ -34,59 +40,79 @@
   <script>
   (function(){
     var p = new URLSearchParams(location.search);
-
-    // Mirrors PRESETS in quotation-builder.js. An id that drifts out of sync
-    // just falls back to photographer inside the plugin, so the page stays
-    // usable, but the two lists should be updated together.
-    var PRESETS = [
-      ['photographer',    'Photographer'],
-      ['videographer',    'Videographer'],
-      ['wedding-planner', 'Wedding Planner'],
-      ['makeup-artist',   'Makeup Artist'],
-      ['hair-stylist',    'Hair Stylist'],
-      ['dj-live-music',   'DJ / Live Music'],
-      ['event-venue',     'Event Venue'],
-      ['caterer',         'Caterer'],
-      ['florist',         'Florist'],
-      ['private-chef',    'Private Chef'],
-      ['tattoo-artist',   'Tattoo Artist'],
-      ['personal-trainer','Personal Trainer'],
-      ['custom',          'Start from scratch']
-    ];
+    var CDN = 'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/quotation-builder/';
     var DEFAULT_PRESET = 'photographer';
 
-    var sel = document.getElementById('demo-preset');
-    PRESETS.forEach(function(entry){
-      var o = document.createElement('option');
-      o.value = entry[0];
-      o.textContent = entry[1];
-      sel.appendChild(o);
-    });
+    // Appearance options, mirroring FONT_STACKS / UI_STYLES / BUTTON_RADII.
+    // These are short closed lists, so a copy here costs less than another
+    // fetch; the preset list is the one that kept drifting, and it is now
+    // read from the file the plugin itself is generated against.
+    var THEME = {
+      font:        ['inherit', 'system', 'sans', 'serif', 'rounded', 'mono'],
+      uiStyle:     ['card', 'flat', 'bold', 'minimal'],
+      buttonStyle: ['rounded', 'pill', 'square', 'outline']
+    };
 
-    // Resolve the same way the plugin does, so an unknown id in the URL shows
-    // the preset that actually rendered instead of leaving the select blank.
-    var requested = p.get('preset') || '';
-    var active = PRESETS.some(function(e){ return e[0] === requested; }) ? requested : DEFAULT_PRESET;
-    sel.value = active;
+    function fill(sel, entries, active) {
+      entries.forEach(function(entry){
+        var o = document.createElement('option');
+        o.value = entry[0];
+        o.textContent = entry[1];
+        sel.appendChild(o);
+      });
+      sel.value = active;
+    }
 
-    // The plugin guards against double-init via AnavoPluginState, so swapping
-    // presets needs a fresh document rather than a re-injected script tag.
-    sel.addEventListener('change', function(){
+    function reloadWith(key, value) {
       var next = new URL(location.href);
-      next.searchParams.set('preset', sel.value);
+      next.searchParams.set(key, value);
       location.assign(next.toString());
+    }
+
+    [['demo-font', 'font'], ['demo-ui', 'uiStyle'], ['demo-btn', 'buttonStyle']].forEach(function(pair){
+      var sel = document.getElementById(pair[0]);
+      var names = THEME[pair[1]];
+      var active = names.indexOf(p.get(pair[1])) > -1 ? p.get(pair[1]) : names[0];
+      fill(sel, names.map(function(n){ return [n, n.charAt(0).toUpperCase() + n.slice(1)]; }), active);
+      sel.addEventListener('change', function(){ reloadWith(pair[1], sel.value); });
     });
 
-    var u = new URL('https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/quotation-builder/quotation-builder.min.js');
-    u.searchParams.set('domain', 'anavo.tech');
-    var PX_PARAMS = {};
-    var addPx = function(v){ return /px$|%$|em$|rem$|vw$/.test(v) ? v : v + 'px'; };
-    p.forEach(function(val, key){ if (PX_PARAMS[key]) val = addPx(val); u.searchParams.set(key, val); });
-    // After the passthrough, so the select and the widget always agree.
-    u.searchParams.set('preset', active);
-    var s = document.createElement('script');
-    s.src = u.toString();
-    document.body.appendChild(s);
+    // presets.json is generated from the plugin source by
+    // scripts/export-presets.js, so this list cannot drift out of sync the
+    // way the hardcoded mirror it replaces did.
+    var presetSel = document.getElementById('demo-preset');
+
+    function boot(entries) {
+      var requested = p.get('preset') || '';
+      var known = entries.some(function(e){ return e[0] === requested; });
+      var active = known ? requested : DEFAULT_PRESET;
+
+      fill(presetSel, entries, active);
+      presetSel.disabled = false;
+      // The plugin guards against double-init via AnavoPluginState, so
+      // swapping presets needs a fresh document, not a re-injected tag.
+      presetSel.addEventListener('change', function(){ reloadWith('preset', presetSel.value); });
+
+      var u = new URL(CDN + 'quotation-builder.min.js');
+      u.searchParams.set('domain', 'anavo.tech');
+      p.forEach(function(val, key){ u.searchParams.set(key, val); });
+      // After the passthrough, so the select and the widget always agree.
+      u.searchParams.set('preset', active);
+      var s = document.createElement('script');
+      s.src = u.toString();
+      document.body.appendChild(s);
+    }
+
+    fetch(CDN + 'presets.json')
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        boot((d.presets || []).map(function(x){ return [x.id, x.label]; }));
+      })
+      .catch(function(){
+        // The widget matters more than the picker: render the default rather
+        // than leaving the page blank because a JSON file failed to load.
+        boot([[DEFAULT_PRESET, 'Photographer']]);
+      });
   })();
   </script>
 </body>

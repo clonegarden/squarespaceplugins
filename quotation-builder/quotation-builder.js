@@ -1,5 +1,5 @@
 /**
- * Anavo Quotation Builder v2.1.1
+ * Anavo Quotation Builder v2.2.0
  * Interactive step-by-step quotation calculator for booking-style services.
  * Step types: single choice, multiple choice, quantity × price.
  * Floating editor panel in Squarespace edit mode — saves config to Anavo API.
@@ -9,16 +9,31 @@
  *   <div id="anavo-quotation"></div>
  *   <script src="...quotation-builder.min.js?preset=makeup-artist&accentColor=%231a3a5c"></script>
  *
+ * Appearance comes from the script tag, which the store's Customize screen
+ * writes. Content — wording and the prices the owner edits on the page — comes
+ * from the saved config. Where they overlap, a supplied parameter wins.
+ *
  * Script URL parameters:
  *   target        CSS selector for container   default: #anavo-quotation
  *   configId      Saved config ID from editor  default: (uses a built-in preset)
  *   preset        Built-in profession template default: photographer
- *   accentColor   Brand color                  default: #1a3a5c
  *   currency      Currency symbol              default: $
  *   ctaText       CTA button label             default: Book Now
  *   ctaUrl        CTA button URL               default: /contact
  *   api           API base URL                 default: https://api.anavo.tech
  *   domain        Override detected hostname
+ *
+ *   accentColor   Brand colour                 default: #1a3a5c
+ *   surfaceColor  Widget background            default: #fff
+ *   textColor     Body text                    default: inherit
+ *   mutedColor    Secondary text               default: #64748b
+ *   borderColor   Borders and dividers         default: #e2e8f0
+ *   font          inherit|system|sans|serif|rounded|mono    default: inherit
+ *   uiStyle       card|flat|bold|minimal                    default: card
+ *   buttonStyle   rounded|pill|square|outline               default: rounded
+ *   prices        Starting-price overrides, `s0o0:1200,s2u:150`
+ *                 — step and option positions within the chosen preset,
+ *                   exactly as listed in quotation-builder/presets.json
  */
 ;(function () {
   'use strict';
@@ -34,6 +49,16 @@
 
   var params = (scriptEl && scriptEl.src) ? new URL(scriptEl.src).searchParams : new URLSearchParams();
 
+  // Look and feel comes from the script tag, because that is what the store's
+  // "Customize" screen writes. Content — steps, prices, copy — comes from the
+  // saved config. Where the two overlap, as they do for the accent colour that
+  // predates the store, an explicitly supplied parameter wins and anything the
+  // owner never set falls through to the config so existing sites keep their
+  // appearance. `has` is what tells those two cases apart.
+  function has(name) {
+    return params.get(name) !== null && params.get(name) !== '';
+  }
+
   var CFG = {
     target:      params.get('target')      || '#anavo-quotation',
     configId:    params.get('configId')    || '',
@@ -44,6 +69,23 @@
     currency:    params.get('currency')    || '$',
     ctaText:     params.get('ctaText')     || 'Book Now',
     ctaUrl:      params.get('ctaUrl')      || '/contact',
+
+    // Palette. Each one is optional; an unset entry keeps the built-in value
+    // rather than forcing the owner to re-pick a colour they never cared about.
+    surfaceColor: has('surfaceColor') ? params.get('surfaceColor') : '',
+    textColor:    has('textColor')    ? params.get('textColor')    : '',
+    mutedColor:   has('mutedColor')   ? params.get('mutedColor')   : '',
+    borderColor:  has('borderColor')  ? params.get('borderColor')  : '',
+
+    font:        params.get('font')        || 'inherit',
+    buttonStyle: params.get('buttonStyle') || 'rounded',
+    uiStyle:     params.get('uiStyle')     || 'card',
+
+    // Per-option price overrides, written as `s0o0:1200,s2u:150`. Only the
+    // values the owner actually changed travel in the URL.
+    prices:      params.get('prices')      || '',
+
+    hasAccent:   has('accentColor'),
   };
 
   // How many steps a config may hold. Fewer than two is not a wizard; more
@@ -72,6 +114,7 @@
   // Prices are starter placeholders. The editor panel expects the owner to
   // overwrite them, and that is the first thing it shows.
 
+  /* presets:begin — extracted by scripts/export-presets.js, keep self-contained */
   /** Single choice step. */
   function S(title, description, required, options) {
     return { title: title, description: description, type: 'select', required: required, options: options };
@@ -355,23 +398,40 @@
           ['Custom App Programming', 250], ['Recovery / Mobility Sessions', 280]
         ])
       ]
-    },
-
-    custom: {
-      label: 'Start from scratch',
-      name: 'My Quote',
-      steps: [
-        S('First Question', 'Replace this with your own question.', true, [
-          ['First option', 100], ['Second option', 200]
-        ]),
-        S('Second Question', 'Every quote needs at least two steps.', false, [
-          ['No thanks', 0], ['Yes please', 150]
-        ])
-      ]
     }
   };
 
-  var PRESET_IDS = Object.keys(PRESETS);
+  /* presets:end */
+
+  /**
+   * Parse the `prices` parameter — `s0o0:1200,s2u:150` — into a key → amount
+   * map. Keys are positional against the preset's own step and option order,
+   * which is exactly what scripts/export-presets.js writes into presets.json,
+   * so the store never has to re-derive them.
+   *
+   * A malformed pair is skipped rather than thrown: a price that fails to parse
+   * should cost the owner one wrong number, not the whole quote form.
+   */
+  function parsePriceOverrides(raw) {
+    var out = {};
+    String(raw || '').split(',').forEach(function (pair) {
+      var bits = pair.split(':');
+      if (bits.length !== 2) return;
+      var key = bits[0].trim();
+      var rawValue = bits[1].trim();
+      var value = Number(rawValue);
+      // Number('') is 0, so an empty value would silently make an option free.
+      // Negatives are dropped because the API clamps them to zero on submit, so
+      // honouring one here would only show the visitor a total that the
+      // confirmation email then disagrees with — a discount is a lower absolute
+      // price, never a subtraction.
+      if (!key || rawValue === '' || !isFinite(value) || value < 0) return;
+      out[key] = value;
+    });
+    return out;
+  }
+
+  var PRICE_OVERRIDES = parsePriceOverrides(CFG.prices);
 
   /**
    * Turn a preset into a live config. Ids are assigned here rather than being
@@ -387,9 +447,14 @@
     var steps = preset.steps.map(function (step, si) {
       var out = { id: 's' + (si + 1) };
       for (var k in step) { if (Object.prototype.hasOwnProperty.call(step, k)) out[k] = step[k]; }
+      if (out.type === 'quantity' && Object.prototype.hasOwnProperty.call(PRICE_OVERRIDES, 's' + si + 'u')) {
+        out.unitPrice = PRICE_OVERRIDES['s' + si + 'u'];
+      }
       if (out.options) {
         out.options = step.options.map(function (opt, oi) {
-          return { id: 'o' + (oi + 1), label: opt[0], price: opt[1] };
+          var key = 's' + si + 'o' + oi;
+          var price = Object.prototype.hasOwnProperty.call(PRICE_OVERRIDES, key) ? PRICE_OVERRIDES[key] : opt[1];
+          return { id: 'o' + (oi + 1), label: opt[0], price: price };
         });
       }
       return out;
@@ -411,6 +476,37 @@
 
   // ─── Helpers ──────────────────────────────────────────────────────────────
 
+  /**
+   * Re-seat a saved config onto a different preset.
+   *
+   * What gets swapped is the trade's step list. Anything the owner typed
+   * themselves survives; anything still sitting at the previous template's
+   * default gives way to the new one. Keeping the old values blindly would
+   * carry "Photography Quote" onto a caterer, and replacing them blindly would
+   * destroy hand-written wording that nothing regenerates.
+   *
+   * Edited prices do not survive. They are positions in a step list that no
+   * longer exists, so there is nothing honest to map them onto.
+   */
+  function rebaseConfig(cfg, presetId) {
+    var fresh = buildPreset(presetId);
+    var prev  = buildPreset(cfg.preset);
+
+    if (cfg.name !== prev.name) fresh.name = cfg.name;
+    Object.keys(DEFAULT_COPY).forEach(function (k) {
+      if (cfg.copy && cfg.copy[k] && cfg.copy[k] !== prev.copy[k]) fresh.copy[k] = cfg.copy[k];
+    });
+
+    fresh.id          = cfg.id;
+    fresh.currency    = cfg.currency;
+    fresh.accentColor = cfg.accentColor;
+    fresh.ctaText     = cfg.ctaText;
+    fresh.ctaUrl      = cfg.ctaUrl;
+    fresh.notifyEmail = cfg.notifyEmail;
+    fresh.emailLead   = cfg.emailLead;
+    return fresh;
+  }
+
   function fmt(amount, currency) {
     return (currency || '$') + Number(amount).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   }
@@ -423,99 +519,202 @@
     return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
+  // ─── Theme ────────────────────────────────────────────────────────────────
+  // Everything visual resolves to an --aqb-* custom property. The prefix is not
+  // decoration: several Anavo plugins can share one Squarespace page, and an
+  // unprefixed --accent would be overwritten by whichever script ran last.
+  //
+  // No webfont is ever requested. A quote widget that blocks on a font download
+  // is a quote widget the visitor watches reflow, and Squarespace sites already
+  // ship their own typography, so the choices below are stacks, not loads.
+  var FONT_STACKS = {
+    inherit: 'inherit',
+    system:  '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif',
+    sans:    '"Helvetica Neue",Helvetica,Arial,sans-serif',
+    serif:   'Georgia,"Times New Roman",Times,serif',
+    rounded: '"Avenir Next",Avenir,Nunito,"Segoe UI",sans-serif',
+    mono:    'ui-monospace,SFMono-Regular,Menlo,Consolas,monospace'
+  };
+
+  var UI_STYLES = {
+    card:    { borderWidth: '2px', radius: '10px', boxRadius: '12px' },
+    flat:    { borderWidth: '0px', radius: '8px',  boxRadius: '8px'  },
+    bold:    { borderWidth: '3px', radius: '14px', boxRadius: '16px' },
+    minimal: { borderWidth: '1px', radius: '4px',  boxRadius: '4px'  }
+  };
+
+  var BUTTON_RADII = { rounded: '8px', pill: '999px', square: '0px', outline: '8px' };
+
+  /** Six-digit hex, normalised, or '' for anything else. */
+  function hex6(color) {
+    var h = String(color || '').trim().replace(/^#/, '');
+    if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+    return /^[0-9a-fA-F]{6}$/.test(h) ? '#' + h.toLowerCase() : '';
+  }
+
+  /**
+   * Foreground that stays legible on top of a fill. Without this a bright
+   * accent — yellow, lime, pale pink — gets white text written on it.
+   */
+  function readableOn(color) {
+    var h = hex6(color);
+    if (!h) return '#fff';
+    var r = parseInt(h.slice(1, 3), 16);
+    var g = parseInt(h.slice(3, 5), 16);
+    var b = parseInt(h.slice(5, 7), 16);
+    return (0.299 * r + 0.587 * g + 0.114 * b) > 150 ? '#1e293b' : '#fff';
+  }
+
+  /**
+   * Resolve the palette into a `:root` declaration block.
+   *
+   * The declarations land on :root rather than on .anavo-qb-wrap because the
+   * editor panel is position:fixed outside the wrap and still needs the accent.
+   *
+   * Where the owner supplies a colour, the shades derived from it follow along;
+   * a custom border colour that left its lighter and darker cousins at the
+   * built-in slate would read as a bug, not as a palette.
+   */
+  function themeBlock(configAccent) {
+    var accent = (CFG.hasAccent ? CFG.accentColor : (configAccent || CFG.accentColor)) || '#1a3a5c';
+    var accentHex = hex6(accent);
+
+    var border = CFG.borderColor;
+    var muted = CFG.mutedColor;
+    var surface = CFG.surfaceColor;
+
+    var vars = {
+      '--aqb-accent':        accent,
+      // Hex alpha only concatenates onto a six-digit hex. Anything else keeps
+      // the selected option readable by falling back to the tint.
+      '--aqb-accent-soft':   accentHex ? accentHex + '15' : 'var(--aqb-tint)',
+      '--aqb-on-accent':     readableOn(accent),
+      '--aqb-surface':       surface || '#fff',
+      '--aqb-tint':          surface ? (accentHex ? accentHex + '0d' : surface) : '#f8faff',
+      '--aqb-text':          CFG.textColor || 'inherit',
+      '--aqb-text-soft':     CFG.textColor || '#475569',
+      '--aqb-text-strong':   CFG.textColor || '#1e293b',
+      '--aqb-muted':         muted || '#64748b',
+      '--aqb-muted-soft':    muted || '#94a3b8',
+      '--aqb-border':        border || '#e2e8f0',
+      '--aqb-border-strong': border || '#cbd5e1',
+      '--aqb-border-soft':   border || '#f1f5f9',
+      '--aqb-font':          FONT_STACKS[CFG.font] || FONT_STACKS.inherit
+    };
+
+    var ui = UI_STYLES[CFG.uiStyle] || UI_STYLES.card;
+    vars['--aqb-border-width'] = ui.borderWidth;
+    vars['--aqb-radius'] = ui.radius;
+    vars['--aqb-box-radius'] = ui.boxRadius;
+    vars['--aqb-btn-radius'] = BUTTON_RADII[CFG.buttonStyle] || BUTTON_RADII.rounded;
+
+    var decls = Object.keys(vars).map(function (name) {
+      return name + ':' + vars[name];
+    });
+
+    return ':root{' + decls.join(';') + '}';
+  }
+
+  /** Classes the wrap needs for the interface and button variants. */
+  function themeClasses() {
+    var ui = UI_STYLES[CFG.uiStyle] ? CFG.uiStyle : 'card';
+    var btn = BUTTON_RADII[CFG.buttonStyle] ? CFG.buttonStyle : 'rounded';
+    return ' qb-ui-' + ui + ' qb-btn-' + btn;
+  }
+
   // ─── Styles ───────────────────────────────────────────────────────────────
 
   function injectStyles(accent) {
     var ex = document.getElementById('anavo-qb-styles');
     if (ex) ex.remove();
-    accent = accent || CFG.accentColor;
 
     var css = [
+      themeBlock(accent),
       // Wrap
-      '.anavo-qb-wrap{font-family:inherit !important;max-width:900px !important;margin:0 auto !important;box-sizing:border-box !important}',
+      '.anavo-qb-wrap{font-family:var(--aqb-font) !important;max-width:900px !important;margin:0 auto !important;box-sizing:border-box !important}',
       '.anavo-qb-inner{display:flex !important;gap:28px !important;align-items:flex-start !important}',
       '@media(max-width:700px){.anavo-qb-inner{flex-direction:column !important}}',
 
       // Progress bar
       '.anavo-qb-progress{display:flex !important;margin-bottom:32px !important;overflow-x:auto !important;padding-bottom:2px !important;gap:0 !important}',
-      '.anavo-qb-prog-step{flex:1 !important;min-width:55px !important;text-align:center !important;padding:6px 4px 10px !important;border-bottom:3px solid #e2e8f0 !important;font-size:11px !important;color:#94a3b8 !important;transition:all .2s !important;white-space:nowrap !important;cursor:default !important;user-select:none !important}',
-      '.anavo-qb-prog-step.qb-visited{border-bottom-color:' + accent + ' !important;color:' + accent + ' !important;cursor:pointer !important}',
-      '.anavo-qb-prog-step.qb-active{border-bottom-color:' + accent + ' !important;color:' + accent + ' !important;font-weight:700 !important}',
-      '.anavo-qb-prog-num{display:inline-flex !important;align-items:center !important;justify-content:center !important;width:22px !important;height:22px !important;border-radius:50% !important;background:#e2e8f0 !important;color:#64748b !important;font-size:11px !important;font-weight:700 !important;margin-bottom:4px !important;transition:all .2s !important}',
-      '.anavo-qb-prog-step.qb-visited .anavo-qb-prog-num,.anavo-qb-prog-step.qb-active .anavo-qb-prog-num{background:' + accent + ' !important;color:#fff !important}',
+      '.anavo-qb-prog-step{flex:1 !important;min-width:55px !important;text-align:center !important;padding:6px 4px 10px !important;border-bottom:3px solid var(--aqb-border) !important;font-size:11px !important;color:var(--aqb-muted-soft) !important;transition:all .2s !important;white-space:nowrap !important;cursor:default !important;user-select:none !important}',
+      '.anavo-qb-prog-step.qb-visited{border-bottom-color:var(--aqb-accent) !important;color:var(--aqb-accent) !important;cursor:pointer !important}',
+      '.anavo-qb-prog-step.qb-active{border-bottom-color:var(--aqb-accent) !important;color:var(--aqb-accent) !important;font-weight:700 !important}',
+      '.anavo-qb-prog-num{display:inline-flex !important;align-items:center !important;justify-content:center !important;width:22px !important;height:22px !important;border-radius:50% !important;background:var(--aqb-border) !important;color:var(--aqb-muted) !important;font-size:11px !important;font-weight:700 !important;margin-bottom:4px !important;transition:all .2s !important}',
+      '.anavo-qb-prog-step.qb-visited .anavo-qb-prog-num,.anavo-qb-prog-step.qb-active .anavo-qb-prog-num{background:var(--aqb-accent) !important;color:var(--aqb-on-accent) !important}',
 
       // Step panel
       '.anavo-qb-main{flex:1 !important;min-width:0 !important}',
-      '.anavo-qb-step-title{font-size:22px !important;font-weight:700 !important;margin:0 0 6px !important;color:inherit !important}',
-      '.anavo-qb-step-desc{font-size:14px !important;color:#64748b !important;margin:0 0 20px !important}',
+      '.anavo-qb-step-title{font-size:22px !important;font-weight:700 !important;margin:0 0 6px !important;color:var(--aqb-text) !important}',
+      '.anavo-qb-step-desc{font-size:14px !important;color:var(--aqb-muted) !important;margin:0 0 20px !important}',
 
       // Options
       '.anavo-qb-options{display:flex !important;flex-direction:column !important;gap:10px !important}',
-      '.anavo-qb-option{display:flex !important;align-items:center !important;justify-content:space-between !important;padding:13px 16px !important;border:2px solid #e2e8f0 !important;border-radius:10px !important;cursor:pointer !important;transition:border-color .18s,background .18s !important;background:#fff !important;gap:10px !important}',
-      '.anavo-qb-option:hover{border-color:' + accent + ' !important;background:#f7f9ff !important}',
-      '.anavo-qb-option.qb-sel{border-color:' + accent + ' !important;background:' + accent + '15 !important}',
+      '.anavo-qb-option{display:flex !important;align-items:center !important;justify-content:space-between !important;padding:13px 16px !important;border:var(--aqb-border-width) solid var(--aqb-border) !important;border-radius:var(--aqb-radius) !important;cursor:pointer !important;transition:border-color .18s,background .18s !important;background:var(--aqb-surface) !important;gap:10px !important}',
+      '.anavo-qb-option:hover{border-color:var(--aqb-accent) !important;background:var(--aqb-tint) !important}',
+      '.anavo-qb-option.qb-sel{border-color:var(--aqb-accent) !important;background:var(--aqb-accent-soft) !important}',
       '.anavo-qb-opt-left{display:flex !important;align-items:center !important;gap:12px !important;flex:1 !important;min-width:0 !important}',
-      '.anavo-qb-opt-check{width:20px !important;height:20px !important;border-radius:50% !important;border:2px solid #cbd5e1 !important;flex-shrink:0 !important;display:flex !important;align-items:center !important;justify-content:center !important;transition:all .15s !important}',
+      '.anavo-qb-opt-check{width:20px !important;height:20px !important;border-radius:50% !important;border:var(--aqb-border-width) solid var(--aqb-border-strong) !important;flex-shrink:0 !important;display:flex !important;align-items:center !important;justify-content:center !important;transition:all .15s !important}',
       '.anavo-qb-multi .anavo-qb-opt-check{border-radius:5px !important}',
-      '.anavo-qb-option.qb-sel .anavo-qb-opt-check{border-color:' + accent + ' !important;background:' + accent + ' !important}',
-      '.anavo-qb-opt-dot{width:8px !important;height:8px !important;border-radius:50% !important;background:#fff !important;opacity:0 !important;transition:opacity .12s !important}',
+      '.anavo-qb-option.qb-sel .anavo-qb-opt-check{border-color:var(--aqb-accent) !important;background:var(--aqb-accent) !important}',
+      '.anavo-qb-opt-dot{width:8px !important;height:8px !important;border-radius:50% !important;background:var(--aqb-on-accent) !important;opacity:0 !important;transition:opacity .12s !important}',
       '.anavo-qb-option.qb-sel .anavo-qb-opt-dot{opacity:1 !important}',
-      '.anavo-qb-opt-label{font-size:15px !important;font-weight:500 !important;color:inherit !important}',
-      '.anavo-qb-opt-price{font-size:14px !important;font-weight:700 !important;color:' + accent + ' !important;white-space:nowrap !important;flex-shrink:0 !important}',
+      '.anavo-qb-opt-label{font-size:15px !important;font-weight:500 !important;color:var(--aqb-text) !important}',
+      '.anavo-qb-opt-price{font-size:14px !important;font-weight:700 !important;color:var(--aqb-accent) !important;white-space:nowrap !important;flex-shrink:0 !important}',
 
       // Quantity
       '.anavo-qb-quantity{display:flex !important;align-items:center !important;gap:18px !important;padding:20px 0 !important;flex-wrap:wrap !important}',
-      '.anavo-qb-qty-btn{width:42px !important;height:42px !important;border-radius:50% !important;border:2px solid ' + accent + ' !important;background:transparent !important;color:' + accent + ' !important;font-size:22px !important;cursor:pointer !important;display:flex !important;align-items:center !important;justify-content:center !important;transition:all .18s !important;line-height:1 !important;flex-shrink:0 !important}',
-      '.anavo-qb-qty-btn:hover:not(:disabled){background:' + accent + ' !important;color:#fff !important}',
+      '.anavo-qb-qty-btn{width:42px !important;height:42px !important;border-radius:50% !important;border:var(--aqb-border-width) solid var(--aqb-accent) !important;background:transparent !important;color:var(--aqb-accent) !important;font-size:22px !important;cursor:pointer !important;display:flex !important;align-items:center !important;justify-content:center !important;transition:all .18s !important;line-height:1 !important;flex-shrink:0 !important}',
+      '.anavo-qb-qty-btn:hover:not(:disabled){background:var(--aqb-accent) !important;color:var(--aqb-on-accent) !important}',
       '.anavo-qb-qty-btn:disabled{opacity:.3 !important;cursor:default !important}',
-      '.anavo-qb-qty-val{font-size:30px !important;font-weight:800 !important;min-width:50px !important;text-align:center !important;color:inherit !important}',
-      '.anavo-qb-qty-unit{font-size:14px !important;color:#64748b !important}',
-      '.anavo-qb-qty-price{font-size:16px !important;font-weight:700 !important;color:' + accent + ' !important;margin-left:auto !important}',
+      '.anavo-qb-qty-val{font-size:30px !important;font-weight:800 !important;min-width:50px !important;text-align:center !important;color:var(--aqb-text) !important}',
+      '.anavo-qb-qty-unit{font-size:14px !important;color:var(--aqb-muted) !important}',
+      '.anavo-qb-qty-price{font-size:16px !important;font-weight:700 !important;color:var(--aqb-accent) !important;margin-left:auto !important}',
 
       // Contact form
       '.anavo-qb-fields{display:flex !important;flex-direction:column !important;gap:16px !important}',
       '.anavo-qb-field{display:flex !important;flex-direction:column !important;gap:6px !important}',
-      '.anavo-qb-field label{font-size:13px !important;font-weight:600 !important;color:#475569 !important}',
-      '.anavo-qb-field input{padding:12px 14px !important;border:2px solid #e2e8f0 !important;border-radius:8px !important;font-size:15px !important;outline:none !important;transition:border-color .18s !important;width:100% !important;box-sizing:border-box !important;background:#fff !important;color:inherit !important}',
-      '.anavo-qb-field input:focus{border-color:' + accent + ' !important}',
+      '.anavo-qb-field label{font-size:13px !important;font-weight:600 !important;color:var(--aqb-text-soft) !important}',
+      '.anavo-qb-field input{padding:12px 14px !important;border:var(--aqb-border-width) solid var(--aqb-border) !important;border-radius:var(--aqb-radius) !important;font-size:15px !important;outline:none !important;transition:border-color .18s !important;width:100% !important;box-sizing:border-box !important;background:var(--aqb-surface) !important;color:var(--aqb-text) !important}',
+      '.anavo-qb-field input:focus{border-color:var(--aqb-accent) !important}',
 
       // Nav
       '.anavo-qb-nav{display:flex !important;gap:12px !important;margin-top:28px !important;align-items:center !important;flex-wrap:wrap !important}',
-      '.anavo-qb-btn{padding:12px 26px !important;border-radius:8px !important;border:none !important;font-size:15px !important;font-weight:600 !important;cursor:pointer !important;transition:filter .18s,border-color .18s !important;line-height:1.2 !important}',
-      '.anavo-qb-btn-primary{background:' + accent + ' !important;color:#fff !important}',
+      '.anavo-qb-btn{padding:12px 26px !important;border-radius:var(--aqb-btn-radius) !important;border:none !important;font-size:15px !important;font-weight:600 !important;cursor:pointer !important;transition:filter .18s,border-color .18s !important;line-height:1.2 !important}',
+      '.anavo-qb-btn-primary{background:var(--aqb-accent) !important;color:var(--aqb-on-accent) !important}',
       '.anavo-qb-btn-primary:hover{filter:brightness(1.12) !important}',
-      '.anavo-qb-btn-back{background:transparent !important;color:#64748b !important;border:2px solid #e2e8f0 !important}',
-      '.anavo-qb-btn-back:hover{border-color:#94a3b8 !important;color:#334155 !important}',
-      '.anavo-qb-btn-skip{margin-left:auto !important;background:transparent !important;color:#94a3b8 !important;font-size:13px !important;padding:8px 0 !important;border:none !important;text-decoration:underline !important;cursor:pointer !important}',
+      '.anavo-qb-btn-back{background:transparent !important;color:var(--aqb-muted) !important;border:var(--aqb-border-width) solid var(--aqb-border) !important}',
+      '.anavo-qb-btn-back:hover{border-color:var(--aqb-muted-soft) !important;color:var(--aqb-text-strong) !important}',
+      '.anavo-qb-btn-skip{margin-left:auto !important;background:transparent !important;color:var(--aqb-muted-soft) !important;font-size:13px !important;padding:8px 0 !important;border:none !important;text-decoration:underline !important;cursor:pointer !important}',
 
       // Sidebar
       '.anavo-qb-sidebar{width:250px !important;flex-shrink:0 !important;position:sticky !important;top:24px !important}',
       '@media(max-width:700px){.anavo-qb-sidebar{width:100% !important;position:static !important}}',
-      '.anavo-qb-total-box{background:#f8faff !important;border:1px solid #e2e8f0 !important;border-radius:12px !important;padding:20px !important}',
-      '.anavo-qb-sidebar-ttl{font-size:11px !important;font-weight:700 !important;text-transform:uppercase !important;letter-spacing:.07em !important;color:#94a3b8 !important;margin:0 0 16px !important}',
+      '.anavo-qb-total-box{background:var(--aqb-tint) !important;border:1px solid var(--aqb-border) !important;border-radius:var(--aqb-box-radius) !important;padding:20px !important}',
+      '.anavo-qb-sidebar-ttl{font-size:11px !important;font-weight:700 !important;text-transform:uppercase !important;letter-spacing:.07em !important;color:var(--aqb-muted-soft) !important;margin:0 0 16px !important}',
       '.anavo-qb-lines{list-style:none !important;margin:0 0 16px !important;padding:0 !important;display:flex !important;flex-direction:column !important;gap:9px !important}',
       '.anavo-qb-line{display:flex !important;justify-content:space-between !important;gap:8px !important;font-size:13px !important}',
-      '.anavo-qb-line-lbl{color:#475569 !important;flex:1 !important;min-width:0 !important;overflow:hidden !important;text-overflow:ellipsis !important;white-space:nowrap !important}',
-      '.anavo-qb-line-amt{font-weight:600 !important;color:#1e293b !important;white-space:nowrap !important}',
-      '.anavo-qb-divider{border:none !important;border-top:1px solid #e2e8f0 !important;margin:0 0 14px !important}',
+      '.anavo-qb-line-lbl{color:var(--aqb-text-soft) !important;flex:1 !important;min-width:0 !important;overflow:hidden !important;text-overflow:ellipsis !important;white-space:nowrap !important}',
+      '.anavo-qb-line-amt{font-weight:600 !important;color:var(--aqb-text-strong) !important;white-space:nowrap !important}',
+      '.anavo-qb-divider{border:none !important;border-top:1px solid var(--aqb-border) !important;margin:0 0 14px !important}',
       '.anavo-qb-total-row{display:flex !important;justify-content:space-between !important;align-items:baseline !important;gap:8px !important}',
-      '.anavo-qb-total-lbl{font-size:13px !important;font-weight:600 !important;color:#64748b !important}',
-      '.anavo-qb-total-amt{font-size:26px !important;font-weight:800 !important;color:' + accent + ' !important}',
-      '.anavo-qb-sidebar-note{font-size:11px !important;color:#94a3b8 !important;margin-top:10px !important;text-align:center !important}',
+      '.anavo-qb-total-lbl{font-size:13px !important;font-weight:600 !important;color:var(--aqb-muted) !important}',
+      '.anavo-qb-total-amt{font-size:26px !important;font-weight:800 !important;color:var(--aqb-accent) !important}',
+      '.anavo-qb-sidebar-note{font-size:11px !important;color:var(--aqb-muted-soft) !important;margin-top:10px !important;text-align:center !important}',
 
       // Summary
       '.anavo-qb-summary{max-width:580px !important;margin:0 auto !important}',
-      '.anavo-qb-sum-title{font-size:26px !important;font-weight:800 !important;margin:0 0 6px !important;color:inherit !important}',
-      '.anavo-qb-sum-sub{font-size:14px !important;color:#64748b !important;margin:0 0 28px !important}',
+      '.anavo-qb-sum-title{font-size:26px !important;font-weight:800 !important;margin:0 0 6px !important;color:var(--aqb-text) !important}',
+      '.anavo-qb-sum-sub{font-size:14px !important;color:var(--aqb-muted) !important;margin:0 0 28px !important}',
       '.anavo-qb-sum-table{width:100% !important;border-collapse:collapse !important;margin-bottom:0 !important}',
-      '.anavo-qb-sum-table td{padding:11px 0 !important;border-bottom:1px solid #f1f5f9 !important;font-size:14px !important;vertical-align:top !important}',
-      '.anavo-qb-sum-table td:last-child{text-align:right !important;font-weight:600 !important;color:' + accent + ' !important;padding-left:12px !important;white-space:nowrap !important}',
-      '.anavo-qb-sum-total{display:flex !important;justify-content:space-between !important;align-items:baseline !important;padding:18px 0 28px !important;border-top:2px solid #1e293b !important;gap:12px !important}',
+      '.anavo-qb-sum-table td{padding:11px 0 !important;border-bottom:1px solid var(--aqb-border-soft) !important;font-size:14px !important;vertical-align:top !important}',
+      '.anavo-qb-sum-table td:last-child{text-align:right !important;font-weight:600 !important;color:var(--aqb-accent) !important;padding-left:12px !important;white-space:nowrap !important}',
+      '.anavo-qb-sum-total{display:flex !important;justify-content:space-between !important;align-items:baseline !important;padding:18px 0 28px !important;border-top:2px solid var(--aqb-text-strong) !important;gap:12px !important}',
       '.anavo-qb-sum-total-lbl{font-size:16px !important;font-weight:700 !important}',
-      '.anavo-qb-sum-total-amt{font-size:34px !important;font-weight:800 !important;color:' + accent + ' !important}',
-      '.anavo-qb-cta{display:inline-block !important;padding:16px 38px !important;background:' + accent + ' !important;color:#fff !important;border-radius:10px !important;font-size:16px !important;font-weight:700 !important;text-decoration:none !important;border:none !important;cursor:pointer !important;transition:filter .18s !important}',
+      '.anavo-qb-sum-total-amt{font-size:34px !important;font-weight:800 !important;color:var(--aqb-accent) !important}',
+      '.anavo-qb-cta{display:inline-block !important;padding:16px 38px !important;background:var(--aqb-accent) !important;color:var(--aqb-on-accent) !important;border-radius:var(--aqb-btn-radius) !important;font-size:16px !important;font-weight:700 !important;text-decoration:none !important;border:none !important;cursor:pointer !important;transition:filter .18s !important}',
       '.anavo-qb-cta:hover{filter:brightness(1.12) !important}',
-      '.anavo-qb-restart{background:transparent !important;color:#94a3b8 !important;border:none !important;font-size:13px !important;cursor:pointer !important;text-decoration:underline !important;padding:0 !important;margin-top:18px !important;display:block !important}',
+      '.anavo-qb-restart{background:transparent !important;color:var(--aqb-muted-soft) !important;border:none !important;font-size:13px !important;cursor:pointer !important;text-decoration:underline !important;padding:0 !important;margin-top:18px !important;display:block !important}',
 
       // Editor panel
       '.anavo-qb-editor{position:fixed !important;bottom:20px !important;right:20px !important;width:360px !important;max-height:82vh !important;background:rgba(13,20,38,.96) !important;color:#e2e8f0 !important;border-radius:12px !important;font-size:13px !important;z-index:99999 !important;box-shadow:0 8px 40px rgba(0,0,0,.5) !important;display:flex !important;flex-direction:column !important}',
@@ -527,7 +726,7 @@
       '.anavo-qb-ed-section{margin-bottom:20px !important}',
       '.anavo-qb-ed-lbl{display:block !important;font-size:10px !important;font-weight:700 !important;text-transform:uppercase !important;letter-spacing:.07em !important;color:#475569 !important;margin-bottom:5px !important}',
       '.anavo-qb-ed-inp{width:100% !important;padding:7px 10px !important;background:rgba(255,255,255,.06) !important;border:1px solid rgba(255,255,255,.14) !important;border-radius:6px !important;color:#e2e8f0 !important;font-size:13px !important;box-sizing:border-box !important;outline:none !important}',
-      '.anavo-qb-ed-inp:focus{border-color:' + accent + ' !important}',
+      '.anavo-qb-ed-inp:focus{border-color:var(--aqb-accent) !important}',
       '.anavo-qb-step-item{background:rgba(255,255,255,.04) !important;border:1px solid rgba(255,255,255,.09) !important;border-radius:8px !important;margin-bottom:8px !important;overflow:hidden !important}',
       '.anavo-qb-step-hd{display:flex !important;align-items:center !important;padding:9px 12px !important;cursor:pointer !important;gap:8px !important;user-select:none !important}',
       '.anavo-qb-step-hd:hover{background:rgba(255,255,255,.05) !important}',
@@ -549,7 +748,7 @@
       '.anavo-qb-copy-btn.qb-stale{background:#f59e0b !important;border-color:#f59e0b !important;color:#1c1917 !important;font-weight:600 !important}',
       '.anavo-qb-copy-btn{width:100% !important;padding:7px !important;background:rgba(255,255,255,.07) !important;border:1px solid rgba(255,255,255,.14) !important;color:#e2e8f0 !important;border-radius:4px !important;font-size:11px !important;cursor:pointer !important}',
       '.anavo-qb-ed-footer{padding:12px 16px !important;border-top:1px solid rgba(255,255,255,.09) !important;display:flex !important;gap:8px !important;flex-shrink:0 !important}',
-      '.anavo-qb-save{flex:1 !important;padding:9px !important;background:' + accent + ' !important;color:#fff !important;border:none !important;border-radius:6px !important;font-size:13px !important;font-weight:700 !important;cursor:pointer !important;transition:filter .18s !important}',
+      '.anavo-qb-save{flex:1 !important;padding:9px !important;background:var(--aqb-accent) !important;color:#fff !important;border:none !important;border-radius:6px !important;font-size:13px !important;font-weight:700 !important;cursor:pointer !important;transition:filter .18s !important}',
       '.anavo-qb-save:hover:not(:disabled){filter:brightness(1.12) !important}',
       '.anavo-qb-save:disabled{opacity:.5 !important;cursor:default !important}',
       '.anavo-qb-mini{position:fixed !important;bottom:20px !important;right:20px !important;background:rgba(13,20,38,.92) !important;color:#e2e8f0 !important;border:1px solid rgba(255,255,255,.15) !important;border-radius:8px !important;padding:8px 14px !important;font-size:12px !important;font-weight:700 !important;cursor:pointer !important;z-index:99999 !important;display:none !important}',
@@ -558,13 +757,24 @@
       // Submit failure state
       '.anavo-qb-error{background:#fef2f2 !important;border:1px solid #fecaca !important;color:#b91c1c !important;border-radius:8px !important;padding:11px 14px !important;font-size:13px !important;margin:0 0 16px !important;line-height:1.45 !important}',
 
-      // Editor: preset picker and upsell
+      // Editor: template readout and upsell
+      '.anavo-qb-ed-static{font-size:13px !important;color:#f8fafc !important;font-weight:600 !important;padding:7px 0 !important}',
       '.anavo-qb-ed-note{font-size:11px !important;color:#64748b !important;margin-top:5px !important;line-height:1.45 !important}',
-      '.anavo-qb-upsell{background:rgba(255,255,255,.05) !important;border:1px solid rgba(255,255,255,.12) !important;border-radius:8px !important;padding:12px !important;margin-top:4px !important}',
+      '.anavo-qb-upsell{background:rgba(255,255,255,.05) !important;border:1px solid rgba(255,255,255,.12) !important;border-radius:8px !important;padding:12px !important;margin-top:8px !important}',
       '.anavo-qb-upsell-hd{font-size:12px !important;font-weight:700 !important;color:#e2e8f0 !important;margin-bottom:5px !important}',
+      '.anavo-qb-upsell-px{display:block !important;font-size:11px !important;font-weight:600 !important;color:#94a3b8 !important;margin-top:2px !important}',
       '.anavo-qb-upsell-bd{font-size:11px !important;color:#94a3b8 !important;line-height:1.5 !important;margin-bottom:9px !important}',
       '.anavo-qb-upsell-cta{display:block !important;text-align:center !important;padding:8px !important;background:rgba(255,255,255,.09) !important;border:1px solid rgba(255,255,255,.16) !important;border-radius:6px !important;color:#e2e8f0 !important;font-size:11px !important;font-weight:700 !important;text-decoration:none !important}',
       '.anavo-qb-upsell-cta:hover{background:rgba(255,255,255,.14) !important}',
+
+      // Interface and button variants. Each one overrides tokens where that is
+      // enough and adds a rule only where a token cannot express the change —
+      // a borderless option, for instance, needs a fill to stay separable.
+      '.anavo-qb-wrap.qb-ui-flat .anavo-qb-option{background:var(--aqb-tint) !important}',
+      '.anavo-qb-wrap.qb-ui-flat .anavo-qb-total-box{border-color:transparent !important}',
+      '.anavo-qb-wrap.qb-ui-minimal .anavo-qb-total-box{background:transparent !important}',
+      '.anavo-qb-wrap.qb-btn-outline .anavo-qb-btn-primary,.anavo-qb-wrap.qb-btn-outline .anavo-qb-cta{background:transparent !important;color:var(--aqb-accent) !important;border:2px solid var(--aqb-accent) !important}',
+      '.anavo-qb-wrap.qb-btn-outline .anavo-qb-btn-primary:hover,.anavo-qb-wrap.qb-btn-outline .anavo-qb-cta:hover{background:var(--aqb-accent) !important;color:var(--aqb-on-accent) !important;filter:none !important}',
     ].join('');
 
     var el = document.createElement('style');
@@ -613,7 +823,7 @@
   Widget.prototype._render = function () {
     var self = this;
     this.container.innerHTML = '';
-    this.container.className = 'anavo-qb-wrap';
+    this.container.className = 'anavo-qb-wrap' + themeClasses();
 
     if (this.done) { this._renderSummary(); return; }
 
@@ -1097,6 +1307,15 @@
     // and nothing about a successful save says so.
     var scriptTagStale = false;
 
+    // Parameters the store writes and this panel never edits. They are copied
+    // straight off the running script URL, because the owner is told to paste
+    // the tag below over the old one — and a tag that silently dropped their
+    // fonts and palette would undo the Customize screen on every save.
+    var THEME_PARAMS = [
+      'surfaceColor', 'textColor', 'mutedColor', 'borderColor',
+      'font', 'buttonStyle', 'uiStyle', 'prices', 'currency', 'api', 'target', 'domain'
+    ];
+
     function buildScriptTag(cfg) {
       var base = 'https://cdn.jsdelivr.net/gh/clonegarden/squarespaceplugins@latest/quotation-builder/quotation-builder.min.js';
       var q = '?configId=' + encodeURIComponent(cfg.id || 'default') +
@@ -1104,6 +1323,9 @@
         '&accentColor=' + encodeURIComponent(cfg.accentColor || '#1a3a5c') +
         '&ctaText=' + encodeURIComponent(cfg.ctaText || 'Book Now') +
         '&ctaUrl=' + encodeURIComponent(cfg.ctaUrl || '/contact');
+      THEME_PARAMS.forEach(function (name) {
+        if (has(name)) q += '&' + name + '=' + encodeURIComponent(params.get(name));
+      });
       return '<div id="anavo-quotation"></div>\n<script src="' + base + q + '"><\/script>';
     }
 
@@ -1111,48 +1333,18 @@
       body.innerHTML = '';
       var cfg = configRef[0];
 
-      // Preset picker — replaces every step, so it asks first.
+      // Which template is in use is decided in the Anavo store, not here.
+      // Two places that both set the step list is one place too many: the
+      // store writes the script tag, and a picker in this panel would let a
+      // site drift away from what the owner sees in their account.
       var preSec = document.createElement('div'); preSec.className = 'anavo-qb-ed-section';
-      preSec.innerHTML = '<span class="anavo-qb-ed-lbl">Profession Template</span>';
-      var preSel = document.createElement('select'); preSel.className = 'anavo-qb-type-sel';
-      preSel.style.marginBottom = '0';
-      PRESET_IDS.forEach(function (id) {
-        var o = document.createElement('option');
-        o.value = id; o.textContent = PRESETS[id].label;
-        o.selected = cfg.preset === id;
-        preSel.appendChild(o);
-      });
-      preSel.addEventListener('change', function () {
-        var chosen = this.value;
-        if (!window.confirm('Switch to the ' + PRESETS[chosen].label + ' template?\n\nThis replaces all steps and prices. Anything you edited yourself — quote name, wording, colour, notification email and CTA — is kept.')) {
-          this.value = cfg.preset;
-          return;
-        }
-        var fresh = buildPreset(chosen);
-        var prev  = buildPreset(cfg.preset);
-        // What is being swapped is the trade's step list. Anything the owner
-        // typed themselves survives; anything still sitting at the previous
-        // template's default gives way to the new one. Blindly keeping the old
-        // values would carry "Photography Quote" onto a caterer, and blindly
-        // replacing them would silently destroy hand-written wording that is
-        // not regenerated into anything the owner would recognise as new.
-        if (cfg.name !== prev.name) fresh.name = cfg.name;
-        Object.keys(DEFAULT_COPY).forEach(function (k) {
-          if (cfg.copy && cfg.copy[k] && cfg.copy[k] !== prev.copy[k]) fresh.copy[k] = cfg.copy[k];
-        });
-        fresh.id          = cfg.id;
-        fresh.currency    = cfg.currency;
-        fresh.accentColor = cfg.accentColor;
-        fresh.ctaText     = cfg.ctaText;
-        fresh.ctaUrl      = cfg.ctaUrl;
-        fresh.notifyEmail = cfg.notifyEmail;
-        fresh.emailLead   = cfg.emailLead;
-        configRef[0] = fresh;
-        renderBody();
-      });
-      preSec.appendChild(preSel);
+      preSec.innerHTML = '<span class="anavo-qb-ed-lbl">Template</span>';
+      var preName = document.createElement('div');
+      preName.className = 'anavo-qb-ed-static';
+      preName.textContent = (PRESETS[cfg.preset] && PRESETS[cfg.preset].label) || cfg.preset;
+      preSec.appendChild(preName);
       var preNote = document.createElement('div'); preNote.className = 'anavo-qb-ed-note';
-      preNote.textContent = 'Prices are starter values — replace them with yours.';
+      preNote.textContent = 'Change the template, fonts, colours and starting prices in Customize, in your Anavo account. Edit the wording and prices of this copy below.';
       preSec.appendChild(preNote);
       body.appendChild(preSec);
 
@@ -1343,23 +1535,46 @@
 
       if (cfg.steps.length >= MAX_STEPS) {
         var clampNote = document.createElement('div'); clampNote.className = 'anavo-qb-ed-note';
-        clampNote.textContent = 'Quotes convert best at ' + MIN_STEPS + '–' + MAX_STEPS + ' steps. Need more? See Full Customization below.';
+        clampNote.textContent = 'Quotes convert best at ' + MIN_STEPS + '–' + MAX_STEPS + ' steps. Need more? See Advanced customization below.';
         stepsSec.appendChild(clampNote);
       }
       body.appendChild(stepsSec);
 
-      // Full Customization upsell — shown where the limits are felt.
+      // Paid customization — shown where the limits are felt, not on arrival.
+      // Two tiers rather than one, because "I need one more step" and "I need
+      // conditional pricing" are not the same job and should not share a price.
       var upSec = document.createElement('div'); upSec.className = 'anavo-qb-ed-section';
-      var up = document.createElement('div'); up.className = 'anavo-qb-upsell';
-      up.innerHTML =
-        '<div class="anavo-qb-upsell-hd">Need it further customized?</div>' +
-        '<div class="anavo-qb-upsell-bd">Custom steps, conditional pricing, CRM integration — built by our devs for <strong>USD 500</strong> or <strong>1500 credits</strong>.</div>';
-      var upCta = document.createElement('a'); upCta.className = 'anavo-qb-upsell-cta';
-      upCta.href = 'https://anavo.tech/plugins/quotation-builder/full-customization?domain=' + encodeURIComponent(CFG.domain);
-      upCta.target = '_blank'; upCta.rel = 'noopener';
-      upCta.textContent = 'Create an Order →';
-      up.appendChild(upCta);
-      upSec.appendChild(up);
+      upSec.innerHTML = '<span class="anavo-qb-ed-lbl">Built to order</span>';
+
+      [
+        {
+          id:    'basic',
+          name:  'Basic',
+          price: 'USD 200',
+          credits: '5,000 credits',
+          body:  'We rewrite your steps, options and prices for you. Same number of steps, same layout.'
+        },
+        {
+          id:    'advanced',
+          name:  'Advanced',
+          price: 'USD 500',
+          credits: '12,500 credits',
+          body:  'More steps, any number of options per step, up to three extra pricing calculations, and custom CSS.'
+        }
+      ].forEach(function (pkg) {
+        var up = document.createElement('div'); up.className = 'anavo-qb-upsell';
+        up.innerHTML =
+          '<div class="anavo-qb-upsell-hd">' + pkg.name + ' customization' +
+          '<span class="anavo-qb-upsell-px">' + pkg.price + ' &middot; ' + pkg.credits + '</span></div>' +
+          '<div class="anavo-qb-upsell-bd">' + pkg.body + '</div>';
+        var upCta = document.createElement('a'); upCta.className = 'anavo-qb-upsell-cta';
+        upCta.href = 'https://anavo.tech/?view=my-plugins&plugin=quotation-builder&order=' + pkg.id +
+          '&domain=' + encodeURIComponent(CFG.domain);
+        upCta.target = '_blank'; upCta.rel = 'noopener';
+        upCta.textContent = 'Create an Order \u2192';
+        up.appendChild(upCta);
+        upSec.appendChild(up);
+      });
       body.appendChild(upSec);
 
       // Script tag
@@ -1488,7 +1703,10 @@
     if (CFG.configId) {
       fetch(CFG.apiBase + '/api/quotation/config?domain=' + encodeURIComponent(CFG.domain) + '&configId=' + encodeURIComponent(CFG.configId))
         .then(function (r) { return r.json(); })
-        .then(function (d) { launch(normalizeConfig(d.config) || buildPreset(CFG.preset)); })
+        .then(function (d) {
+          var saved = normalizeConfig(d.config);
+          launch(saved ? reseat(saved) : buildPreset(CFG.preset));
+        })
         .catch(function () { launch(buildPreset(CFG.preset)); });
     } else {
       launch(buildPreset(CFG.preset));
@@ -1499,13 +1717,31 @@
   }
 
   /**
+   * The store decides which template a site runs. If the owner switched it in
+   * Customize, the saved config is re-seated onto the new one instead of
+   * quietly ignoring the script tag — otherwise the account would show one
+   * template and the page would keep rendering another.
+   *
+   * Only an explicitly supplied `preset` counts. A site installed before the
+   * store wrote the parameter falls through to whatever it saved.
+   */
+  function reseat(config) {
+    if (!has('preset')) return config;
+    if (!Object.prototype.hasOwnProperty.call(PRESETS, CFG.preset)) return config;
+    if (config.preset === CFG.preset) return config;
+    console.warn('[Anavo QB] Template switched to "' + CFG.preset + '" in your Anavo account. ' +
+      'Steps and prices were rebuilt from that template; prices you had edited were not carried over.');
+    return rebaseConfig(config, CFG.preset);
+  }
+
+  /**
    * A saved config predates the copy fields and the preset marker, so fill in
    * whatever is missing rather than letting `undefined` reach the UI.
    */
   function normalizeConfig(config) {
     if (!config || !Array.isArray(config.steps) || !config.steps.length) return null;
     config.copy = Object.assign({}, DEFAULT_COPY, config.copy || {});
-    if (!Object.prototype.hasOwnProperty.call(PRESETS, config.preset)) config.preset = 'custom';
+    if (!Object.prototype.hasOwnProperty.call(PRESETS, config.preset)) config.preset = 'photographer';
     if (config.emailLead !== true) config.emailLead = false;
     return config;
   }
@@ -1529,6 +1765,6 @@
   }
 
   window.AnavoPluginState = window.AnavoPluginState || { plugins: {} };
-  window.AnavoPluginState.plugins['QuotationBuilder'] = { version: '2.1.1', config: CFG };
+  window.AnavoPluginState.plugins['QuotationBuilder'] = { version: '2.2.0', config: CFG };
 
 })();

@@ -1,5 +1,27 @@
 # Changelog — Quotation Builder
 
+## [2.2.0] — 2026-10-06
+### Added
+- Every colour, font, interface style, button shape and starting price can now
+  be set from the store's Customize dialog and arrives as a script-tag
+  parameter. Appearance comes from the tag, content from the saved config —
+  where they overlap, an explicitly supplied parameter wins and an absent one
+  falls back to the config, so sites already installed keep their look.
+- `prices` parameter: a compact `s{step}o{option}` / `s{step}u` encoding that
+  overrides only the starting prices the owner actually changed.
+- `presets.json`, generated from the plugin source by `npm run export-presets`,
+  so the store can list templates and their prices without parsing the widget.
+  `npm run validate` fails if it is out of date.
+- 109 CSS rules now resolve through `--aqb-*` custom properties on `:root`.
+### Changed
+- Template selection moved out of the in-page editor panel and into the store.
+  An existing config saved as `custom` is relabelled `photographer` and keeps
+  its own steps.
+- "Start from scratch" is gone. An empty builder with no questions is not
+  something an owner finishes alone, so it is replaced by two packages we
+  fulfil by hand — Basic (USD 200) and Advanced (USD 500) — linked from the
+  two upsell cards in the editor.
+
 ## [2.1.1] — 2026-10-05
 ### Fixed
 - Saving a config no longer looks finished when it isn't. The live page keeps
